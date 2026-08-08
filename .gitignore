@@ -4,7 +4,6 @@ dist-ts
 .local-data
 .env
 .env.*
-!.env.example
 logs
 .vite
 playwright-report
