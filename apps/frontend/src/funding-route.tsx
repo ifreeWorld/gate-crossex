@@ -34,6 +34,7 @@ import {
 import { useLanguage } from './i18n.js';
 
 const FundingHistoryChart = lazy(() => import('./charts.js').then((module) => ({ default: module.FundingHistoryChart })));
+const FUNDING_OVERVIEW_POLL_MS = 10_000;
 
 interface FundingPairRow {
   asset: string;
@@ -342,8 +343,11 @@ export function FundingRatesView({ marketSnapshot, onMarketFallback, onOpenAsset
   // Poll the all-pairs overview while this page is mounted; the backend fetches nothing otherwise.
   useEffect(() => {
     let cancelled = false;
+    let inFlight = false;
     const load = () => {
-      api.fundingOverview()
+      if (inFlight) return;
+      inFlight = true;
+      api.fundingOverview({ fresh: true })
         .then((response) => { if (!cancelled) { onFundingOverview(response); setOverviewState('live'); } })
         .catch(() => {
           if (cancelled) return;
@@ -352,10 +356,11 @@ export function FundingRatesView({ marketSnapshot, onMarketFallback, onOpenAsset
             marketFallbackRequestedRef.current = true;
             void onMarketFallback().catch(() => undefined);
           }
-        });
+        })
+        .finally(() => { inFlight = false; });
     };
     load();
-    const timer = window.setInterval(load, 30_000);
+    const timer = window.setInterval(load, FUNDING_OVERVIEW_POLL_MS);
     return () => { cancelled = true; window.clearInterval(timer); };
   }, [onFundingOverview, onMarketFallback]);
 

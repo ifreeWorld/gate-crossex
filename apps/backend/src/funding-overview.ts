@@ -74,6 +74,12 @@ export class FundingOverviewService {
     if (last === null) await refresh;
   }
 
+  /** Explicit page-level refresh: bypass the normal cache window and return only after it lands. */
+  async refreshNow(): Promise<void> {
+    if (typeof this.gateway.queryVenueFundingStats !== 'function') return;
+    await this.refresh();
+  }
+
   private currentFreshMs(now = this.now()): number {
     return fundingOverviewRefreshInterval(now) === DEFAULT_SETTLEMENT_FRESH_MS
       ? this.settlementFreshMs

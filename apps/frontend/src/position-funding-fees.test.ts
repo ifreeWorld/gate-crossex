@@ -1,21 +1,41 @@
 import { describe, expect, it } from 'vitest';
 import type { PortfolioFuturesPosition } from '@gate-crossex/shared-types';
-import { aggregatePositionFundingFee, positionFundingFee } from './position-funding-fees.js';
+import {
+  aggregatePositionFundingFee,
+  aggregatePositionTradingFee,
+  netPositionPnl,
+  pnlIncludingSettledFunding,
+  positionFundingFee,
+  positionTradingFee,
+} from './position-funding-fees.js';
 
 function portfolioPosition(
   positionId: string,
   symbol: string,
   fundingFee: string,
+  fee = '0',
 ): PortfolioFuturesPosition {
   return {
     positionId, symbol, fundingFee, positionSide: 'LONG', initialMargin: '0', maintenanceMargin: '0',
     quantity: '1', value: '1', unrealizedPnl: '0', unrealizedPnlRate: '0', entryPrice: '1', markPrice: '1',
-    leverage: '1', maxLeverage: '1', riskLimit: '0', fee: '0', fundingTime: '0', createdAt: '', updatedAt: '',
+    leverage: '1', maxLeverage: '1', riskLimit: '0', fee, fundingTime: '0', createdAt: '', updatedAt: '',
     realizedPnl: '0',
   };
 }
 
 describe('position funding fees', () => {
+  it('adds settled funding to price PnL without adding an unavailable value', () => {
+    expect(pnlIncludingSettledFunding(-1.5, 0.4)).toBeCloseTo(-1.1);
+    expect(pnlIncludingSettledFunding(2, -0.25)).toBeCloseTo(1.75);
+    expect(pnlIncludingSettledFunding(2, null)).toBe(2);
+  });
+
+  it('subtracts charged position fees while preserving negative maker rebates', () => {
+    expect(netPositionPnl(10, -1.5, 0.2)).toBeCloseTo(8.3);
+    expect(netPositionPnl(10, 0.5, -0.1)).toBeCloseTo(10.6);
+    expect(netPositionPnl(10, null, null)).toBe(10);
+  });
+
   it('matches by position id before symbol and sums complete venue legs', () => {
     const sources = [
       portfolioPosition('long-1', 'BINANCE_FUTURE_BTC_USDT', '1.25'),
@@ -45,5 +65,18 @@ describe('position funding fees', () => {
       portfolioPosition('short-1', 'OKX_FUTURE_ETH_USDT', '-0.1'),
     ];
     expect(positionFundingFee({ position_id: 'missing', symbol: 'OKX_FUTURE_ETH_USDT' }, ambiguous)).toBeNull();
+  });
+
+  it('matches and aggregates the exchange-reported fee for the current open positions', () => {
+    const sources = [
+      portfolioPosition('left', 'BINANCE_FUTURE_SKHY_USDT', '0', '0.21517057'),
+      portfolioPosition('right', 'BINANCE_FUTURE_SKHYNIX_USDT', '0', '0.21443242'),
+    ];
+    expect(positionTradingFee({ position_id: 'left', symbol: 'BINANCE_FUTURE_SKHY_USDT' }, sources))
+      .toBeCloseTo(0.21517057);
+    expect(aggregatePositionTradingFee([
+      { position_id: 'left', symbol: 'BINANCE_FUTURE_SKHY_USDT' },
+      { position_id: 'right', symbol: 'BINANCE_FUTURE_SKHYNIX_USDT' },
+    ], sources)).toBeCloseTo(0.42960299);
   });
 });

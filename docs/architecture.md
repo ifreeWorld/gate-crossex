@@ -50,6 +50,9 @@ See [integration boundaries](integration.md) for the external endpoint and chann
 - Strategies act only on fresh validated quotes, track acknowledged fills, repair leg imbalance, and pause when recovery fails.
 - Locking trading, changing credentials, stopping a strategy, or shutting down quiesces locally tracked open orders.
 
+See [premium strategy position lifecycle](premium-strategy-behavior.md) for take-profit behavior and
+the known limitation when attaching a new reduce-only strategy to existing positions.
+
 ## Distribution
 
 Source launchers build and run the same local backend and frontend. Prebuilt macOS and Windows archives add a private Node.js runtime and platform-specific per-user startup integration. Installers verify the archive checksum and manifest, back up the database before updates, health-check new versions, and roll back failed activation.

@@ -67,6 +67,18 @@ describe('funding overview service', () => {
     expect(calls).toBe(FUNDING_STAT_VENUES.length * 2);
   });
 
+  it('supports an explicit awaited refresh that bypasses the normal cache window', async () => {
+    let calls = 0;
+    const gateway = gatewayReturning(() => [], () => { calls += 1; });
+    const service = new FundingOverviewService(gateway, { freshMs: 5 * 60_000, now: () => 1_000 });
+
+    await service.ensureFresh();
+    expect(calls).toBe(FUNDING_STAT_VENUES.length);
+
+    await service.refreshNow();
+    expect(calls).toBe(FUNDING_STAT_VENUES.length * 2);
+  });
+
   it('a quote mismatch between catalog and venue listing yields no stat', async () => {
     const gateway = gatewayReturning((venue) => venue === 'GATE' ? [gateBtcStat] : []);
     const service = new FundingOverviewService(gateway, { now: () => 0 });

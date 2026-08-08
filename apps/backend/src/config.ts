@@ -5,6 +5,7 @@ const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../..')
 
 export interface BackendConfig {
   host: string;
+  allowAnyHost: boolean;
   port: number;
   dataDir: string;
   databasePath: string;
@@ -29,6 +30,10 @@ function parsePort(value: string, name: string): number {
 
 export function loadConfig(environment: NodeJS.ProcessEnv = process.env): BackendConfig {
   const host = environment.GCT_HOST ?? '127.0.0.1';
+  // Binding every interface is an explicit opt-in to remote access. In that mode the address
+  // used by a client may be a LAN IP, public IP, or domain name, so a static Host allowlist
+  // cannot describe the interfaces on which the service is intentionally reachable.
+  const allowAnyHost = host === '0.0.0.0' || host === '::';
   const port = parsePort(environment.PORT ?? environment.GCT_PORT ?? '17840', 'GCT_PORT');
   const frontendPort = parsePort(environment.GCT_FRONTEND_PORT ?? '5173', 'GCT_FRONTEND_PORT');
   const dataDir = resolve(environment.GCT_DATA_DIR ?? join(projectRoot, '.local-data'));
@@ -47,6 +52,7 @@ export function loadConfig(environment: NodeJS.ProcessEnv = process.env): Backen
   ]);
   return {
     host,
+    allowAnyHost,
     port,
     dataDir,
     databasePath: join(dataDir, 'gate-crossex.sqlite'),

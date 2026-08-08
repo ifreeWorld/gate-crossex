@@ -1,7 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { AreaSeries, CandlestickSeries, ColorType, createChart, CrosshairMode, HistogramSeries, LineSeries, LineStyle, TickMarkType, type AreaData, type CandlestickData, type IChartApi, type ISeriesApi, type LogicalRange, type Time, type UTCTimestamp } from 'lightweight-charts';
 import type { Candle, CandleInterval } from './api.js';
-import type { PremiumHistoryPoint } from './premium-history.js';
+import type { PremiumHistoryPoint, PremiumMovingAverageSeries } from './premium-history.js';
 import type { PriceDifferenceHistoryPoint } from './price-difference-history.js';
 
 type ChartTheme = 'dark' | 'light';
@@ -148,6 +148,12 @@ interface HistoryChartProps<T extends HistoryChartPoint> {
   onLoadMore: () => void;
 }
 
+interface HistoryOverlaySeries {
+  id: string;
+  color: string;
+  points: HistoryChartPoint[];
+}
+
 const PREMIUM_PALETTES: Record<ChartTheme, { grid: string; label: string; line: string; fillTop: string; fillBottom: string; crosshair: string }> = {
   dark: {
     grid: '#1a2524',
@@ -182,12 +188,14 @@ function SpreadHistoryChart<T extends HistoryChartPoint>({
   placeholder,
   onHover,
   onLoadMore,
+  overlays = [],
   unit,
   ariaLabel,
-}: HistoryChartProps<T> & { unit: '%' | ' bps'; ariaLabel: string }) {
+}: HistoryChartProps<T> & { overlays?: HistoryOverlaySeries[]; unit: '%' | ' bps'; ariaLabel: string }) {
   const hostRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<'Area'> | null>(null);
+  const overlaySeriesRef = useRef<Map<string, ISeriesApi<'Line'>>>(new Map());
   const pointByTimeRef = useRef<Map<number, T>>(new Map());
   const onHoverRef = useRef(onHover);
   const onLoadMoreRef = useRef(onLoadMore);
@@ -229,6 +237,7 @@ function SpreadHistoryChart<T extends HistoryChartPoint>({
     return () => {
       chartRef.current = null;
       seriesRef.current = null;
+      overlaySeriesRef.current = new Map();
       chart.timeScale().unsubscribeVisibleLogicalRangeChange(handleVisibleRange);
       chart.remove();
     };
@@ -284,6 +293,36 @@ function SpreadHistoryChart<T extends HistoryChartPoint>({
 
   useEffect(() => {
     const chart = chartRef.current;
+    if (!chart) return;
+    const wanted = new Set(overlays.map((overlay) => overlay.id));
+    for (const [id, series] of overlaySeriesRef.current) {
+      if (wanted.has(id)) continue;
+      chart.removeSeries(series);
+      overlaySeriesRef.current.delete(id);
+    }
+    for (const overlay of overlays) {
+      let series = overlaySeriesRef.current.get(overlay.id);
+      if (!series) {
+        series = chart.addSeries(LineSeries, {
+          color: overlay.color,
+          lineWidth: 1,
+          priceLineVisible: false,
+          lastValueVisible: false,
+          crosshairMarkerVisible: false,
+        });
+        overlaySeriesRef.current.set(overlay.id, series);
+      } else {
+        series.applyOptions({ color: overlay.color });
+      }
+      series.setData(overlay.points.map((point) => ({
+        time: Math.floor(point.time / 1000) as UTCTimestamp,
+        value: point.value,
+      })));
+    }
+  }, [overlays]);
+
+  useEffect(() => {
+    const chart = chartRef.current;
     const series = seriesRef.current;
     if (!chart || !series) return;
     const nextOldestTime = points[0]?.time ?? null;
@@ -319,8 +358,13 @@ function SpreadHistoryChart<T extends HistoryChartPoint>({
   </div>;
 }
 
-export function PremiumHistoryChart(props: HistoryChartProps<PremiumHistoryPoint>) {
-  return <SpreadHistoryChart {...props} unit="%" ariaLabel="Historical ADR premium" />;
+export function PremiumHistoryChart({ movingAverages, ...props }: HistoryChartProps<PremiumHistoryPoint> & { movingAverages: PremiumMovingAverageSeries[] }) {
+  const overlays = useMemo(() => movingAverages.map((series) => ({
+    id: `ma-${series.period}`,
+    color: series.color,
+    points: series.points,
+  })), [movingAverages]);
+  return <SpreadHistoryChart {...props} overlays={overlays} unit="%" ariaLabel="Historical ADR premium" />;
 }
 
 export function PriceDifferenceHistoryChart(props: HistoryChartProps<PriceDifferenceHistoryPoint>) {

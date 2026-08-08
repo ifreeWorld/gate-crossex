@@ -765,6 +765,52 @@ describe('strategy engine', () => {
     expect(gateway.createdOrders).toHaveLength(4);
   });
 
+  it('closes explicit position quantities and assigns rounding dust to the final reduce-only clip', async () => {
+    const { engine, runtime, gateway, markets, database } = await createHarness();
+    gateway.positions = [
+      futuresPosition('BINANCE_FUTURE_SKHY_USDT', 'SHORT', '8.3'),
+      futuresPosition('BINANCE_FUTURE_SKHYNIX_USDT', 'LONG', '1.12'),
+    ];
+    // At these executable prices equal-notional sizing would request about 1.1258 SKHYNIX and
+    // fail preflight. The explicit position target must use the actual 1.12 instead.
+    markets.set('BINANCE_FUTURE_SKHY_USDT', '135.22', '135.23');
+    markets.set('BINANCE_FUTURE_SKHYNIX_USDT', '996.98', '997.0');
+    database.prepare("UPDATE crossex_instruments SET min_size = ?, lot_size = ? WHERE symbol = ?")
+      .run('0.1', '0.1', 'BINANCE_FUTURE_SKHY_USDT');
+    database.prepare("UPDATE crossex_instruments SET min_size = ?, lot_size = ? WHERE symbol = ?")
+      .run('0.01', '0.01', 'BINANCE_FUTURE_SKHYNIX_USDT');
+
+    const record = await engine.startStrategy({
+      kind: 'premium', asset: 'SKHY', hedgeAsset: 'SKHYNIX', adrRatio: '10', hedgeMode: 'EQUAL_NOTIONAL',
+      hedgeCloseQuantity: '1.12',
+      leftVenue: 'BINANCE', rightVenue: 'BINANCE', leftSide: 'BUY', rightSide: 'SELL',
+      entryPremiumPct: '40', maxPosition: '8.3', perOrderQuantity: '3',
+      reduceOnly: true, executionMethod: 'TAKER_TAKER',
+    });
+
+    const expectedClips = [
+      { left: '3', right: '0.4' },
+      { left: '3', right: '0.4' },
+      // The final clip receives 1.12 - 0.4 - 0.4, rather than rounding 2.3 / 8.3 × 1.12 down.
+      { left: '2.3', right: '0.32' },
+    ];
+    for (const [index, expected] of expectedClips.entries()) {
+      const tick = engine.tick();
+      await waitFor(() => gateway.createdOrders.length === (index + 1) * 2);
+      const [left, right] = gateway.createdOrders.slice(index * 2, index * 2 + 2);
+      expect(left).toMatchObject({ symbol: 'BINANCE_FUTURE_SKHY_USDT', side: 'BUY', qty: expected.left, reduce_only: 'true' });
+      expect(right).toMatchObject({ symbol: 'BINANCE_FUTURE_SKHYNIX_USDT', side: 'SELL', qty: expected.right, reduce_only: 'true' });
+      ackOrder(runtime, `remote-${index * 2 + 1}`, 'FILLED', expected.left, '135.23');
+      ackOrder(runtime, `remote-${index * 2 + 2}`, 'FILLED', expected.right, '996.98');
+      await tick;
+    }
+
+    await waitFor(() => runtime.getStrategy(record.id).status === 'COMPLETED');
+    expect(gateway.createdOrders.filter((order) => order.symbol.includes('SKHYNIX'))
+      .reduce((sum, order) => sum + Number(order.qty), 0)).toBeCloseTo(1.12, 12);
+    expect(runtime.getStrategy(record.id)).toMatchObject({ progress: 100, openPosition: '0' });
+  });
+
   it('rejects reduce-only premium strategies that do not fit the current positions', async () => {
     const { engine, runtime, gateway, markets } = await createHarness();
     gateway.positions = [

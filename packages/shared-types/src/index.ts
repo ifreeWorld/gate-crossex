@@ -756,6 +756,8 @@ export const StrategyConfigSchema = z.object({
   hedgeAsset: z.string().optional(),
   adrRatio: PositiveDecimalTextSchema.optional(),
   hedgeMode: z.enum(['SHARE_RATIO', 'EQUAL_NOTIONAL']).optional(),
+  /** Exact hedge-leg shares to close for a position-aware premium reduce-only strategy. */
+  hedgeCloseQuantity: PositiveDecimalTextSchema.optional(),
   leftLeverage: PositiveDecimalTextSchema.optional(),
   rightLeverage: PositiveDecimalTextSchema.optional(),
   leftVenue: z.string(),

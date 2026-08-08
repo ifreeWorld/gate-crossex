@@ -38,6 +38,11 @@ export const CreateStrategyInputSchema = z.object({
    * EQUAL_NOTIONAL matches dollar value at each clip's execution prices, dollar-neutral at entry.
    */
   hedgeMode: z.enum(['SHARE_RATIO', 'EQUAL_NOTIONAL']).default('SHARE_RATIO'),
+  /**
+   * premium reduce-only: exact total hedge-leg shares to close. New position-aware strategies
+   * persist this independently from hedgeMode so later price changes cannot alter the amount.
+   */
+  hedgeCloseQuantity: decimalText.optional(),
   /** Desired leverage for each perpetual leg. Defaults preserve legacy strategy records. */
   leftLeverage: decimalText.refine((value) => new Decimal(value).lte(200)).default('1'),
   rightLeverage: decimalText.refine((value) => new Decimal(value).lte(200)).default('1'),
@@ -72,6 +77,9 @@ export const CreateStrategyInputSchema = z.object({
   if (value.kind === 'auto' && (!value.maxPosition || !value.takeProfitBps)) context.addIssue({ code: 'custom', path: ['maxPosition'], message: 'max position and take profit are required' });
   if (value.executionMethod === 'MAKER_TAKER' && !value.makerLeg) context.addIssue({ code: 'custom', path: ['makerLeg'], message: 'maker leg is required' });
   if (value.kind !== 'premium' && value.hedgeMode === 'EQUAL_NOTIONAL') context.addIssue({ code: 'custom', path: ['hedgeMode'], message: 'equal-notional hedging is a premium-strategy option' });
+  if (value.hedgeCloseQuantity !== undefined && (value.kind !== 'premium' || !value.reduceOnly)) {
+    context.addIssue({ code: 'custom', path: ['hedgeCloseQuantity'], message: 'hedge close quantity is a premium reduce-only option' });
+  }
   if (value.kind === 'premium') {
     if (!value.hedgeAsset) context.addIssue({ code: 'custom', path: ['hedgeAsset'], message: 'hedge asset is required' });
     else if (value.hedgeAsset === value.asset) context.addIssue({ code: 'custom', path: ['hedgeAsset'], message: 'hedge asset must differ from the ADR asset' });
@@ -169,6 +177,12 @@ function isDefinitiveSubmitRejection(error: unknown): boolean {
   return error instanceof GateApiError && error.statusCode >= 400 && error.statusCode < 500;
 }
 
+function isRemoteOrderNotFound(error: unknown): boolean {
+  return error instanceof GateApiError && (error.statusCode === 404
+    || error.label === 'ORDER_NOT_FOUND'
+    || error.label === 'TRADE_ORDER_NOT_FOUND_ERROR');
+}
+
 export interface PlaceOrderMetadata {
   strategyId: string;
   strategyLeg: 'left' | 'right';
@@ -222,6 +236,7 @@ export class TradingRuntime {
   ) {
     this.submitResolvePollMs = options.submitResolvePollMs ?? 2_500;
     this.submitResolveMaxAttempts = options.submitResolveMaxAttempts ?? 24;
+    this.reconcilePersistedOpenOrders();
   }
 
   subscribe(listener: RuntimeListener): () => void { this.listeners.add(listener); return () => this.listeners.delete(listener); }
@@ -502,6 +517,8 @@ export class TradingRuntime {
       (id, order_id, symbol, venue, side, quantity, price, fee, realized_pnl, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
     const recovered: RecordedFill[] = [];
+    const matchedOrderIds = new Set<string>();
+    const changedOrderIds = new Set<string>();
 
     this.database.transaction(() => {
       for (const fill of fills) {
@@ -510,6 +527,7 @@ export class TradingRuntime {
           id: string; strategy_id: string | null; strategy_leg: string | null;
         } | undefined;
         if (!order) continue;
+        matchedOrderIds.add(order.id);
         const result = insert.run(fill.transactionId, order.id, fill.symbol, fill.venue, fill.side,
           fill.quantity, fill.price, fill.fee, fill.realizedPnl, fill.createdAt);
         if (result.changes === 0) continue;
@@ -526,11 +544,75 @@ export class TradingRuntime {
           matchRole: fill.matchRole || null,
         });
       }
+      for (const orderId of matchedOrderIds) {
+        if (this.reconcileOrderFromStoredFills(orderId)) changedOrderIds.add(orderId);
+      }
     })();
 
     for (const fill of recovered) this.notifyFillListeners(fill);
-    if (recovered.length > 0) this.emit({ type: 'execution.snapshot', payload: this.snapshot() });
+    for (const orderId of changedOrderIds) {
+      const order = this.getOrder(orderId);
+      this.emit({ type: 'execution.update', payload: order });
+      this.notifyOrderListeners(order);
+    }
+    if (recovered.length > 0 || changedOrderIds.size > 0) {
+      this.emit({ type: 'execution.snapshot', payload: this.snapshot() });
+    }
     return recovered.length;
+  }
+
+  /**
+   * Recover order progress from persisted fills. REST portfolio history can arrive after a missed
+   * private order push, so fills must repair both the fill ledger and the parent order row.
+   */
+  private reconcileOrderFromStoredFills(id: string): boolean {
+    const row = this.statement("SELECT * FROM execution_orders WHERE id = ? AND environment = 'live'").get(id) as OrderRow | undefined;
+    if (!row) return false;
+    const fills = this.statement('SELECT quantity, price FROM execution_fills WHERE order_id = ?').all(id) as Array<{
+      quantity: string;
+      price: string;
+    }>;
+    if (fills.length === 0) return false;
+
+    let storedQuantity = new Decimal(0);
+    let storedAmount = new Decimal(0);
+    for (const fill of fills) {
+      const quantity = new Decimal(fill.quantity);
+      storedQuantity = storedQuantity.plus(quantity);
+      storedAmount = storedAmount.plus(quantity.mul(fill.price));
+    }
+
+    const currentQuantity = new Decimal(row.executed_quantity || '0');
+    const effectiveQuantity = Decimal.max(currentQuantity, storedQuantity);
+    const requestedQuantity = new Decimal(row.quantity);
+    const nextState = effectiveQuantity.gte(requestedQuantity)
+      ? 'FILLED'
+      : effectiveQuantity.gt(0) && !isTerminalOrderState(row.state)
+        ? 'PARTIALLY_FILLED'
+        : row.state;
+    const nextQuantity = effectiveQuantity.toString();
+    const nextAveragePrice = storedQuantity.gte(currentQuantity) && storedQuantity.gt(0)
+      ? storedAmount.div(storedQuantity).toString()
+      : row.executed_average_price;
+    if (nextState === row.state && nextQuantity === row.executed_quantity
+      && nextAveragePrice === row.executed_average_price) return false;
+
+    this.database.prepare(`UPDATE execution_orders SET state = ?, executed_quantity = ?, executed_average_price = ?, updated_at = ?
+      WHERE id = ?`).run(nextState, nextQuantity, nextAveragePrice, new Date().toISOString(), id);
+    return true;
+  }
+
+  /** Repair stale open states left by a missed private push before the first UI snapshot. */
+  private reconcilePersistedOpenOrders(): void {
+    const placeholders = OPEN_ORDER_STATES.map(() => '?').join(', ');
+    const rows = this.database.prepare(`SELECT DISTINCT execution_orders.id
+      FROM execution_orders
+      JOIN execution_fills ON execution_fills.order_id = execution_orders.id
+      WHERE execution_orders.environment = 'live' AND execution_orders.state IN (${placeholders})`)
+      .all(...OPEN_ORDER_STATES) as Array<{ id: string }>;
+    this.database.transaction(() => {
+      for (const row of rows) this.reconcileOrderFromStoredFills(row.id);
+    })();
   }
 
   /**
@@ -767,6 +849,7 @@ export class TradingRuntime {
   }
 
   private async cancelOrderOnce(id: string): Promise<ExecutionOrder> {
+    this.reconcileOrderFromStoredFills(id);
     const order = this.getOrder(id);
     if (isTerminalOrderState(order.state)) throw new TradingRuntimeError('order_not_cancellable', 409);
     if (order.state === 'PENDING_CANCEL') return order;
@@ -774,7 +857,29 @@ export class TradingRuntime {
     if (!credentials) throw new TradingRuntimeError('credential_not_configured', 409);
     const tradingGateway = this.gateway as Partial<TradingCrossExGateway>;
     if (!tradingGateway.cancelOrder) throw new TradingRuntimeError('live_gateway_unavailable', 503);
-    await tradingGateway.cancelOrder(credentials, order.remoteOrderId ?? order.clientOrderId);
+    try {
+      await tradingGateway.cancelOrder(credentials, order.remoteOrderId ?? order.clientOrderId);
+    } catch (error) {
+      if (!isRemoteOrderNotFound(error)) throw error;
+
+      // Gate no longer considers the order cancellable. Recover its terminal state from the
+      // order-details endpoint when possible; REST-recovered fills are the fallback when the
+      // details endpoint has already evicted the order too.
+      try {
+        const refreshed = await this.refreshOrderFromRemote(id);
+        if (refreshed && isTerminalOrderState(refreshed.state)) {
+          throw new TradingRuntimeError('order_not_cancellable', 409);
+        }
+      } catch (refreshError) {
+        if (refreshError instanceof TradingRuntimeError) throw refreshError;
+        if (!isRemoteOrderNotFound(refreshError)) throw error;
+        this.reconcileOrderFromStoredFills(id);
+        const recovered = this.getOrder(id);
+        if (!isTerminalOrderState(recovered.state)) this.markOrderRemoteMissing(id);
+        throw new TradingRuntimeError('order_not_cancellable', 409);
+      }
+      throw error;
+    }
     this.database.prepare(`UPDATE execution_orders SET state = 'PENDING_CANCEL', updated_at = ?
       WHERE id = ? AND state IN ('PENDING_SUBMIT', 'NEW', 'OPEN', 'PARTIALLY_FILLED')`)
       .run(new Date().toISOString(), id);

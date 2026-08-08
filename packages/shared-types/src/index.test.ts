@@ -25,6 +25,16 @@ describe('strategy config schema', () => {
     });
     expect(config.entryBps).toBe('-5');
   });
+
+  it('preserves an explicit hedge close quantity for premium reduce-only strategies', () => {
+    const config = StrategyConfigSchema.parse({
+      kind: 'premium', asset: 'SKHY', hedgeAsset: 'SKHYNIX', adrRatio: '10', hedgeMode: 'EQUAL_NOTIONAL',
+      hedgeCloseQuantity: '1.12', leftVenue: 'BINANCE', rightVenue: 'BINANCE', leftSide: 'BUY', rightSide: 'SELL',
+      entryPremiumPct: '33', maxPosition: '8.3', perOrderQuantity: '8.3', reduceOnly: true,
+      executionMethod: 'TAKER_TAKER',
+    });
+    expect(config.hedgeCloseQuantity).toBe('1.12');
+  });
 });
 
 describe('CrossEx transfer request schema', () => {

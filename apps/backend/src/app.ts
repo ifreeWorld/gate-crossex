@@ -831,7 +831,7 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
 
   app.addHook('onRequest', async (request, reply) => {
     const hostname = hostnameFromHeader(request.headers.host);
-    if (!hostname || !config.allowedHosts.has(hostname)) {
+    if (!hostname || (!config.allowAnyHost && !config.allowedHosts.has(hostname))) {
       return reply.code(403).send({ error: 'non_local_host_rejected' });
     }
 
@@ -1367,6 +1367,8 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
   });
 
   app.get('/api/markets/funding-overview', async (request, reply) => {
+    const query = z.object({ fresh: z.literal('1').optional() }).safeParse(request.query);
+    if (!query.success) return reply.code(400).send({ error: 'invalid_funding_overview_request' });
     let catalog = derivedMarketCatalog();
     if (!catalog) {
       try {
@@ -1383,7 +1385,8 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
         request.log.warn({ reason: error instanceof GateApiError ? error.label : 'PUBLIC_DATA_ERROR' }, 'market catalog refresh failed');
       });
     }
-    await fundingOverviewService.ensureFresh();
+    if (query.data.fresh === '1') await fundingOverviewService.refreshNow();
+    else await fundingOverviewService.ensureFresh();
     return fundingOverviewService.buildResponse(catalog) satisfies FundingOverviewResponse;
   });
 

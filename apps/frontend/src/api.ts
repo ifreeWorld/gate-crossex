@@ -243,7 +243,10 @@ export const api = {
   markets: () => request(MarketSnapshotSchema, '/api/markets'),
   marketCatalog: () => request(MarketCatalogResponseSchema, '/api/markets/catalog'),
   publicMarketSnapshot: (symbol: string) => request(PublicMarketSnapshotResponseSchema, `/api/crossex/instruments/${encodeURIComponent(symbol)}/market-snapshot`),
-  fundingOverview: () => request(FundingOverviewResponseSchema, '/api/markets/funding-overview'),
+  fundingOverview: (options: { fresh?: boolean } = {}) => request(
+    FundingOverviewResponseSchema,
+    `/api/markets/funding-overview${options.fresh ? '?fresh=1' : ''}`,
+  ),
   fundingHistory: (symbols: string[], durationDays: 1 | 7 | 30) => request(FundingHistoryResponseSchema, '/api/markets/funding-history', {
     method: 'POST',
     headers: { 'x-gct-read-intent': 'funding-history' },

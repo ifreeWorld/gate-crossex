@@ -26,6 +26,19 @@ describe('local API request coordination', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  it('marks an explicitly refreshed funding overview request', async () => {
+    const fetchMock = vi.fn(async (_path: string) => {
+      void _path;
+      return new Response(JSON.stringify({
+        assets: [], venueStatus: [], fetchedAt: '2026-08-07T15:30:00.000Z', cacheStatus: 'fresh',
+      }));
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(api.fundingOverview({ fresh: true })).resolves.toMatchObject({ cacheStatus: 'fresh' });
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('/api/markets/funding-overview?fresh=1');
+  });
+
   it('preserves the upstream Gate label when a leverage update is rejected', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({
       error: 'strategy_leverage_rejected',

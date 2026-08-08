@@ -14,6 +14,8 @@ import type {
 } from './api.js';
 import { api, ApiError } from './api.js';
 import { marketSymbol } from './market-symbol.js';
+import { netPositionPnl } from './position-funding-fees.js';
+import { PositionPnlHeader, PositionPnlTooltip } from './position-pnl-tooltip.js';
 import {
   OPEN_ORDER_STATES,
   VenueCell,
@@ -51,6 +53,8 @@ interface PortfolioViewProps {
 type PortfolioTab = 'positions' | 'orders' | 'fills' | 'margin';
 type ActivityTab = 'transfers' | 'funding-fees' | 'account-book';
 
+const PORTFOLIO_POLL_INTERVAL_MS = 5_000;
+
 interface PortfolioPositionRow {
   id: string;
   symbol: string;
@@ -67,6 +71,7 @@ interface PortfolioPositionRow {
   leverage: string | null;
   realized: number | null;
   fundingFee: number | null;
+  tradingFee: number | null;
 }
 
 function venueDisplayName(code: string): string {
@@ -112,6 +117,7 @@ export function PortfolioView({ tradingSnapshot, balances, portfolio, accountStr
   const [transferFeedback, setTransferFeedback] = useState<{ tone: 'success' | 'error'; message: string } | null>(null);
   const confirmDialogRef = useRef<HTMLElement | null>(null);
   const transferMonitorGeneration = useRef(0);
+  const portfolioRefreshInFlight = useRef(false);
   const locale = language === 'zh' ? 'zh-CN' : 'en-GB';
   const snapshot = portfolio?.snapshot ?? null;
   const account = snapshot?.account ?? null;
@@ -144,6 +150,7 @@ export function PortfolioView({ tradingSnapshot, balances, portfolio, accountStr
             leverage: position.leverage || null,
             realized: parseNumber(position.realizedPnl),
             fundingFee: parseNumber(position.fundingFee),
+            tradingFee: parseNumber(position.fee),
           };
         })
         .sort((a, b) => b.value - a.value);
@@ -170,6 +177,7 @@ export function PortfolioView({ tradingSnapshot, balances, portfolio, accountStr
           leverage: null,
           realized: parseNumber(position.realized_pnl),
           fundingFee: null,
+          tradingFee: null,
         };
       })
       .sort((a, b) => b.value - a.value);
@@ -331,6 +339,38 @@ export function PortfolioView({ tradingSnapshot, balances, portfolio, accountStr
       .catch(() => setTransferCoinError(true));
   }, [loadActivity, loadTransferBalances]);
 
+  const refreshPortfolio = useCallback(async (interactive: boolean) => {
+    if (portfolioRefreshInFlight.current) return;
+    portfolioRefreshInFlight.current = true;
+    if (interactive) setRefreshing(true);
+    try {
+      await onRefresh();
+    } catch {
+      // Keep the last good snapshot. The sync chip already communicates stale REST data.
+    } finally {
+      portfolioRefreshInFlight.current = false;
+      if (interactive) setRefreshing(false);
+    }
+  }, [onRefresh]);
+
+  useEffect(() => {
+    const poll = () => {
+      if (document.visibilityState === 'hidden') return;
+      void refreshPortfolio(false);
+    };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') poll();
+    };
+
+    poll();
+    const timer = window.setInterval(poll, PORTFOLIO_POLL_INTERVAL_MS);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [refreshPortfolio]);
+
   useEffect(() => {
     if (!pendingTransfer) return;
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -407,8 +447,15 @@ export function PortfolioView({ tradingSnapshot, balances, portfolio, accountStr
   }), [activity, normalizedActivityQuery]);
   const visibleAccountEntries = activityTab === 'funding-fees' ? visibleFundingFees : visibleAccountBook;
 
-  const futuresUnrealized = positionRows.reduce((sum, row) => sum + row.upnl, 0);
-  const unrealized = futuresUnrealized + marginRows.reduce((sum, row) => sum + row.upnl, 0);
+  const pricePnl = positionRows.reduce((sum, row) => sum + row.upnl, 0)
+    + marginRows.reduce((sum, row) => sum + row.upnl, 0);
+  const settledFunding = positionRows.every((row) => row.fundingFee !== null)
+    ? positionRows.reduce((sum, row) => sum + (row.fundingFee ?? 0), 0)
+    : null;
+  const tradingFees = positionRows.every((row) => row.tradingFee !== null)
+    ? positionRows.reduce((sum, row) => sum + (row.tradingFee ?? 0), 0)
+    : null;
+  const unrealized = netPositionPnl(pricePnl, settledFunding, tradingFees);
   const exposure = positionRows.reduce((sum, row) => sum + row.value, 0) + marginRows.reduce((sum, row) => sum + row.value, 0);
   const openLegCount = positionRows.length + marginRows.length;
 
@@ -476,11 +523,7 @@ export function PortfolioView({ tradingSnapshot, balances, portfolio, accountStr
     return new Date(timestamp).toLocaleString(locale, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
   };
 
-  async function refresh() {
-    if (refreshing) return;
-    setRefreshing(true);
-    try { await onRefresh(); } catch { /* The sync chip already reflects staleness. */ } finally { setRefreshing(false); }
-  }
+  async function refresh() { await refreshPortfolio(true); }
 
   function useMaximumAmount() {
     if (knownSourceAvailable === null) return;
@@ -617,8 +660,8 @@ export function PortfolioView({ tradingSnapshot, balances, portfolio, accountStr
         <em>{initialMargin !== null ? `${t('Initial margin')} $${formatAmount(initialMargin)}` : '—'}</em>
       </article>
       <article>
-        <span>{t('Unrealized PnL')}</span>
-        <strong className={unrealized >= 0 ? 'positive' : 'negative'}>{unrealized >= 0 ? '+' : '-'}${formatAmount(Math.abs(unrealized))}</strong>
+        <span>{t('Position PnL incl. funding and fees')}</span>
+        <strong><PositionPnlTooltip className={unrealized >= 0 ? 'positive' : 'negative'} pricePnl={pricePnl} fundingFee={settledFunding} tradingFee={tradingFees} quote="USDT">{unrealized >= 0 ? '+' : '-'}${formatAmount(Math.abs(unrealized))}</PositionPnlTooltip></strong>
         <em>{t('Marked from CrossEx prices')}</em>
       </article>
       <article>
@@ -780,8 +823,8 @@ export function PortfolioView({ tradingSnapshot, balances, portfolio, accountStr
         <span className="spacer" />
         <span className="table-source">{tableSource}</span>
       </div>
-      {activeTab === 'positions' && (positionRows.length ? <div className="positions-table table-wrap"><table>
-        <thead><tr><th>{t('Contract')}</th><th>{t('Exchange')}</th><th>{t('Size')}</th><th>{t('Value')}</th><th>{t('Entry price')}</th><th>{t('Mark price')}</th><th>{t('Leverage')}</th><th>{t('Unrealized PnL')}</th><th>{t('Realized PnL')}</th><th>{t('Funding fee')}</th></tr></thead>
+      {activeTab === 'positions' && (positionRows.length ? <div className="positions-table portfolio-positions-table table-wrap"><table>
+        <thead><tr><th>{t('Contract')}</th><th>{t('Exchange')}</th><th>{t('Size')}</th><th>{t('Value')}</th><th>{t('Entry price')}</th><th>{t('Mark price')}</th><th>{t('Leverage')}</th><th className="position-pnl-column"><PositionPnlHeader /></th><th>{t('Realized PnL')}</th><th>{t('Funding fee')}</th></tr></thead>
         <tbody>{positionRows.map((row) => <tr key={row.id}>
           <td><strong>{marketSymbol(row.asset, row.quote, 'perpetual')}</strong><small className={row.side === 'Long' ? 'long-tag' : 'short-tag'}>{t(row.side)}</small></td>
           <td><VenueFromCode code={row.venue} /></td>
@@ -790,7 +833,7 @@ export function PortfolioView({ tradingSnapshot, balances, portfolio, accountStr
           <td>{priceText(row.entryPrice)}</td>
           <td>{priceText(row.markPrice)}</td>
           <td>{row.leverage ? `${row.leverage}×` : '—'}</td>
-          <td className={row.upnl >= 0 ? 'positive' : 'negative'}>{signedAmount(row.upnl)}{row.upnlRate !== null && <span className="pnl-rate">{signedAmount(row.upnlRate)}%</span>}</td>
+          <td className="position-pnl-column"><PositionPnlTooltip className={netPositionPnl(row.upnl, row.fundingFee, row.tradingFee) >= 0 ? 'positive' : 'negative'} pricePnl={row.upnl} fundingFee={row.fundingFee} tradingFee={row.tradingFee} quote={row.quote}>{signedAmount(netPositionPnl(row.upnl, row.fundingFee, row.tradingFee))}{row.upnlRate !== null && <span className="pnl-rate">{signedAmount(row.upnlRate)}%</span>}</PositionPnlTooltip></td>
           <td>{row.realized !== null ? signedAmount(row.realized) : '—'}</td>
           <td className={row.fundingFee !== null && row.fundingFee > 0 ? 'positive' : row.fundingFee !== null && row.fundingFee < 0 ? 'negative' : ''}>{row.fundingFee !== null ? signedAmount(row.fundingFee) : '—'}</td>
         </tr>)}</tbody>

@@ -41,12 +41,12 @@ describe('strategy positions', () => {
     expect(prepareStrategyPositions(portfolio({ remoteStatus: 'unavailable' }))).toEqual({ status: 'stale', rows: [] });
   });
 
-  it('maps non-zero fresh futures positions and sorts them by value', () => {
+  it('maps non-zero fresh futures positions and keeps longs before shorts', () => {
     const snapshot = portfolio();
     snapshot.snapshot.futuresPositions = [
       {
         positionId: 'small', symbol: 'GATE_FUTURE_SKHYNIX_USDT', positionSide: 'SHORT',
-        initialMargin: '0', maintenanceMargin: '0', quantity: '-1.3', value: '1546.7',
+        initialMargin: '0', maintenanceMargin: '0', quantity: '-1.3', value: '4546.7',
         unrealizedPnl: '-4.2', unrealizedPnlRate: '0', entryPrice: '1185', markPrice: '1189.77',
         leverage: '3', maxLeverage: '20', riskLimit: '0', fee: '0', fundingFee: '0', fundingTime: '',
         createdAt: '', updatedAt: '', realizedPnl: '0',
@@ -71,7 +71,7 @@ describe('strategy positions', () => {
       status: 'fresh',
       rows: [
         expect.objectContaining({ id: 'BINANCE:large', asset: 'SKHY', side: 'Long', value: 3187.6 }),
-        expect.objectContaining({ id: 'GATE:small', asset: 'SKHYNIX', side: 'Short', value: 1546.7 }),
+        expect.objectContaining({ id: 'GATE:small', asset: 'SKHYNIX', side: 'Short', value: 4546.7 }),
       ],
     });
   });
@@ -93,9 +93,37 @@ describe('strategy positions', () => {
     expect(prepareStrategyPositions(portfolio(), snapshot)).toEqual({
       status: 'fresh',
       rows: [
-        expect.objectContaining({ id: 'DERIBIT:deribit-hype', asset: 'HYPE', quote: 'USDC', side: 'Short', quantity: -100 }),
         expect.objectContaining({ id: 'BYBIT:bybit-hype', asset: 'HYPE', quote: 'USDT', side: 'Long', quantity: 100 }),
+        expect.objectContaining({ id: 'DERIBIT:deribit-hype', asset: 'HYPE', quote: 'USDC', side: 'Short', quantity: -100 }),
       ],
     });
   });
+
+  it('calculates PnL from the latest execution mark price instead of stale portfolio PnL', () => {
+    const account = portfolio();
+    account.snapshot.futuresPositions = [{
+      positionId: 'skhy', symbol: 'BINANCE_FUTURE_SKHY_USDT', positionSide: 'SHORT',
+      initialMargin: '0', maintenanceMargin: '0', quantity: '-3.2', value: '448',
+      unrealizedPnl: '99', unrealizedPnlRate: '0', entryPrice: '140.085', markPrice: '100',
+      leverage: '5', maxLeverage: '25', riskLimit: '1', fee: '0.2', fundingFee: '0.5', fundingTime: '',
+      createdAt: '', updatedAt: '2026-08-07T02:44:32.389Z', realizedPnl: '0',
+    }];
+    const snapshot = tradingSnapshot([{
+      position_id: 'skhy', symbol: 'BINANCE_FUTURE_SKHY_USDT', venue: 'BINANCE',
+      quantity: '-3.2', entry_price: '140.085', mark_price: '140.09', realized_pnl: '0',
+      updated_at: '2026-08-07T02:47:20.241Z',
+    }]);
+
+    expect(prepareStrategyPositions(account, snapshot)).toEqual({
+      status: 'fresh',
+      rows: [expect.objectContaining({
+        id: 'BINANCE:skhy', markPrice: 140.09, leverage: '5', unrealizedPnl: closeTo(-0.016),
+        fundingFee: 0.5, tradingFee: 0.2, netPnl: closeTo(0.284),
+      })],
+    });
+  });
 });
+
+function closeTo(expected: number) {
+  return expect.closeTo(expected, 10);
+}

@@ -37,6 +37,7 @@ interface GatewayScript {
   /** Runs while the exchange "processes" the submission, before the REST response returns. */
   duringCreate?: (order: CrossExOrderRequest, remoteId: string) => void;
   createError?: () => Error;
+  cancelError?: () => Error;
   queryOrder?: (orderId: string) => GateCrossExOrder;
 }
 
@@ -66,6 +67,7 @@ class ScriptedGateway implements TradingCrossExGateway {
   }
 
   async cancelOrder(_credentials: GateCredentials, orderId: string): Promise<GateOrderActionResponse> {
+    if (this.script.cancelError) throw this.script.cancelError();
     return { order_id: orderId, text: '' };
   }
 
@@ -80,6 +82,8 @@ interface Harness {
   database: Database.Database;
   runtime: TradingRuntime;
   gateway: ScriptedGateway;
+  session: TradingSession;
+  vault: MemoryCredentialVault;
   directory: string;
 }
 
@@ -101,7 +105,7 @@ async function createHarness(script: GatewayScript = {}, options: TradingRuntime
     submitResolvePollMs: options.submitResolvePollMs ?? 10,
     submitResolveMaxAttempts: options.submitResolveMaxAttempts ?? 50,
   });
-  const harness = { database, runtime, gateway, directory };
+  const harness = { database, runtime, gateway, session, vault, directory };
   harnesses.push(harness);
   return harness;
 }
@@ -348,6 +352,66 @@ describe('private event ingestion guards', () => {
     expect(runtime.reconcileExecutionFills([recoveredFill])).toBe(0);
     expect(database.prepare(`SELECT order_id, fee, realized_pnl FROM execution_fills WHERE id = 'rest-fill-1'`).get())
       .toEqual({ order_id: order.id, fee: '0.505', realized_pnl: '100' });
+    expect(runtime.getOrder(order.id)).toMatchObject({
+      state: 'FILLED',
+      executedQuantity: '0.1',
+      executedAveragePrice: '101000',
+    });
     expect(snapshots).toHaveLength(1);
+  });
+
+  it('repairs a stale order from persisted fills during the next runtime startup', async () => {
+    const { runtime, database, session, vault, gateway } = await createHarness();
+    const order = await runtime.createOrder(marketOrderInput);
+    const recoveredFill = {
+      transactionId: 'rest-fill-existing', orderId: 'remote-1', clientOrderId: order.clientOrderId,
+      symbol: 'BINANCE_FUTURE_BTC_USDT', venue: 'BINANCE', product: 'FUTURE', side: 'BUY' as const,
+      quantity: '0.1', price: '100500', fee: '0.5', feeCoin: 'USDT', feeRate: '0.0005',
+      matchRole: 'TAKER', realizedPnl: '0', positionMode: 'BOTH', positionSide: 'LONG',
+      createdAt: '2026-07-28T12:00:00.000Z',
+    };
+    expect(runtime.reconcileExecutionFills([recoveredFill])).toBe(1);
+    database.prepare("UPDATE execution_orders SET state = 'NEW', executed_quantity = '0', executed_average_price = NULL WHERE id = ?")
+      .run(order.id);
+
+    const restartedRuntime = new TradingRuntime(database, session, vault, gateway);
+    expect(restartedRuntime.getOrder(order.id)).toMatchObject({
+      state: 'FILLED',
+      executedQuantity: '0.1',
+      executedAveragePrice: '100500',
+    });
+  });
+
+  it('marks a REST-recovered partial fill without reopening a terminal order', async () => {
+    const { runtime } = await createHarness();
+    const order = await runtime.createOrder(marketOrderInput);
+    const partialFill = {
+      transactionId: 'rest-fill-partial', orderId: 'remote-1', clientOrderId: order.clientOrderId,
+      symbol: 'BINANCE_FUTURE_BTC_USDT', venue: 'BINANCE', product: 'FUTURE', side: 'BUY' as const,
+      quantity: '0.04', price: '99000', fee: '0.2', feeCoin: 'USDT', feeRate: '0.0005',
+      matchRole: 'TAKER', realizedPnl: '0', positionMode: 'BOTH', positionSide: 'LONG',
+      createdAt: '2026-07-28T12:00:00.000Z',
+    };
+
+    runtime.reconcileExecutionFills([partialFill]);
+    expect(runtime.getOrder(order.id)).toMatchObject({ state: 'PARTIALLY_FILLED', executedQuantity: '0.04' });
+    runtime.ingestPrivateEvent({ channel: 'order', payload: {
+      order_id: 'remote-1', state: 'CANCELLED', executed_qty: '0.04', executed_avg_price: '99000',
+      update_time: '1783600002000',
+    } });
+    runtime.reconcileExecutionFills([partialFill]);
+    expect(runtime.getOrder(order.id).state).toBe('CANCELLED');
+  });
+
+  it('removes a stale open row when Gate says the order no longer exists', async () => {
+    const { runtime } = await createHarness({
+      cancelError: () => new GateApiError(400, 'TRADE_ORDER_NOT_FOUND_ERROR'),
+      queryOrder: () => { throw new GateApiError(404, 'ORDER_NOT_FOUND'); },
+    });
+    const order = await runtime.createOrder(marketOrderInput);
+
+    await expect(runtime.cancelOrder(order.id)).rejects.toMatchObject({ code: 'order_not_cancellable' });
+    expect(runtime.getOrder(order.id).state).toBe('REMOTE_NOT_FOUND');
+    expect(runtime.listOpenOrders()).toHaveLength(0);
   });
 });

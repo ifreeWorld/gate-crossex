@@ -401,7 +401,9 @@ export class StrategyEngine {
       filled_quantity, filled_left, filled_right, open_position, created_at, updated_at, stopped_at)
       VALUES (?, ?, 'live', 'RUNNING', ?, 0, '0', '0', '0', '0', ?, ?, NULL)`).run(id, input.kind, JSON.stringify(input), now, now);
     const shortPremium = input.leftSide === 'SELL';
-    const hedgeModeLabel = input.hedgeMode === 'EQUAL_NOTIONAL' ? 'equal-notional hedge' : 'share-ratio hedge';
+    const hedgeModeLabel = input.reduceOnly && input.hedgeCloseQuantity !== undefined
+      ? `position quantities ${input.maxPosition} / ${input.hedgeCloseQuantity}`
+      : input.hedgeMode === 'EQUAL_NOTIONAL' ? 'equal-notional hedge' : 'share-ratio hedge';
     const startCondition = input.kind === 'premium'
       ? input.grid
         ? `Grid ${input.gridLevels} × ${input.gridStepPct}% from ${input.entryPremiumPct}% premium · ${hedgeModeLabel}`
@@ -564,11 +566,12 @@ export class StrategyEngine {
     }
     const target = this.strategyTarget(config);
     const leftNotional = target.mul(leftPrice);
-    const rightQuantity = config.kind !== 'premium'
+    const explicitHedgeTarget = this.reduceOnlyHedgeTarget(config);
+    const rightQuantity = explicitHedgeTarget ?? (config.kind !== 'premium'
       ? target
       : this.equalNotional(config)
         ? leftNotional.div(rightPrice)
-        : target.div(adrRatioOf(config));
+        : target.div(adrRatioOf(config)));
     const plannedLegs = [
       {
         symbol: legs.left.symbol,
@@ -669,6 +672,35 @@ export class StrategyEngine {
     return config.kind === 'premium' && config.hedgeMode === 'EQUAL_NOTIONAL';
   }
 
+  /** Explicit hedge-leg target used by newly-created, position-aware reduce-only strategies. */
+  private reduceOnlyHedgeTarget(config: CreateStrategyInput): Decimal | null {
+    if (config.kind !== 'premium' || !config.reduceOnly || config.hedgeCloseQuantity === undefined) return null;
+    return new Decimal(config.hedgeCloseQuantity);
+  }
+
+  /** Strategies whose requested right-leg quantity defines each clip's conversion ratio. */
+  private clipSizedHedge(config: CreateStrategyInput): boolean {
+    return this.equalNotional(config) || this.reduceOnlyHedgeTarget(config) !== null;
+  }
+
+  /**
+   * Allocate an explicit hedge target across clips. Regular clips use the configured position
+   * ratio; the final clip receives the exact remainder so lot-size rounding cannot leave dust.
+   */
+  private reduceOnlyHedgeForClip(
+    config: CreateStrategyInput,
+    exposure: { left: Decimal; right: Decimal; rightShares: Decimal },
+    leftQuantity: Decimal,
+  ): Decimal | undefined {
+    const hedgeTarget = this.reduceOnlyHedgeTarget(config);
+    if (hedgeTarget === null) return undefined;
+    const leftTarget = this.strategyTarget(config);
+    const leftRemaining = Decimal.max(ZERO, leftTarget.minus(exposure.left.abs()));
+    const hedgeRemaining = Decimal.max(ZERO, hedgeTarget.minus(exposure.rightShares.abs()));
+    if (leftQuantity.gte(leftRemaining.minus(QUANTITY_EPSILON))) return hedgeRemaining;
+    return Decimal.min(hedgeRemaining, leftQuantity.mul(hedgeTarget).div(leftTarget));
+  }
+
   /**
    * Executed exposure per leg in left-leg (ADR) units, plus the raw right-leg venue shares.
    * SHARE_RATIO (and non-premium) strategies convert right-leg fills through the fixed ratio.
@@ -684,7 +716,7 @@ export class StrategyEngine {
     let left = ZERO;
     let right = ZERO;
     let rightShares = ZERO;
-    if (!this.equalNotional(config)) {
+    if (!this.clipSizedHedge(config)) {
       for (const row of rows) {
         const signed = signedExecuted(row);
         if (row.leg === 'left') left = left.plus(signed);
@@ -744,7 +776,7 @@ export class StrategyEngine {
 
   /** Aggregate unhedged quantity in ADR units — per clip for equal-notional, global otherwise. */
   private hedgeImbalance(strategyId: string, config: CreateStrategyInput, exposure: { left: Decimal; right: Decimal }): Decimal {
-    if (this.equalNotional(config)) {
+    if (this.clipSizedHedge(config)) {
       return this.clipShortfalls(strategyId, config).reduce((sum, shortfall) => sum.plus(shortfall.delta.abs()), ZERO);
     }
     return exposure.left.plus(exposure.right).abs();
@@ -816,6 +848,27 @@ export class StrategyEngine {
   ): void {
     const perOrder = new Decimal(config.perOrderQuantity);
     const target = this.strategyTarget(config);
+    const explicitHedgeTarget = this.reduceOnlyHedgeTarget(config);
+    if (explicitHedgeTarget !== null) {
+      const clipCount = target.div(perOrder).ceil();
+      const regularClipCount = Decimal.max(ZERO, clipCount.minus(1));
+      const regularLeft = Decimal.min(perOrder, target);
+      const regularRight = roundToStep(
+        regularLeft.mul(explicitHedgeTarget).div(target),
+        this.constraintsFor(legs.right.symbol).lotSize,
+        'down',
+      );
+      const finalLeft = target.minus(regularLeft.mul(regularClipCount));
+      const finalRight = explicitHedgeTarget.minus(regularRight.mul(regularClipCount));
+      for (const [leftQuantity, rightQuantity] of regularClipCount.gt(0)
+        ? [[regularLeft, regularRight], [finalLeft, finalRight]] as const
+        : [[finalLeft, finalRight]] as const) {
+        const sizeError = this.orderSizeError(legs.left.symbol, leftQuantity)
+          ?? this.orderSizeError(legs.right.symbol, rightQuantity);
+        if (sizeError) throw sizeError;
+      }
+      return;
+    }
     const firstClip = Decimal.min(perOrder, target);
     const remainder = target.mod(perOrder);
     const leftClips = remainder.gt(QUANTITY_EPSILON) && !remainder.eq(firstClip)
@@ -1124,7 +1177,8 @@ export class StrategyEngine {
         const rungRoom = config.grid ? perOrder.mul(rung.plus(1)).minus(matched).minus(inFlight) : perOrder;
         const quantity = Decimal.min(perOrder, rungRoom, capacity);
         if (quantity.gt(QUANTITY_EPSILON)) {
-          const entryHedge = equalNotional ? quantity.mul(entryQuote.adrPrice).div(entryQuote.hedgePrice) : undefined;
+          const entryHedge = this.reduceOnlyHedgeForClip(config, exposure, quantity)
+            ?? (equalNotional ? quantity.mul(entryQuote.adrPrice).div(entryQuote.hedgePrice) : undefined);
           await this.executeTakerClip(actor, 'entry', quantity,
             `Premium ${entryPremium.toFixed(2)}% ${shortPremium ? '≥' : '≤'} ${level.toFixed(2)}%`
             + ` · quotes ${entryQuote.adrPrice.toString()} / ${entryQuote.hedgePrice.toString()}`,
@@ -1549,7 +1603,7 @@ export class StrategyEngine {
     // own intended ratio), otherwise the global fixed-ratio imbalance. `k` is always the
     // right-shares-per-ADR-unit conversion used to size a right-leg repair order.
     const target = (() => {
-      if (this.equalNotional(actor.config)) {
+      if (this.clipSizedHedge(actor.config)) {
         const shortfalls = this.clipShortfalls(actor.id, actor.config);
         if (shortfalls.length === 0) return null;
         return { ...shortfalls[0], residual: shortfalls.reduce((sum, item) => sum.plus(item.delta.abs()), ZERO) };

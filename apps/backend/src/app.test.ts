@@ -337,11 +337,12 @@ interface TestContext {
 
 const resources: TestContext[] = [];
 
-async function createTestApp(options: { liveTradingEnabled?: boolean; marketHub?: CrossExMarketHub; startMarketStream?: boolean; directory?: string } = {}): Promise<TestContext> {
+async function createTestApp(options: { liveTradingEnabled?: boolean; marketHub?: CrossExMarketHub; startMarketStream?: boolean; directory?: string; host?: string } = {}): Promise<TestContext> {
   const directory = options.directory ?? mkdtempSync(join(tmpdir(), 'gate-crossex-app-'));
   const config = loadConfig({
     GCT_DATA_DIR: directory,
     GCT_MIGRATIONS_DIR: resolve(process.cwd(), '../../migrations'),
+    GCT_HOST: options.host,
   });
   const database = openDatabase(config.databasePath, config.migrationsDir);
   const vault = new MemoryCredentialVault();
@@ -1181,6 +1182,15 @@ describe('local backend', () => {
     expect(sameOriginDifferentPort.statusCode).toBe(200);
   });
 
+  it('accepts any Host after remote access is explicitly enabled', async () => {
+    const { app } = await createTestApp({ host: '0.0.0.0' });
+
+    for (const host of ['192.168.1.207:17840', '203.0.113.42:17840', 'terminal.example.com']) {
+      const response = await app.inject({ method: 'GET', url: '/health', headers: { host } });
+      expect(response.statusCode).toBe(200);
+    }
+  });
+
   it('serves a normalized public instrument catalog and caches the upstream response', async () => {
     const { app, gateway } = await createTestApp();
     const headers = { host: '127.0.0.1:17840' };
@@ -1282,6 +1292,10 @@ describe('local backend', () => {
     // A second request inside the freshness window reuses the sweep.
     expect((await app.inject({ method: 'GET', url: '/api/markets/funding-overview', headers })).statusCode).toBe(200);
     expect(publicMarketGateway.fundingStatsQueryCount).toBe(7);
+
+    // The funding matrix opts into an awaited refresh on its ten-second polling cycle.
+    expect((await app.inject({ method: 'GET', url: '/api/markets/funding-overview?fresh=1', headers })).statusCode).toBe(200);
+    expect(publicMarketGateway.fundingStatsQueryCount).toBe(14);
   });
 
   it('still answers the funding overview when every venue fetch fails', async () => {
