@@ -1,0 +1,34 @@
+[Unit]
+Description=Gate CrossEx trading terminal
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=wangzilong
+Group=wangzilong
+WorkingDirectory=/home/wangzilong/gate-crossex
+Environment=HOME=/home/wangzilong
+Environment=NODE_ENV=production
+Environment=GCT_HOST=127.0.0.1
+Environment=GCT_PORT=17840
+Environment=GCT_FRONTEND_PORT=17840
+Environment=GCT_FRONTEND_ORIGIN=http://127.0.0.1:17840
+Environment=GCT_ALLOWED_HOSTS=wangzilong13991-hk2-gctx-prod.tailbbc617.ts.net
+Environment=GCT_DATA_DIR=/home/wangzilong/gate-crossex/.local-data
+Environment=GCT_MIGRATIONS_DIR=/home/wangzilong/gate-crossex/migrations
+Environment=GCT_FRONTEND_DIST_DIR=/home/wangzilong/gate-crossex/apps/frontend/dist
+Environment=GCT_DISABLE_OS_KEYCHAIN=1
+Environment=GCT_CREDENTIAL_ENV_PATH=/home/wangzilong/gate-crossex/.local-data/credentials.env
+ExecStart=/home/wangzilong/gate-crossex/.runtime/bin/node /home/wangzilong/gate-crossex/apps/backend/dist/server.js
+Restart=on-failure
+RestartSec=5s
+TimeoutStopSec=45s
+KillSignal=SIGTERM
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
