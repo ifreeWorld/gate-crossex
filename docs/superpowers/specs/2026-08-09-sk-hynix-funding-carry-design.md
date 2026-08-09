@@ -1,73 +1,73 @@
-# SK Hynix Funding Carry Strategy Design
+# SK 海力士资金费率套利策略设计
 
-Date: 2026-08-09
+日期：2026-08-09
 
-## 1. Decision
+## 1. 设计决策
 
-Add a new `sk_hynix_carry` strategy alongside the existing `premium` strategy.
+新增独立的 `sk_hynix_carry` 策略，与现有 `premium` 策略并存。
 
-- Existing route: `/strategies/sk-hynix-premium`
-- New route: `/strategies/sk-hynix-funding`
-- Existing `premium` behavior and persisted records remain unchanged.
-- The first implementation milestone is read-only. It must not connect a real IBKR or exchange trading account and must not expose an enabled order button.
-- Real execution requires a later, explicit approval after read-only market data, simulations, recovery, and compensation behavior have been verified.
+- 现有路由：`/strategies/sk-hynix-premium`
+- 新路由：`/strategies/sk-hynix-funding`
+- 不改变现有 `premium` 行为和已持久化记录。
+- 第一阶段只实现只读功能，不连接真实 IBKR 或交易所交易账户，也不提供可点击的下单按钮。
+- 只读行情、模拟执行、恢复和补偿流程验证完成后，仍需用户再次明确批准，才可进入真实执行阶段。
 
-The standalone prototype at `docs/sk-hynix-tws-strategy-demo.html` is a design reference, not production code. It remains in the repository working tree until the user decides whether to track it.
+独立原型 `docs/sk-hynix-tws-strategy-demo.html` 仅作为设计参考，不是生产代码。在用户决定是否纳入版本控制前，该文件继续保留在工作区。
 
-## 2. Strategy definition
+## 2. 策略定义
 
-Opening direction:
+开仓方向：
 
-- Buy the verified SK Hynix equity instrument through IBKR.
-- Short the verified economically equivalent perpetual contract through a supported crypto venue.
+- 通过 IBKR 买入已验证的 SK 海力士股票标的。
+- 在支持的加密交易所做空已验证且经济敞口等价的永续合约。
 
-Closing direction:
+平仓方向：
 
-- Sell only equity quantity owned by this strategy.
-- Buy only perpetual quantity shorted by this strategy, with exchange-side reduce-only protection.
+- 仅卖出本策略持有的股票数量。
+- 仅买入本策略建立的永续空头数量，并在交易所侧强制 Reduce-only。
 
-The application must not infer equivalence from similar ticker names. A pair is eligible only when a stored instrument mapping is `VERIFIED` and contains the exact IBKR contract, perpetual contract, economic conversion ratio, currencies, and verification metadata.
+系统不能根据相似的代码名称推断标的等价性。只有持久化标的映射状态为 `VERIFIED`，并包含准确的 IBKR 合约、永续合约、经济换算比例、币种和验证信息时，该交易对才具备交易资格。
 
-## 3. Scope
+## 3. 范围
 
-### Included
+### 包含内容
 
-- A separate React route and strategy menu entry.
-- Opportunity ranking, selected-pair detail, order preview, execution-lane presentation, and strategy-position presentation.
-- Open preview sized from a target notional.
-- Close preview sized from the strategy's actual positions, defaulting to 100% and supporting 25%, 50%, 75%, and 100%.
-- Decimal-safe VWAP, FX normalization, hedge sizing, and estimated-return calculations.
-- Explicit quote freshness, live/delayed state, market-hours state, funding interval, and estimate assumptions.
-- A read-only API boundary that can later accept IBKR, exchange, and FX adapters.
-- A separate simulated dual-leg coordinator before any live coordinator is introduced.
-- A persisted live execution design with recovery, compensation, and manual-intervention states for the later live milestone.
+- 独立 React 路由和策略菜单入口。
+- 机会排行、选中标的详情、订单预览、双腿执行轨道和策略持仓展示。
+- 根据目标名义金额生成开仓预览。
+- 根据策略实际持仓生成平仓预览，默认 100%，支持 25%、50%、75% 和 100%。
+- 使用十进制安全算法计算 VWAP、汇率归一化、对冲数量和预计收益。
+- 明确展示行情新鲜度、实时/延迟状态、股票市场状态、资金费率周期和估算假设。
+- 定义独立的只读 API 边界，后续可接入 IBKR、交易所和汇率适配器。
+- 在真实执行协调器之前，先实现独立的双腿模拟执行协调器。
+- 为后续真实执行阶段设计可恢复、可补偿、可进入人工干预状态的持久化模型。
 
-### Excluded from the first milestone
+### 第一阶段不包含
 
-- Real IBKR login, market-data subscription, or order submission.
-- Real exchange order submission.
-- Automatic installation or operation of TWS, IB Gateway, or IBC.
-- Treating the prototype's sample contracts, conversion ratios, prices, or funding periods as verified business data.
-- Modifying the existing CrossEx `premium` strategy.
+- 真实 IBKR 登录、行情订阅或订单提交。
+- 真实交易所订单提交。
+- 自动安装或管理 TWS、IB Gateway 或 IBC。
+- 把原型中的合约、换算比例、价格或资金费率周期当作已验证业务数据。
+- 修改现有 CrossEx `premium` 策略。
 
-## 4. Existing-system constraints
+## 4. 现有系统约束
 
-The repository is a local single-user React/Vite and Fastify application. API values use runtime schemas and decimal strings. The browser talks only to the local backend.
+当前仓库是本地单用户 React/Vite + Fastify 应用。API 边界使用运行时 Schema 和十进制字符串，浏览器只连接本地后端。
 
-The current trading runtime cannot be extended by merely adding `IBKR` to its venue enum:
+不能只在现有交易执行层的交易所枚举中加入 `IBKR`：
 
-- It accepts only crypto venue identifiers.
-- Its order symbols must match a perpetual-futures naming pattern.
-- Both legs use the same CrossEx gateway, balance model, and private event stream.
-- The existing `premium` strategy assumes two crypto derivative legs.
+- 当前执行层只接受加密交易所标识。
+- 当前订单代码必须符合永续合约命名格式。
+- 两条腿共用同一个 CrossEx Gateway、余额模型和私有事件流。
+- 现有 `premium` 策略默认两条腿都是加密衍生品。
 
-The new strategy therefore gets an independent domain model and coordinator. It may reuse infrastructure such as SQLite, local HTTP/WebSocket delivery, trading-session locks, logging conventions, decimal handling, and UI primitives, but not the existing strategy's order contract.
+因此，新策略使用独立的领域模型和协调器。可以复用 SQLite、本地 HTTP/WebSocket、交易会话锁、日志约定、十进制处理和 UI 基础样式，但不能复用现有策略订单协议。
 
-## 5. Frontend design
+## 5. 前端设计
 
-### 5.1 File boundaries
+### 5.1 文件边界
 
-Create a focused feature directory instead of growing `strategy-route.tsx`:
+新增独立功能目录，不继续扩张 `strategy-route.tsx`：
 
 ```text
 apps/frontend/src/sk-hynix-carry/
@@ -83,58 +83,58 @@ apps/frontend/src/sk-hynix-carry/
   close-sizing.test.ts
 ```
 
-`route.tsx` composes the feature and owns only page-level selection and presentation state. Calculation files contain deterministic view helpers, not authoritative trading calculations.
+`route.tsx` 只负责页面组合、机会选择和展示状态。计算文件只包含确定性的前端展示辅助逻辑，不能作为真实交易的权威计算结果。
 
-Add the internal key `carry` to `StrategyRouteKind` and map it to `/strategies/sk-hynix-funding`. Add the corresponding lazy import and strategy-menu entry. Keep the route independent from `PremiumStrategyView`.
+在 `StrategyRouteKind` 中新增内部键 `carry`，并映射到 `/strategies/sk-hynix-funding`。同时增加懒加载入口和策略菜单项。该路由与 `PremiumStrategyView` 完全独立。
 
-### 5.2 Page hierarchy
+### 5.2 页面信息层级
 
-Preserve the prototype's strongest hierarchy:
+保留原型中有效的信息层级：
 
-1. Connection and eligibility summary.
-2. Opportunity ranking for a requested notional and holding horizon.
-3. Verified instrument mapping, quotes, FX normalization, and estimate assumptions.
-4. Open/close ticket with quantity preview and residual exposure.
-5. Dual-leg execution lanes.
-6. Strategy-scoped positions, orders, fills, funding, costs, and PnL.
+1. 连接和交易资格摘要。
+2. 基于目标金额和持有周期的机会排行。
+3. 已验证标的映射、行情、汇率归一化和估算假设。
+4. 包含数量及剩余敞口预览的开仓/平仓面板。
+5. 双腿执行状态轨道。
+6. 策略范围内的持仓、订单、成交、资金费、成本和盈亏。
 
-Reuse the application's theme, localization, `terminal-panel` visual language, accessibility conventions, and lazy route loading. Do not embed the prototype in an iframe and do not copy its global CSS.
+复用现有主题、国际化、`terminal-panel` 视觉风格、无障碍规范和路由懒加载。不能通过 iframe 嵌入原型，也不能复制原型的全局 CSS。
 
-### 5.3 Read-only behavior
+### 5.3 只读行为
 
-The first milestone uses validated fixture responses served through the same frontend API boundary planned for live read-only data.
+第一阶段使用通过运行时 Schema 验证的 fixture，由后端通过未来真实只读行情将使用的同一套 API 边界返回。
 
-- Label all values as example data.
-- Display connection state as `READ_ONLY_FIXTURE`.
-- Render the submit button disabled with the label `Read-only preview`.
-- Do not show `Paper trading`, because the current application has no paper execution ledger.
-- An unverified mapping, stale quote, delayed IBKR quote, closed equity market, missing depth, or missing FX quote makes the opportunity ineligible.
+- 所有数值明确标记为示例数据。
+- 连接状态显示为 `READ_ONLY_FIXTURE`。
+- 下单按钮保持禁用，文字为“只读预览”。
+- 不显示“模拟交易”，因为当前应用没有模拟成交和持仓账本。
+- 标的未验证、行情过期、IBKR 延迟行情、股票闭市、盘口深度缺失或汇率缺失时，该机会不可交易。
 
-### 5.4 Open and close sizing
+### 5.4 开仓和平仓数量
 
-Open sizing begins with target quote-currency notional:
+开仓从目标计价币名义金额开始：
 
-1. Convert the IBKR executable equity price to the strategy reporting currency.
-2. Round the equity quantity down to its permitted lot size; initially this is an integer-share rule unless verified contract metadata says otherwise.
-3. Convert the resulting equity economic exposure through the verified mapping.
-4. Round the perpetual quantity down to the venue step size without exceeding the equity exposure.
-5. Display residual economic and currency exposure.
+1. 将 IBKR 可执行股票价格换算为策略报告币种。
+2. 将股票数量向下取整至允许的交易单位；在合约元数据验证前，默认只允许整数股。
+3. 通过已验证映射换算股票经济敞口。
+4. 将永续数量向下取整至交易所步长，且不能超过股票经济敞口。
+5. 展示剩余经济敞口和汇率敞口。
 
-Close sizing begins with the strategy ledger, never a new notional input:
+平仓从策略账本开始，不接受新的名义金额：
 
-1. Read remaining IBKR shares and remaining perpetual quantity for the selected strategy.
-2. Default to 100%.
-3. Convert a percentage to an executable equity quantity.
-4. Derive the proportional perpetual quantity from the strategy's actual remaining fill ratio.
-5. Round within venue constraints and assign the final full-close operation the exact remaining executable amount.
-6. Reject quantities above the strategy-owned position.
-7. Display both remaining positions and remaining net exposure.
+1. 读取所选策略剩余的 IBKR 股数和永续数量。
+2. 默认选择 100%。
+3. 将选择比例换算成可执行股票数量。
+4. 根据本策略实际剩余成交比例计算对应永续数量。
+5. 按交易所约束取整；最终全部平仓操作使用剩余的准确可执行数量。
+6. 拒绝超过本策略持仓的数量。
+7. 展示平仓后两边剩余持仓和剩余净敞口。
 
-## 6. Shared contracts
+## 6. 共享数据协议
 
-Add new schemas to `packages/shared-types` without changing the existing `StrategyConfigSchema` in the first milestone.
+在 `packages/shared-types` 中新增独立 Schema；第一阶段不修改现有 `StrategyConfigSchema`。
 
-### 6.1 Instrument mapping
+### 6.1 标的映射
 
 ```text
 CarryInstrumentMapping
@@ -152,9 +152,9 @@ CarryInstrumentMapping
   verifiedAt
 ```
 
-The mapping is configuration, not inferred market data. Production eligibility requires `VERIFIED`; fixture mappings remain explicitly marked as fixtures.
+映射属于配置数据，不能从行情或代码名称推断。生产环境只有 `VERIFIED` 映射具备交易资格；fixture 映射必须明确标记为示例。
 
-### 6.2 Quote set
+### 6.2 行情快照
 
 ```text
 CarryQuoteSet
@@ -163,13 +163,13 @@ CarryQuoteSet
   ibkrBook: bids, asks, timestamp, marketDataType, marketState
   perpBook: bids, asks, timestamp
   funding: rate, intervalSeconds, nextFundingAt, predictionSource
-  fxQuotes: pair, bid, ask, timestamp for every conversion edge
+  fxQuotes: 每条换算边的 pair, bid, ask, timestamp
   capturedAt
 ```
 
-`marketDataType` distinguishes real-time, frozen, delayed, and delayed-frozen IBKR data. Only real-time data is execution-eligible unless a future policy explicitly allows another type.
+`marketDataType` 区分 IBKR 实时、冻结、延迟和延迟冻结行情。除非未来制定并明确批准其他策略，只有实时行情具备执行资格。
 
-### 6.3 Opportunity and position
+### 6.3 机会和持仓
 
 ```text
 CarryOpportunity
@@ -194,46 +194,46 @@ CarryPosition
   openedAt, updatedAt
 ```
 
-All financial values are decimal strings at API boundaries. Timestamps are ISO 8601 UTC strings.
+API 边界的所有金额和数量都使用十进制字符串。时间戳统一使用 ISO 8601 UTC 字符串。
 
-## 7. Calculation rules
+## 7. 计算规则
 
-### 7.1 Executable prices
+### 7.1 可执行价格
 
-Opening uses:
+开仓使用：
 
-- IBKR equity ask-side VWAP for the executable equity quantity.
-- Perpetual bid-side VWAP for the executable perpetual quantity.
-- Conservative executable FX prices for each currency conversion.
+- IBKR 股票买入数量对应的 Ask 侧 VWAP。
+- 永续卖出数量对应的 Bid 侧 VWAP。
+- 每条币种换算路径上的保守可执行汇率。
 
-Closing reverses the sides:
+平仓使用相反方向：
 
-- IBKR equity bid-side VWAP.
-- Perpetual ask-side VWAP.
+- IBKR 股票 Bid 侧 VWAP。
+- 永续 Ask 侧 VWAP。
 
-If either book cannot fill the requested quantity within configured slippage, no estimate is produced and execution is ineligible.
+如果任一盘口无法在配置的最大滑点内满足目标数量，则不生成收益估算，且禁止执行。
 
-### 7.2 Opening spread
+### 7.2 开仓价差
 
-After converting both prices to one reporting currency and one economic unit:
+两边价格换算为同一报告币种和同一经济单位后：
 
 ```text
 openingSpreadBps = (perpSellVwap / equityBuyVwap - 1) * 10,000
 ```
 
-A positive value is favorable at entry; a negative value is an opening cost.
+正数表示开仓价差有利，负数表示开仓需要付出价差成本。
 
-### 7.3 Funding
+### 7.3 资金费率
 
-Funding is a signed cash flow from the short perpetual position:
+资金费按永续空头的带符号现金流计算：
 
 ```text
 expectedFundingIncome = perpNotional * expectedSignedFundingRate * expectedSettlementCount
 ```
 
-Positive funding paid to shorts is positive income. Negative funding is a cost. The UI must show the next funding time, interval, prediction source, horizon, and settlement count; it must not imply that the current rate remains fixed.
+空头收到的正资金费为正收益，负资金费为成本。页面必须显示下一结算时间、结算周期、预测来源、持有周期和预计结算次数，不能暗示当前费率未来保持不变。
 
-### 7.4 Estimated return
+### 7.4 预计收益
 
 ```text
 expectedNetReturn
@@ -250,22 +250,22 @@ expectedNetReturn
   - expectedExitBasisCost
 ```
 
-The label is `Estimated strategy return`, never `maximum profit` or `guaranteed profit`. The result must include a cost breakdown and assumptions.
+页面统一使用“预计策略收益”，不能使用“最大利润”或“保证收益”。结果必须同时展示成本拆分和计算假设。
 
-## 8. Read-only backend boundary
+## 8. 只读后端边界
 
-Introduce a feature service independent from `TradingRuntime`:
+新增独立于 `TradingRuntime` 的功能服务：
 
 ```text
 CarryMarketService
-  reads instrument mappings
-  receives equity, perpetual, funding, and FX snapshots
-  validates freshness and eligibility
-  calculates VWAP opportunities
-  publishes normalized snapshots
+  读取标的映射
+  接收股票、永续、资金费率和汇率快照
+  验证行情新鲜度和交易资格
+  计算基于 VWAP 的机会
+  发布归一化快照
 ```
 
-Initial local endpoints:
+首批本地接口：
 
 ```text
 GET /api/sk-hynix-carry/mappings
@@ -273,53 +273,53 @@ GET /api/sk-hynix-carry/opportunities?notional=...&horizonSeconds=...
 GET /api/sk-hynix-carry/positions
 ```
 
-The terminal WebSocket later gains feature-specific snapshot/update messages rather than encoding IBKR data as a CrossEx `market.update`.
+后续在终端 WebSocket 中增加该功能专用的快照和更新消息，不能把 IBKR 数据伪装成 CrossEx `market.update`。
 
-The browser never connects directly to TWS, IB Gateway, an exchange, or an FX provider.
+浏览器不能直接连接 TWS、IB Gateway、交易所或汇率服务商。
 
-## 9. Adapter boundaries for later milestones
+## 9. 后续阶段的适配器边界
 
 ```text
 IbkrMarketDataAdapter
-  contract details, market-data type, top/depth quotes, market hours
+  合约详情、行情类型、盘口/深度、交易时段
 
 PerpMarketDataAdapter
-  contract metadata, depth, funding rate, interval, next settlement
+  合约元数据、盘口深度、资金费率、结算周期、下次结算时间
 
 FxMarketDataAdapter
-  timestamped executable conversion quotes
+  带时间戳的可执行汇率
 
 IbkrExecutionAdapter
-  submit, cancel, order status, fills, positions, reconnect recovery
+  提交、撤单、订单状态、成交、持仓、断线恢复
 
 PerpExecutionAdapter
-  submit, cancel, order status, fills, positions, reduce-only
+  提交、撤单、订单状态、成交、持仓、Reduce-only
 ```
 
-The TWS Node library is selected only after a compatibility spike verifies maintenance state, supported Node versions, contract lookup, market depth, order callbacks, executions, reconnection, and order-ID recovery. No library choice is embedded in the domain interfaces.
+只有兼容性验证确认维护状态、Node 版本支持、合约查询、行情深度、订单回调、成交回报、重连和订单 ID 恢复后，才选择 TWS Node 库。领域接口不能依赖某个尚未验证的第三方封装。
 
-## 10. Simulated and live execution design
+## 10. 模拟和真实执行设计
 
-### 10.1 Separation
+### 10.1 环境隔离
 
-Simulation and live execution implement the same coordinator interfaces but use separate adapters and persist an explicit `environment`. Fixture or simulated records can never be resumed by live adapters.
+模拟和真实执行实现相同的协调器接口，但使用不同适配器，并持久化明确的 `environment`。fixture 或模拟记录绝不能由真实适配器恢复执行。
 
-### 10.2 One-click submission
+### 10.2 一键并发提交
 
-One user action creates an immutable execution batch containing:
+用户的一次操作创建不可变执行批次，包含：
 
-- strategy and mapping IDs;
-- quote snapshot ID;
-- requested and normalized quantities;
-- both leg intents;
-- slippage limits;
-- an idempotency key.
+- 策略 ID 和映射 ID；
+- 行情快照 ID；
+- 请求数量和归一化后的数量；
+- 两条腿的订单意图；
+- 最大滑点；
+- 幂等键。
 
-After server-side preflight, the coordinator starts both submissions concurrently. There is no IBKR confirmation gate before the perpetual submission. Concurrency reduces timing skew but does not claim atomic execution.
+服务端预检通过后，协调器并发启动两条腿的提交。IBKR 提交后不存在人工确认环节，也不能等待 IBKR 确认后才提交永续订单。并发只能减少时间差，不能宣称原子成交。
 
-### 10.3 State model
+### 10.3 状态模型
 
-Each leg tracks:
+每条腿记录：
 
 ```text
 SUBMITTING
@@ -332,7 +332,7 @@ CANCELLED
 UNKNOWN
 ```
 
-The execution batch derives:
+执行批次派生以下状态：
 
 ```text
 submitting
@@ -344,24 +344,24 @@ compensating
 manual_intervention
 ```
 
-An ambiguous network result becomes `UNKNOWN`, not `FAILED`, until venue reconciliation establishes the remote state.
+网络结果不明确时进入 `UNKNOWN`，不能直接标记为 `FAILED`；必须通过交易场所对账确认远端状态。
 
-### 10.4 Compensation policy
+### 10.4 补偿策略
 
-Compensation is bounded and risk-reducing:
+补偿操作必须有次数和时间限制，并且只能降低风险：
 
-1. Reconcile both venues before acting on an ambiguous result.
-2. Cancel unfilled remainders where possible.
-3. Compare actual filled economic exposure, not requested quantities.
-4. Submit only the quantity needed to reduce the imbalance within configured limits.
-5. Stop after the configured attempt/time budget.
-6. Enter `manual_intervention` with exact exposure and remote identifiers if balanced recovery cannot be proven.
+1. 对不明确结果采取操作前，先对账两边状态。
+2. 尽可能撤销未成交剩余订单。
+3. 比较实际成交的经济敞口，不能比较原始请求数量。
+4. 只提交将失衡敞口降低到限制内所需的数量。
+5. 达到配置的尝试次数或时间上限后停止自动补偿。
+6. 如果无法证明恢复平衡，进入 `manual_intervention`，并显示准确敞口和远端订单标识。
 
-No generic retry may duplicate a submission. All submits and repairs use durable idempotency/client order IDs.
+通用重试不能重复提交订单。所有初始订单和修复订单都必须使用持久化的幂等 ID 或客户端订单 ID。
 
-## 11. Persistence for later execution milestones
+## 11. 后续执行阶段的持久化设计
 
-Use new tables rather than overloading current crypto-only execution rows:
+新增独立数据表，不复用当前只适合加密交易的执行记录：
 
 ```text
 carry_instrument_mappings
@@ -372,71 +372,71 @@ carry_fills
 carry_funding_cashflows
 ```
 
-Persist the raw venue identifiers needed for recovery, normalized decimal quantities, fill linkage, state transitions, failure reasons, and timestamps. Migrations remain immutable and checksummed under the existing repository rules.
+持久化恢复所需的原始交易场所标识、归一化数量、成交关联、状态变化、失败原因和时间戳。数据库迁移继续遵守现有不可修改及校验和规则。
 
-On restart, the service must reconcile every non-terminal batch with IBKR and the exchange before accepting another action on the same strategy position.
+进程重启后，必须先通过 IBKR 和交易所对所有非终态批次完成对账，之后才允许对同一策略持仓执行新操作。
 
-## 12. Safety and eligibility
+## 12. 安全和交易资格
 
-Opening is disabled when any condition fails:
+出现以下任一情况时禁止开仓：
 
-- Mapping is not verified.
-- IBKR contract identity or permissions are unavailable.
-- Equity or FX quote is stale, delayed, or missing.
-- Perpetual quote, depth, metadata, or funding interval is unavailable.
-- The equity market is closed, unless a later explicit policy permits the current session.
-- Either side lacks sufficient executable depth.
-- Quantity violates lot, step, or minimum-size constraints.
-- Residual exposure exceeds configured limits.
-- TWS/Gateway, exchange stream, or reconciliation state is unhealthy.
-- Another non-terminal batch owns the same strategy position.
+- 标的映射未验证。
+- IBKR 合约身份或权限不可用。
+- 股票或汇率行情过期、延迟或缺失。
+- 永续行情、深度、元数据或资金费率周期不可用。
+- 股票市场闭市；除非未来另行制定并明确批准允许交易的时段策略。
+- 任一侧没有足够可执行深度。
+- 数量不符合交易单位、步长或最小数量要求。
+- 剩余敞口超过配置限制。
+- TWS/Gateway、交易所数据流或对账状态异常。
+- 同一策略持仓已存在未结束的执行批次。
 
-The UI explains every failed check and never enables execution merely because a displayed price exists.
+页面必须解释每一项未通过的检查，不能仅因为存在可显示价格就允许执行。
 
-## 13. Testing
+## 13. 测试设计
 
-### Frontend
+### 前端
 
-- Route serialization and reload behavior.
-- Opportunity selection and ticket synchronization.
-- Open/close mode changes.
-- 25/50/75/100% close sizing and remaining-position preview.
-- Disabled state and explicit reasons for stale, delayed, closed, unverified, or shallow markets.
-- Accessibility for tables, tabs, status updates, and keyboard navigation.
+- 路由序列化和刷新恢复。
+- 机会选择与下单面板联动。
+- 开仓/平仓模式切换。
+- 25%、50%、75%、100% 平仓数量及剩余持仓预览。
+- 行情过期、延迟、闭市、映射未验证或深度不足时的禁用状态和原因。
+- 表格、标签页、状态更新和键盘操作的无障碍测试。
 
-### Domain and contracts
+### 领域计算和数据协议
 
-- Runtime-schema rejection of malformed contracts and timestamps.
-- Decimal-safe VWAP across multiple levels.
-- Bid/ask-correct FX conversion.
-- Funding sign and non-eight-hour intervals.
-- Equity integer/lot rounding, perpetual step rounding, and residual exposure.
-- Full and partial close invariants.
-- Cost breakdown and expected-exit-basis handling.
+- 运行时 Schema 拒绝错误合约和时间戳。
+- 多档盘口的十进制安全 VWAP。
+- 使用正确 Bid/Ask 的汇率换算。
+- 资金费率正负号和非 8 小时结算周期。
+- 股票整数/交易单位取整、永续步长取整和剩余敞口。
+- 全部及部分平仓不变量。
+- 成本拆分和预计平仓价差。
 
-### Simulated coordinator
+### 模拟执行协调器
 
-- Both acknowledgements and fills in either order.
-- One-leg rejection before and after the other leg fills.
-- Partial fills on either or both legs.
-- Ambiguous submit followed by remote reconciliation.
-- Cancel failure, bounded repairs, and manual intervention.
-- Duplicate client request and process restart idempotency.
-- Reduce-only enforced on every perpetual close and repair that reduces a short.
+- 两边按任意顺序确认和成交。
+- 一边拒单发生在另一边成交前或成交后。
+- 任意一边或两边部分成交。
+- 提交结果不明确，之后通过远端对账恢复。
+- 撤单失败、有界修复和人工干预。
+- 重复客户端请求和进程重启幂等性。
+- 永续平仓及降低空头风险的修复订单始终使用 Reduce-only。
 
-### Integration and end-to-end
+### 集成和端到端
 
-- Read-only fixture page through the real Fastify and frontend API schemas.
-- WebSocket reconnection without older snapshots overwriting newer state.
-- SQLite restart recovery for simulated non-terminal batches.
-- No execution network call is possible in read-only mode.
+- fixture 只读页面通过真实 Fastify 和前端 API Schema 工作。
+- WebSocket 重连后，旧快照不能覆盖新状态。
+- SQLite 能在重启后恢复模拟的非终态批次。
+- 只读模式下不存在任何订单网络调用路径。
 
-## 14. Delivery sequence and gates
+## 14. 交付顺序和阶段门槛
 
-1. **Formal read-only page:** React components, shared schemas, fixture endpoint, calculations, and tests. No external account connection.
-2. **Read-only live market data:** verified instrument mappings, IBKR market-data adapter, perpetual depth/funding adapters, FX adapter, freshness and market-hours enforcement.
-3. **Simulation:** persisted simulated positions and the dual-leg state machine, including compensation and restart recovery.
-4. **Live-readiness review:** confirm contract identity, permissions, conversion ratios, FX risk, fees, tax/ADR costs, operational Gateway design, and risk limits.
-5. **Live execution:** add execution adapters and enable the button only after explicit user authorization and live-readiness acceptance.
+1. **正式只读页面：** React 组件、共享 Schema、fixture 接口、计算和测试；不连接外部账户。
+2. **真实只读行情：** 已验证标的映射、IBKR 行情适配器、永续深度/资金费率适配器、汇率适配器、新鲜度和交易时段检查。
+3. **模拟执行：** 持久化模拟持仓和双腿状态机，包括补偿及重启恢复。
+4. **真实执行准备评审：** 确认合约身份、权限、换算比例、汇率风险、费用、税费/ADR 成本、Gateway 运维方案和风险限制。
+5. **真实执行：** 增加执行适配器；只有用户明确授权并通过准备评审后才启用按钮。
 
-Each gate must pass its tests and operational review before work begins on the next stage. The implementation plan following this design covers stage 1 only; later stages receive their own plans after their prerequisites are verified.
+每个阶段必须通过相应测试和运行评审后，才能进入下一阶段。本设计之后的首份实施计划只覆盖第 1 阶段；后续阶段在前置条件验证完成后分别制定实施计划。
