@@ -5,6 +5,9 @@ umask 077
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$ROOT"
 CMD="${1:-start}"
+# Make the default ./run entry point reachable from other devices on the LAN.
+# Callers can still opt back into local-only access with GCT_HOST=127.0.0.1 ./run.
+export GCT_HOST="${GCT_HOST:-0.0.0.0}"
 LOCAL_NODE="$ROOT/.runtime/bin/node"
 LOCAL_NPM_CLI="$ROOT/.runtime/lib/node_modules/npm/bin/npm-cli.js"
 
