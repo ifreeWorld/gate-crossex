@@ -6,6 +6,18 @@ afterEach(() => {
 });
 
 describe('local API request coordination', () => {
+  it('uses strategy-specific read intents for SK Hynix fixture queries', async () => {
+    const fetchMock = vi.fn(async (_path: string, _init?: RequestInit) => {
+      void _path;
+      void _init;
+      return new Response(JSON.stringify({ sequence: 1, calculatedAt: '2026-08-09T08:00:00.000Z', opportunities: [] }));
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    await api.skHynixArbitrageOpportunities({ requestedNotional: '1000', reportCurrency: 'USDT', horizonSeconds: 86400, maxSlippageBps: '20' });
+    const [path, init] = fetchMock.mock.calls[0] ?? [];
+    expect(path).toBe('/api/sk-hynix-arbitrage/opportunities/query');
+    expect(new Headers(init?.headers).get('x-gct-read-intent')).toBe('sk-hynix-arbitrage-opportunities');
+  });
   it('coalesces concurrent reads of the same execution snapshot', async () => {
     let release: ((response: Response) => void) | undefined;
     const response = new Promise<Response>((resolve) => { release = resolve; });

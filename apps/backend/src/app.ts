@@ -16,6 +16,8 @@ import { reconcilePortfolioSnapshots, stalePortfolioReconciliation } from '@gate
 import {
   CrossExTransferAccountSchema,
   CrossExTransferRequestSchema,
+  SkHynixArbitrageOpportunityQuerySchema,
+  SkHynixArbitragePreviewRequestSchema,
   canonicalizeCrossExTransfer,
   crossExTransferRouteError,
   UserPreferencesSchema,
@@ -72,6 +74,13 @@ import { CrossExPrivateStream } from './private-stream.js';
 import { LivePortfolioStore, type LivePortfolioSnapshot } from './live-portfolio.js';
 import { readDatabaseStatus } from './database.js';
 import { runDatabaseMaintenance } from './database-maintenance.js';
+import {
+  previewSkHynixArbitrage,
+  querySkHynixArbitrageOpportunities,
+  skHynixArbitrageCapabilities,
+  skHynixArbitragePositions,
+  skHynixArbitrageSpec,
+} from './sk-hynix-arbitrage-fixture.js';
 import {
   addAuditEvent,
   deleteCredentialMetadata,
@@ -704,6 +713,7 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
     app.get('/strategies/paired-position', sendFrontend);
     app.get('/strategies/price-difference', sendFrontend);
     app.get('/strategies/sk-hynix-premium', sendFrontend);
+    app.get('/strategies/sk-hynix-arbitrage', sendFrontend);
   }
 
   const candleStore = new CandleStore(database, marketHub, publicMarketGateway, {
@@ -982,6 +992,33 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
   });
 
   app.get('/api/markets', async () => marketHub.snapshot());
+
+  app.get('/api/sk-hynix-arbitrage/capabilities', async () => skHynixArbitrageCapabilities());
+  app.get('/api/sk-hynix-arbitrage/spec', async () => skHynixArbitrageSpec());
+  app.get('/api/sk-hynix-arbitrage/positions', async () => skHynixArbitragePositions());
+  app.post('/api/sk-hynix-arbitrage/opportunities/query', {
+    preHandler: async (request, reply) => {
+      if (request.headers['x-gct-read-intent'] !== 'sk-hynix-arbitrage-opportunities') return reply.code(403).send({ error: 'missing_read_intent' });
+    },
+  }, async (request, reply) => {
+    const parsed = SkHynixArbitrageOpportunityQuerySchema.safeParse(request.body);
+    if (!parsed.success) return reply.code(400).send({ error: 'invalid_sk_hynix_arbitrage_request', issues: parsed.error.issues });
+    return querySkHynixArbitrageOpportunities(parsed.data);
+  });
+  app.post('/api/sk-hynix-arbitrage/previews', {
+    preHandler: async (request, reply) => {
+      if (request.headers['x-gct-read-intent'] !== 'sk-hynix-arbitrage-preview') return reply.code(403).send({ error: 'missing_read_intent' });
+    },
+  }, async (request, reply) => {
+    const parsed = SkHynixArbitragePreviewRequestSchema.safeParse(request.body);
+    if (!parsed.success) return reply.code(400).send({ error: 'invalid_sk_hynix_arbitrage_request', issues: parsed.error.issues });
+    try {
+      return previewSkHynixArbitrage(parsed.data);
+    } catch (error) {
+      const code = error instanceof Error ? error.message : 'invalid_sk_hynix_arbitrage_request';
+      return reply.code(code.endsWith('_not_found') ? 404 : 409).send({ error: code });
+    }
+  });
 
   app.get('/api/trading/snapshot', async () => tradingRuntime.snapshot());
 

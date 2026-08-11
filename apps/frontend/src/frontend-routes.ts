@@ -1,4 +1,4 @@
-export type StrategyRouteKind = 'position' | 'auto' | 'premium';
+export type StrategyRouteKind = 'position' | 'auto' | 'premium' | 'skHynixArbitrage';
 
 export type FrontendRoute =
   | { workspace: 'Trade' }
@@ -12,6 +12,7 @@ const STRATEGY_PATHS: Record<StrategyRouteKind, string> = {
   position: '/strategies/paired-position',
   auto: '/strategies/price-difference',
   premium: '/strategies/sk-hynix-premium',
+  skHynixArbitrage: '/strategies/sk-hynix-arbitrage',
 };
 
 /** Convert an application page into its canonical, reload-safe browser path. */

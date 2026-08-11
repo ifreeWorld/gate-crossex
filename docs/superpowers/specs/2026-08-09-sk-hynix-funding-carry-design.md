@@ -1,32 +1,47 @@
-# SK 海力士资金费率套利策略设计
+# SK 海力士 000660 ↔ SKHYNIX 套利策略设计
 
 日期：2026-08-09
 
 ## 1. 设计决策
 
-新增独立的 `sk_hynix_carry` 策略，与现有 `premium` 策略并存。
+新增独立的 `sk_hynix_arbitrage` 策略，与现有 `premium` 策略并存。
 
 - 现有路由：`/strategies/sk-hynix-premium`
-- 新路由：`/strategies/sk-hynix-funding`
+- 新路由：`/strategies/sk-hynix-arbitrage`
 - 不改变现有 `premium` 行为和已持久化记录。
 - 第一阶段只实现只读功能，不连接真实 IBKR 或交易所交易账户，也不提供可点击的下单按钮。
 - 只读行情、模拟执行、恢复和补偿流程验证完成后，仍需用户再次明确批准，才可进入真实执行阶段。
 
 独立原型 `docs/sk-hynix-tws-strategy-demo.html` 仅作为设计参考，不是生产代码。在用户决定是否纳入版本控制前，该文件继续保留在工作区。
 
+该功能的命名空间统一为 `sk_hynix_arbitrage`，禁止继续使用含义泛化的 `carry`：
+
+| 范围 | 固定命名 |
+|---|---|
+| 页面路由 | `/strategies/sk-hynix-arbitrage` |
+| 前端目录 | `apps/frontend/src/sk-hynix-arbitrage/` |
+| 页面组件 | `SkHynixArbitrageRoute` |
+| REST API | `/api/sk-hynix-arbitrage/*` |
+| 数据库表前缀 | `sk_hynix_arbitrage_*` |
+| TypeScript 类型/服务前缀 | `SkHynixArbitrage*` |
+| WebSocket 消息前缀 | `sk_hynix_arbitrage.*` |
+| 客户端订单 ID 前缀 | `SKHA-` |
+
+不把具体交易所或结算币写进公共命名，因为同一页面需要比较多个交易所的 `SKHYNIX` 永续；固定股票 `000660` 和允许的永续合约由 `SK_HYNIX_ARBITRAGE_SPEC` 强约束。
+
 ## 2. 策略定义
 
 开仓方向：
 
-- 通过 IBKR 买入已验证的 SK 海力士股票标的。
-- 在支持的加密交易所做空已验证且经济敞口等价的永续合约。
+- 通过 IBKR 买入韩国交易所上市的 SK 海力士股票 `000660`。
+- 在支持的加密交易所做空底层资产为 `SKHYNIX`、且已完成经济敞口验证的永续合约。
 
 平仓方向：
 
 - 仅卖出本策略持有的股票数量。
 - 仅买入本策略建立的永续空头数量，并在交易所侧强制 Reduce-only。
 
-系统不能根据相似的代码名称推断标的等价性。只有持久化标的映射状态为 `VERIFIED`，并包含准确的 IBKR 合约、永续合约、经济换算比例、币种和验证信息时，该交易对才具备交易资格。
+该功能不是通用股票永续套利平台，只服务 `IBKR 000660 ↔ 交易所 SKHYNIX 永续`。服务端维护版本化的 `SK_HYNIX_ARBITRAGE_SPEC`，固定股票身份、允许的永续合约、经济换算比例、币种和验证来源。系统不能仅根据相似代码推断等价性；只有当前规范版本已通过业务验证且两边实时元数据与规范一致时才具备交易资格。规范由代码和部署配置管理，不新增标的映射表，也不提供用户增删改映射的接口。
 
 ## 3. 范围
 
@@ -70,7 +85,7 @@
 新增独立功能目录，不继续扩张 `strategy-route.tsx`：
 
 ```text
-apps/frontend/src/sk-hynix-carry/
+apps/frontend/src/sk-hynix-arbitrage/
   route.tsx
   opportunity-table.tsx
   instrument-pair.tsx
@@ -85,7 +100,7 @@ apps/frontend/src/sk-hynix-carry/
 
 `route.tsx` 只负责页面组合、机会选择和展示状态。计算文件只包含确定性的前端展示辅助逻辑，不能作为真实交易的权威计算结果。
 
-在 `StrategyRouteKind` 中新增内部键 `carry`，并映射到 `/strategies/sk-hynix-funding`。同时增加懒加载入口和策略菜单项。该路由与 `PremiumStrategyView` 完全独立。
+在 `StrategyRouteKind` 中新增内部键 `skHynixArbitrage`，并映射到 `/strategies/sk-hynix-arbitrage`。同时增加懒加载入口和策略菜单项。该路由与 `PremiumStrategyView` 完全独立。
 
 ### 5.2 页面信息层级
 
@@ -93,7 +108,7 @@ apps/frontend/src/sk-hynix-carry/
 
 1. 连接和交易资格摘要。
 2. 基于目标金额和持有周期的机会排行。
-3. 已验证标的映射、行情、汇率归一化和估算假设。
+3. 固定标的规范、行情、汇率归一化和估算假设。
 4. 包含数量及剩余敞口预览的开仓/平仓面板。
 5. 双腿执行状态轨道。
 6. 策略范围内的持仓、订单、成交、资金费、成本和盈亏。
@@ -108,7 +123,7 @@ apps/frontend/src/sk-hynix-carry/
 - 连接状态显示为 `READ_ONLY_FIXTURE`。
 - 下单按钮保持禁用，文字为“只读预览”。
 - 不显示“模拟交易”，因为当前应用没有模拟成交和持仓账本。
-- 标的未验证、行情过期、IBKR 延迟行情、股票闭市、盘口深度缺失或汇率缺失时，该机会不可交易。
+- 固定标的规范未验证、行情过期、IBKR 延迟行情、股票闭市、盘口深度缺失或汇率缺失时，该机会不可交易。
 
 ### 5.4 开仓和平仓数量
 
@@ -116,7 +131,7 @@ apps/frontend/src/sk-hynix-carry/
 
 1. 将 IBKR 可执行股票价格换算为策略报告币种。
 2. 将股票数量向下取整至允许的交易单位；在合约元数据验证前，默认只允许整数股。
-3. 通过已验证映射换算股票经济敞口。
+3. 通过当前 `SK_HYNIX_ARBITRAGE_SPEC` 换算股票经济敞口。
 4. 将永续数量向下取整至交易所步长，且不能超过股票经济敞口。
 5. 展示剩余经济敞口和汇率敞口。
 
@@ -134,31 +149,31 @@ apps/frontend/src/sk-hynix-carry/
 
 在 `packages/shared-types` 中新增独立 Schema；第一阶段不修改现有 `StrategyConfigSchema`。
 
-### 6.1 标的映射
+### 6.1 固定策略规范
 
 ```text
-CarryInstrumentMapping
-  mappingId
-  status: UNVERIFIED | VERIFIED | SUSPENDED
-  economicUnderlyingId
+SkHynixArbitrageSpec
+  version
+  status: VERIFIED | SUSPENDED
   ibkrContract:
-    conId, symbol, localSymbol, secType, exchange, primaryExchange,
+    conId, symbol, localSymbol: 000660, secType: STK, exchange, primaryExchange,
     currency, timezone, tradingHours, lotSize
-  perpContract:
+  approvedPerpContracts[]:
     venue, symbol, base, quote, settlementCurrency,
-    contractMultiplier, quantityStep, minimumQuantity
-  equityUnitsPerPerpUnit
-  verificationSource
-  verifiedAt
+    contractMultiplier, quantityStep, minimumQuantity,
+    equityUnitsPerPerpUnit, verificationSource, verifiedAt
+  ibkrVerificationSource
+  ibkrVerifiedAt
 ```
 
-映射属于配置数据，不能从行情或代码名称推断。生产环境只有 `VERIFIED` 映射具备交易资格；fixture 映射必须明确标记为示例。
+规范属于服务端版本化配置，不能由浏览器提交或修改，也不能从行情或代码名称推断。生产环境只有 `VERIFIED` 规范及其中明确列出的永续合约具备交易资格；fixture 规范必须明确标记为示例。历史持仓保存开仓时的 `specVersion` 和合约身份，后续规范升级不能改变已有持仓的经济口径。
 
 ### 6.2 行情快照
 
 ```text
-CarryQuoteSet
-  mappingId
+SkHynixArbitrageQuoteSet
+  specVersion
+  perpVenue, perpSymbol
   snapshotId
   ibkrBook: bids, asks, timestamp, marketDataType, marketState
   perpBook: bids, asks, timestamp
@@ -172,8 +187,8 @@ CarryQuoteSet
 ### 6.3 机会和持仓
 
 ```text
-CarryOpportunity
-  mappingId, snapshotId, requestedNotional, horizonSeconds
+SkHynixArbitrageOpportunity
+  specVersion, perpVenue, perpSymbol, snapshotId, requestedNotional, horizonSeconds
   equityQuantity, perpQuantity
   equityVwap, perpVwap
   openingSpreadBps
@@ -184,8 +199,8 @@ CarryOpportunity
   residualEconomicExposure, residualFxExposure
   assumptions, eligibility, ineligibilityReasons
 
-CarryPosition
-  strategyId, mappingId
+SkHynixArbitragePosition
+  positionId, specVersion, perpVenue, perpSymbol
   remainingEquityQuantity, remainingPerpQuantity
   averageEntryPrices
   realizedAndAccruedFunding
@@ -257,8 +272,8 @@ expectedNetReturn
 新增独立于 `TradingRuntime` 的功能服务：
 
 ```text
-CarryMarketService
-  读取标的映射
+SkHynixArbitrageMarketService
+  读取固定策略规范并校验实时合约元数据
   接收股票、永续、资金费率和汇率快照
   验证行情新鲜度和交易资格
   计算基于 VWAP 的机会
@@ -268,9 +283,10 @@ CarryMarketService
 首批本地接口：
 
 ```text
-GET /api/sk-hynix-carry/mappings
-GET /api/sk-hynix-carry/opportunities?notional=...&horizonSeconds=...
-GET /api/sk-hynix-carry/positions
+GET /api/sk-hynix-arbitrage/spec
+POST /api/sk-hynix-arbitrage/opportunities/query
+POST /api/sk-hynix-arbitrage/previews
+GET /api/sk-hynix-arbitrage/positions
 ```
 
 后续在终端 WebSocket 中增加该功能专用的快照和更新消息，不能把 IBKR 数据伪装成 CrossEx `market.update`。
@@ -364,15 +380,13 @@ manual_intervention
 新增独立数据表，不复用当前只适合加密交易的执行记录：
 
 ```text
-carry_instrument_mappings
-carry_strategy_positions
-carry_execution_batches
-carry_execution_legs
-carry_fills
-carry_funding_cashflows
+sk_hynix_arbitrage_positions
+sk_hynix_arbitrage_execution_batches
+sk_hynix_arbitrage_execution_legs
+sk_hynix_arbitrage_fills
 ```
 
-持久化恢复所需的原始交易场所标识、归一化数量、成交关联、状态变化、失败原因和时间戳。数据库迁移继续遵守现有不可修改及校验和规则。
+四张表均为该策略专用新表，不修改或复用现有 `execution_orders`、`execution_fills`、`execution_strategies` 和 `execution_strategy_logs`。它们持久化恢复所需的规范版本、原始交易场所标识、归一化数量、成交关联、当前状态、失败原因和时间戳。数据库迁移继续遵守现有不可修改及校验和规则。
 
 进程重启后，必须先通过 IBKR 和交易所对所有非终态批次完成对账，之后才允许对同一策略持仓执行新操作。
 
@@ -380,7 +394,7 @@ carry_funding_cashflows
 
 出现以下任一情况时禁止开仓：
 
-- 标的映射未验证。
+- `SK_HYNIX_ARBITRAGE_SPEC` 未验证、已停用，或实时合约元数据与规范不一致。
 - IBKR 合约身份或权限不可用。
 - 股票或汇率行情过期、延迟或缺失。
 - 永续行情、深度、元数据或资金费率周期不可用。
@@ -389,6 +403,7 @@ carry_funding_cashflows
 - 数量不符合交易单位、步长或最小数量要求。
 - 剩余敞口超过配置限制。
 - TWS/Gateway、交易所数据流或对账状态异常。
+- CrossEx 账户存在无法归属到本策略的同一 SKHYNIX 永续持仓或活动订单；该情况会同时破坏安全平仓上限和资金费归属。
 - 同一策略持仓已存在未结束的执行批次。
 
 页面必须解释每一项未通过的检查，不能仅因为存在可显示价格就允许执行。
@@ -401,7 +416,7 @@ carry_funding_cashflows
 - 机会选择与下单面板联动。
 - 开仓/平仓模式切换。
 - 25%、50%、75%、100% 平仓数量及剩余持仓预览。
-- 行情过期、延迟、闭市、映射未验证或深度不足时的禁用状态和原因。
+- 行情过期、延迟、闭市、固定规范未验证或深度不足时的禁用状态和原因。
 - 表格、标签页、状态更新和键盘操作的无障碍测试。
 
 ### 领域计算和数据协议
@@ -434,7 +449,7 @@ carry_funding_cashflows
 ## 14. 交付顺序和阶段门槛
 
 1. **正式只读页面：** React 组件、共享 Schema、fixture 接口、计算和测试；不连接外部账户。
-2. **真实只读行情：** 已验证标的映射、IBKR 行情适配器、永续深度/资金费率适配器、汇率适配器、新鲜度和交易时段检查。
+2. **真实只读行情：** 固定策略规范验证、IBKR 行情适配器、永续深度/资金费率适配器、汇率适配器、新鲜度和交易时段检查。
 3. **模拟执行：** 持久化模拟持仓和双腿状态机，包括补偿及重启恢复。
 4. **真实执行准备评审：** 确认合约身份、权限、换算比例、汇率风险、费用、税费/ADR 成本、Gateway 运维方案和风险限制。
 5. **真实执行：** 增加执行适配器；只有用户明确授权并通过准备评审后才启用按钮。
@@ -446,34 +461,34 @@ carry_funding_cashflows
 第 8～14 节描述总体边界，本节起定义最终形态的实现协议。第一阶段只启用其中的 fixture 行情、计算和只读接口；未启用的模块仍按本设计保留边界，避免后续重构核心数据结构。
 
 ```text
-CarryMappingService
-  解析、验证、版本化管理股票与永续映射
+SkHynixArbitrageSpecService
+  加载版本化固定规范，验证 IBKR 000660 与允许的 SKHYNIX 永续元数据
 
-CarryQuoteCoordinator
+SkHynixArbitrageQuoteCoordinator
   合并 IBKR 盘口、永续盘口、资金费率和 FX 行情
   生成带 sequence 和 snapshotId 的一致行情集
 
-CarryPricingEngine
+SkHynixArbitragePricingEngine
   计算两边 VWAP、换算数量、成本、资金费和预计净收益
   纯计算，不访问数据库和网络
 
-CarryPreviewService
+SkHynixArbitragePreviewService
   生成开仓/平仓预览
-  持久化真实执行所引用的不可变定价快照
+  生成规范化定价上下文；预览阶段只保存在内存中
 
-CarryPositionRepository
+SkHynixArbitragePositionRepository
   管理本策略持仓和乐观锁版本
 
-CarryExecutionRepository
-  原子写入执行批次、订单腿、成交、资金费和事件
+SkHynixArbitrageExecutionRepository
+  原子写入执行批次、订单腿和成交，并更新策略持仓
 
-CarryExecutionCoordinator
+SkHynixArbitrageExecutionCoordinator
   并发提交两腿、处理回报、撤单、补偿和人工干预
 
-CarryRecoveryService
+SkHynixArbitrageRecoveryService
   启动恢复、未知订单对账、远端成交补录和敞口复核
 
-CarryStreamPublisher
+SkHynixArbitrageStreamPublisher
   向现有终端 WebSocket 发布机会、持仓和执行更新
 ```
 
@@ -483,111 +498,28 @@ CarryStreamPublisher
 
 ### 16.1 迁移规则
 
-- 使用下一个不可变迁移文件 `migrations/0018_sk_hynix_carry.sql`。
+- 使用下一个不可变迁移文件 `migrations/0018_sk_hynix_arbitrage.sql`。
 - 迁移纳入现有 SHA-256 校验机制，应用后不得修改。
 - 所有表继续使用 SQLite、外键、WAL 和同步 `better-sqlite3` 事务。
 - 金额、价格、费率和数量使用规范化十进制字符串；时间使用 ISO 8601 UTC 字符串。
-- JSON 字段只保存不可变快照、第三方原始元数据或可扩展明细；需要查询和约束的字段必须独立成列。
-- 不持久化连续高频盘口。只有用户预览、模拟执行或真实执行引用的定价快照入库。
-- 实际迁移创建顺序为映射 → 持仓 → 定价快照 → 批次 → 订单腿 → 成交/资金费/事件，保证所有父表先于子表存在；本节按概念阅读顺序说明各表。
+- JSON 字段只保存执行定价上下文、脱敏第三方原始回报或可扩展失败明细；需要查询和约束的字段必须独立成列。
+- 不持久化连续高频盘口和普通预览。只有模拟或真实执行最终采用的定价上下文写入批次，补偿重新定价写入对应订单腿。
+- 实际迁移创建顺序为持仓 → 批次 → 订单腿 → 成交，保证所有父表先于子表存在。
 
-### 16.2 `carry_instrument_mappings`
-
-保存经过版本化的经济标的映射。已被持仓或执行批次引用的版本不可原地修改；变更时创建新版本，并将旧版本转为 `SUSPENDED`。
-
-```sql
-CREATE TABLE carry_instrument_mappings (
-  id TEXT PRIMARY KEY,
-  mapping_group_id TEXT NOT NULL,
-  version INTEGER NOT NULL,
-  status TEXT NOT NULL CHECK (status IN ('UNVERIFIED', 'VERIFIED', 'SUSPENDED')),
-  economic_underlying_id TEXT NOT NULL,
-
-  ibkr_con_id INTEGER NOT NULL,
-  ibkr_symbol TEXT NOT NULL,
-  ibkr_local_symbol TEXT NOT NULL,
-  ibkr_sec_type TEXT NOT NULL,
-  ibkr_exchange TEXT NOT NULL,
-  ibkr_primary_exchange TEXT,
-  ibkr_currency TEXT NOT NULL,
-  ibkr_timezone TEXT NOT NULL,
-  ibkr_trading_hours_json TEXT NOT NULL,
-  ibkr_lot_size TEXT NOT NULL,
-
-  perp_venue TEXT NOT NULL,
-  perp_symbol TEXT NOT NULL,
-  perp_base TEXT NOT NULL,
-  perp_quote TEXT NOT NULL,
-  perp_settlement_currency TEXT NOT NULL,
-  perp_contract_multiplier TEXT NOT NULL,
-  perp_quantity_step TEXT NOT NULL,
-  perp_minimum_quantity TEXT NOT NULL,
-
-  equity_units_per_perp_unit TEXT NOT NULL,
-  verification_source TEXT NOT NULL,
-  verification_payload_json TEXT NOT NULL,
-  verified_at TEXT,
-  suspended_reason TEXT,
-  created_at TEXT NOT NULL,
-  updated_at TEXT NOT NULL,
-  UNIQUE (mapping_group_id, version)
-);
-
-CREATE INDEX carry_mapping_status_idx
-  ON carry_instrument_mappings(status, updated_at DESC);
-CREATE INDEX carry_mapping_ibkr_idx
-  ON carry_instrument_mappings(ibkr_con_id, status);
-CREATE INDEX carry_mapping_perp_idx
-  ON carry_instrument_mappings(perp_venue, perp_symbol, status);
-CREATE UNIQUE INDEX carry_mapping_one_verified_idx
-  ON carry_instrument_mappings(mapping_group_id)
-  WHERE status = 'VERIFIED';
-```
-
-同一 `mapping_group_id` 最多只能有一个可用于新开仓的 `VERIFIED` 版本，由唯一索引兜底，并由 Repository 在一个事务内完成旧版本停用和新版本启用。数据库允许历史持仓继续引用已停用版本，但该版本不能再用于新开仓。
-
-### 16.3 `carry_pricing_snapshots`
-
-保存执行决策所依据的完整不可变输入和计算输出。普通排行刷新只存在内存；只有显式预览和执行预检才创建记录。
-
-```sql
-CREATE TABLE carry_pricing_snapshots (
-  id TEXT PRIMARY KEY,
-  mapping_id TEXT NOT NULL REFERENCES carry_instrument_mappings(id),
-  source TEXT NOT NULL CHECK (source IN ('FIXTURE', 'SIMULATION', 'LIVE')),
-  purpose TEXT NOT NULL CHECK (purpose IN ('OPEN', 'CLOSE', 'REPAIR')),
-  position_id TEXT REFERENCES carry_positions(id),
-  report_currency TEXT NOT NULL,
-  requested_notional TEXT,
-  requested_close_fraction TEXT,
-  requested_equity_quantity TEXT,
-  horizon_seconds INTEGER NOT NULL,
-  quote_set_json TEXT NOT NULL,
-  normalized_input_json TEXT NOT NULL,
-  calculation_json TEXT NOT NULL,
-  content_hash TEXT NOT NULL,
-  eligible INTEGER NOT NULL CHECK (eligible IN (0, 1)),
-  ineligibility_reasons_json TEXT NOT NULL,
-  captured_at TEXT NOT NULL,
-  expires_at TEXT NOT NULL
-);
-
-CREATE INDEX carry_pricing_mapping_captured_idx
-  ON carry_pricing_snapshots(mapping_id, captured_at DESC);
-CREATE INDEX carry_pricing_expiry_idx
-  ON carry_pricing_snapshots(expires_at);
-```
-
-`quote_set_json` 包含两边完整使用深度、FX 路径、资金费率、行情类型和各自时间戳；`calculation_json` 包含 VWAP、数量、成本拆分、残余敞口和收益假设。`content_hash` 对规范化后的输入与输出计算 SHA-256，用于审计和幂等检查。
-
-### 16.4 `carry_positions`
+### 16.2 `sk_hynix_arbitrage_positions`
 
 持仓是策略所有权边界，只记录本策略成交形成的数量，不直接复制账户总持仓。
 
 ```sql
-CREATE TABLE carry_positions (
+CREATE TABLE sk_hynix_arbitrage_positions (
   id TEXT PRIMARY KEY,
-  mapping_id TEXT NOT NULL REFERENCES carry_instrument_mappings(id),
+  spec_version TEXT NOT NULL,
+  ibkr_con_id INTEGER NOT NULL,
+  ibkr_local_symbol TEXT NOT NULL CHECK (ibkr_local_symbol = '000660'),
+  ibkr_currency TEXT NOT NULL CHECK (ibkr_currency = 'KRW'),
+  perp_venue TEXT NOT NULL,
+  perp_symbol TEXT NOT NULL,
+  equity_units_per_perp_unit TEXT NOT NULL,
   environment TEXT NOT NULL CHECK (environment IN ('SIMULATION', 'LIVE')),
   state TEXT NOT NULL CHECK (state IN (
     'OPENING', 'OPEN', 'PARTIALLY_CLOSED', 'CLOSING', 'CLOSED', 'MANUAL_INTERVENTION'
@@ -601,6 +533,10 @@ CREATE TABLE carry_positions (
   perp_average_entry_price TEXT,
   realized_price_pnl TEXT NOT NULL DEFAULT '0',
   funding_cashflow TEXT NOT NULL DEFAULT '0',
+  funding_attribution_state TEXT NOT NULL DEFAULT 'UNAVAILABLE' CHECK (
+    funding_attribution_state IN ('VERIFIED', 'AMBIGUOUS', 'UNAVAILABLE')
+  ),
+  funding_refreshed_at TEXT,
   commissions_and_fees TEXT NOT NULL DEFAULT '0',
   residual_economic_exposure TEXT NOT NULL DEFAULT '0',
   residual_fx_exposure TEXT NOT NULL DEFAULT '0',
@@ -611,24 +547,25 @@ CREATE TABLE carry_positions (
   updated_at TEXT NOT NULL
 );
 
-CREATE INDEX carry_positions_state_idx
-  ON carry_positions(environment, state, updated_at DESC);
-CREATE INDEX carry_positions_mapping_idx
-  ON carry_positions(mapping_id, created_at DESC);
+CREATE INDEX sk_hynix_arbitrage_positions_state_idx
+  ON sk_hynix_arbitrage_positions(environment, state, updated_at DESC);
+CREATE INDEX sk_hynix_arbitrage_positions_contract_idx
+  ON sk_hynix_arbitrage_positions(perp_venue, perp_symbol, created_at DESC);
 ```
 
-每次成交、资金费或修复更新都递增 `row_version`。平仓预览记录该版本；提交时版本不一致则返回 `carry_position_changed`，要求重新预览。
+固定股票代码不等于可以省略历史身份。持仓仍保存开仓时的 `spec_version`、IBKR `conId`、永续场所/合约和换算比例，防止规范升级后错误解释旧持仓。只有成交、持仓状态变化或影响可平数量的对账修复才递增 `row_version`；资金费刷新只更新 `funding_cashflow/funding_refreshed_at`，避免无关的收益刷新使平仓预览失效。平仓预览记录该版本；提交时版本不一致则返回 `sk_hynix_arbitrage_position_changed`，要求重新预览。
 
-### 16.5 `carry_execution_batches`
+### 16.3 `sk_hynix_arbitrage_execution_batches`
 
-一个批次表示一次用户开仓、平仓或系统补偿决策，并关联同一个权威定价快照。
+一个批次表示一次用户开仓、平仓或系统补偿决策。排行和普通预览只存在内存；用户提交时，后端重新预检，并把本次执行使用的完整定价输入和计算结果直接固化到批次中。
 
 ```sql
-CREATE TABLE carry_execution_batches (
+CREATE TABLE sk_hynix_arbitrage_execution_batches (
   id TEXT PRIMARY KEY,
-  position_id TEXT NOT NULL REFERENCES carry_positions(id),
-  mapping_id TEXT NOT NULL REFERENCES carry_instrument_mappings(id),
-  pricing_snapshot_id TEXT NOT NULL REFERENCES carry_pricing_snapshots(id),
+  position_id TEXT NOT NULL REFERENCES sk_hynix_arbitrage_positions(id),
+  spec_version TEXT NOT NULL,
+  perp_venue TEXT NOT NULL,
+  perp_symbol TEXT NOT NULL,
   environment TEXT NOT NULL CHECK (environment IN ('SIMULATION', 'LIVE')),
   operation TEXT NOT NULL CHECK (operation IN ('OPEN', 'CLOSE', 'REPAIR')),
   status TEXT NOT NULL CHECK (status IN (
@@ -637,6 +574,8 @@ CREATE TABLE carry_execution_batches (
   )),
   idempotency_key TEXT NOT NULL,
   request_hash TEXT NOT NULL,
+  pricing_context_json TEXT NOT NULL,
+  pricing_context_hash TEXT NOT NULL,
   expected_position_version INTEGER NOT NULL,
   previous_position_state TEXT NOT NULL,
   max_slippage_bps TEXT NOT NULL,
@@ -650,28 +589,29 @@ CREATE TABLE carry_execution_batches (
   UNIQUE (environment, idempotency_key)
 );
 
-CREATE INDEX carry_batches_status_idx
-  ON carry_execution_batches(environment, status, updated_at);
-CREATE INDEX carry_batches_position_idx
-  ON carry_execution_batches(position_id, created_at DESC);
-CREATE UNIQUE INDEX carry_batches_one_active_position_idx
-  ON carry_execution_batches(position_id)
+CREATE INDEX sk_hynix_arbitrage_batches_status_idx
+  ON sk_hynix_arbitrage_execution_batches(environment, status, updated_at);
+CREATE INDEX sk_hynix_arbitrage_batches_position_idx
+  ON sk_hynix_arbitrage_execution_batches(position_id, created_at DESC);
+CREATE UNIQUE INDEX sk_hynix_arbitrage_batches_one_active_position_idx
+  ON sk_hynix_arbitrage_execution_batches(position_id)
   WHERE status IN (
     'submitting', 'acknowledged', 'partially_filled', 'compensating', 'manual_intervention'
   );
 ```
 
-相同环境和幂等键配合同一 `request_hash` 时返回原批次；幂等键相同但请求内容不同则返回 `carry_idempotency_conflict`。
+相同环境和幂等键配合同一 `request_hash` 时返回原批次；幂等键相同但请求内容不同则返回 `sk_hynix_arbitrage_idempotency_conflict`。
 
-### 16.6 `carry_execution_legs`
+`pricing_context_json` 包含两边实际使用深度、FX 路径、资金费率预测、行情类型、时间戳、VWAP、数量、成本拆分、残余敞口和预计收益假设；`pricing_context_hash` 对规范化内容计算 SHA-256。补偿批次或补偿订单腿必须保存重新定价后的上下文，不能覆盖初始批次依据。
+
+### 16.4 `sk_hynix_arbitrage_execution_legs`
 
 每次批次至少有 `EQUITY` 和 `PERP` 两条主订单腿；补偿订单通过递增 `attempt` 添加新记录，不能覆盖原订单。
 
 ```sql
-CREATE TABLE carry_execution_legs (
+CREATE TABLE sk_hynix_arbitrage_execution_legs (
   id TEXT PRIMARY KEY,
-  batch_id TEXT NOT NULL REFERENCES carry_execution_batches(id),
-  pricing_snapshot_id TEXT NOT NULL REFERENCES carry_pricing_snapshots(id),
+  batch_id TEXT NOT NULL REFERENCES sk_hynix_arbitrage_execution_batches(id),
   leg TEXT NOT NULL CHECK (leg IN ('EQUITY', 'PERP')),
   purpose TEXT NOT NULL CHECK (purpose IN ('PRIMARY', 'COMPENSATION')),
   attempt INTEGER NOT NULL,
@@ -692,6 +632,8 @@ CREATE TABLE carry_execution_legs (
   )),
   filled_quantity TEXT NOT NULL DEFAULT '0',
   average_fill_price TEXT,
+  pricing_context_json TEXT,
+  pricing_context_hash TEXT,
   failure_code TEXT,
   failure_detail_json TEXT,
   submitted_at TEXT,
@@ -703,21 +645,21 @@ CREATE TABLE carry_execution_legs (
   UNIQUE (adapter, client_order_id)
 );
 
-CREATE INDEX carry_legs_remote_idx
-  ON carry_execution_legs(adapter, remote_order_id)
+CREATE INDEX sk_hynix_arbitrage_legs_remote_idx
+  ON sk_hynix_arbitrage_execution_legs(adapter, remote_order_id)
   WHERE remote_order_id IS NOT NULL;
-CREATE INDEX carry_legs_status_idx
-  ON carry_execution_legs(status, updated_at);
+CREATE INDEX sk_hynix_arbitrage_legs_status_idx
+  ON sk_hynix_arbitrage_execution_legs(status, updated_at);
 ```
 
-主订单腿引用批次的初始定价快照；每次补偿腿引用当次重新生成的 `REPAIR` 快照。规则：永续 `CLOSE` 腿必须 `reduce_only=1`；IBKR 不支持交易所式 Reduce-only，因此由本地策略持仓上限、远端持仓复核和订单数量共同约束。`MARKET` 只允许经风险策略明确批准的补偿订单，普通开平仓使用带最大滑点的保护限价。
+主订单腿使用批次中的初始定价上下文；补偿腿在自身 `pricing_context_json/hash` 中保存当次重新定价结果。规则：永续 `CLOSE` 腿必须 `reduce_only=1`；IBKR 不支持交易所式 Reduce-only，因此由本地策略持仓上限、远端持仓复核和订单数量共同约束。`MARKET` 只允许经风险策略明确批准的补偿订单，普通开平仓使用带最大滑点的保护限价。
 
-### 16.7 `carry_fills`
+### 16.5 `sk_hynix_arbitrage_fills`
 
 ```sql
-CREATE TABLE carry_fills (
+CREATE TABLE sk_hynix_arbitrage_fills (
   id TEXT PRIMARY KEY,
-  leg_id TEXT NOT NULL REFERENCES carry_execution_legs(id),
+  leg_id TEXT NOT NULL REFERENCES sk_hynix_arbitrage_execution_legs(id),
   adapter TEXT NOT NULL,
   remote_execution_id TEXT NOT NULL,
   quantity TEXT NOT NULL,
@@ -732,68 +674,22 @@ CREATE TABLE carry_fills (
   UNIQUE (adapter, remote_execution_id)
 );
 
-CREATE INDEX carry_fills_leg_idx
-  ON carry_fills(leg_id, executed_at);
+CREATE INDEX sk_hynix_arbitrage_fills_leg_idx
+  ON sk_hynix_arbitrage_fills(leg_id, executed_at);
 ```
 
-成交按远端 execution ID 去重。插入成交、汇总订单腿、更新策略持仓、更新批次状态和追加事件必须在同一 SQLite 事务内完成。
+成交按远端 execution ID 去重。插入成交、汇总订单腿、更新策略持仓和更新批次状态必须在同一 SQLite 事务内完成。
 
-### 16.8 `carry_funding_cashflows`
+不新增资金费现金流表。已结算资金费通过 Gate CrossEx `/crossex/account_book` 的 `FUNDING_FEE` 记录和 `/crossex/positions` 的累计 `funding_fee` 查询、校验并汇总到 `sk_hynix_arbitrage_positions.funding_cashflow`；每次从持仓 `opened_at` 开始分页重算，不按上次金额做增量累加。接口返回值必须标明来源和查询时间，不能把预测值写成已实现收益。如果查询覆盖不完整，状态为 `UNAVAILABLE`；如果同一 CrossEx 账户在策略之外还持有或交易相同 SKHYNIX 永续，账户级资金费不能无损归属到本策略，状态为 `AMBIGUOUS`。这两种状态下，页面都不得把金额展示为精确的策略已实现收益。
 
-```sql
-CREATE TABLE carry_funding_cashflows (
-  id TEXT PRIMARY KEY,
-  position_id TEXT NOT NULL REFERENCES carry_positions(id),
-  perp_venue TEXT NOT NULL,
-  remote_cashflow_id TEXT NOT NULL,
-  funding_rate TEXT NOT NULL,
-  position_notional TEXT NOT NULL,
-  amount TEXT NOT NULL,
-  currency TEXT NOT NULL,
-  report_currency_amount TEXT NOT NULL,
-  settlement_at TEXT NOT NULL,
-  received_at TEXT NOT NULL,
-  raw_payload_json TEXT NOT NULL,
-  UNIQUE (perp_venue, remote_cashflow_id)
-);
+不新增执行事件表。页面的持仓、当前委托、双腿状态和历史成交分别读取四张策略表；现有 `audit_events` 只记录少量安全关键动作，当前前端不查询或展示该表，恢复逻辑也不得依赖审计事件。
 
-CREATE INDEX carry_funding_position_idx
-  ON carry_funding_cashflows(position_id, settlement_at);
-```
+### 16.6 删除和保留策略
 
-资金费以实际交易所现金流水为准；预测资金费只存在定价快照中，不能写入已实现现金流。
-
-### 16.9 `carry_execution_events`
-
-```sql
-CREATE TABLE carry_execution_events (
-  id TEXT PRIMARY KEY,
-  batch_id TEXT NOT NULL REFERENCES carry_execution_batches(id),
-  sequence INTEGER NOT NULL,
-  event_type TEXT NOT NULL,
-  previous_status TEXT,
-  next_status TEXT,
-  leg_id TEXT REFERENCES carry_execution_legs(id),
-  correlation_id TEXT NOT NULL,
-  payload_json TEXT NOT NULL,
-  created_at TEXT NOT NULL,
-  UNIQUE (batch_id, sequence)
-);
-
-CREATE INDEX carry_events_batch_idx
-  ON carry_execution_events(batch_id, sequence);
-```
-
-该表是面向恢复和用户诊断的追加事件流，不替代现有 `audit_events`。涉及用户授权、真实订单、撤单、自动补偿和人工处理的关键动作，同时写入脱敏后的全局审计事件。
-
-### 16.10 删除和保留策略
-
-- `VERIFIED` 映射及仍被引用的历史版本不删除。
-- 未到终态的批次、订单腿、成交、持仓和引用的定价快照永不清理。
-- 已关闭真实持仓的成交、资金费和执行事件默认永久保留，供对账和成本核算。
-- 未被执行引用的 fixture/simulation 定价快照保留 30 天。
-- 已结束模拟持仓及其账本默认保留 365 天，可沿用现有数据库维护任务清理。
-- 删除顺序必须遵循外键：事件/资金费/成交 → 订单腿 → 批次 → 定价快照 → 已关闭模拟持仓。
+- 未到终态的批次、订单腿、成交和持仓永不清理。
+- 已关闭真实持仓及其批次、订单腿和成交默认永久保留，供对账和成本核算。
+- 已结束模拟持仓及其账本默认保留 365 天，可在新增的策略专用维护逻辑中清理，不能直接套用现有执行表清理 SQL。
+- 删除顺序必须遵循外键：成交 → 订单腿 → 批次 → 已关闭模拟持仓。
 
 ## 17. 事务、并发和幂等
 
@@ -801,10 +697,10 @@ CREATE INDEX carry_events_batch_idx
 
 真实或模拟提交在任何外部调用前执行一个短事务：
 
-1. 校验定价快照、映射状态、行情有效期和持仓 `row_version`。
+1. 校验 `SK_HYNIX_ARBITRAGE_SPEC` 版本、允许的永续合约、行情有效期和持仓 `row_version`。
 2. 检查相同持仓是否已有非终态批次。
 3. 新开仓时创建 `OPENING` 持仓；平仓时将持仓转为 `CLOSING`。
-4. 写入执行用定价快照、批次、两条 `SUBMITTING` 主订单腿和首个执行事件。
+4. 将执行用定价上下文写入批次，并写入两条 `SUBMITTING` 主订单腿。
 5. 提交事务。
 
 数据库事务中不能包含 TWS 或交易所网络调用。
@@ -818,12 +714,11 @@ CREATE INDEX carry_events_batch_idx
 每个订单或成交回报独立进入串行化的批次队列，并在一个事务内完成：
 
 1. 按远端订单 ID、IBKR permId 或客户端订单 ID 定位订单腿。
-2. 去重成交和过期状态事件。
+2. 按远端时间戳、累计成交量和终态优先级拒绝过期状态，按远端 execution ID 去重成交。
 3. 更新订单腿累计成交量和均价。
 4. 更新策略持仓及 `row_version`。
 5. 根据两条腿实际成交经济敞口派生批次状态。
-6. 追加 `carry_execution_events`。
-7. 事务提交后发布 WebSocket 更新。
+6. 事务提交后发布 WebSocket 当前状态更新。
 
 ### 17.4 并发所有权
 
@@ -837,7 +732,7 @@ CREATE INDEX carry_events_batch_idx
 - 客户端每次提交生成至少 128 bit 随机 `Idempotency-Key`。
 - 服务端对规范化请求体计算 `request_hash`。
 - 相同键、相同哈希：返回已有批次，不再次提交远端订单。
-- 相同键、不同哈希：返回 HTTP 409 `carry_idempotency_conflict`。
+- 相同键、不同哈希：返回 HTTP 409 `sk_hynix_arbitrage_idempotency_conflict`。
 - Adapter 客户端订单 ID 由批次 ID、腿、用途和 attempt 确定性生成；重启后不能生成新 ID 重试同一提交。
 - 远端结果不明确时状态进入 `UNKNOWN`，只能先查询远端，不能直接再次提交。
 
@@ -845,7 +740,7 @@ CREATE INDEX carry_events_batch_idx
 
 ### 18.1 通用规则
 
-- 路径统一使用 `/api/sk-hynix-carry` 前缀。
+- 路径统一使用 `/api/sk-hynix-arbitrage` 前缀。
 - 所有请求和响应由 `packages/shared-types` 中的 Zod Schema 校验。
 - 十进制值使用字符串，时间使用 ISO 8601 UTC。
 - 读请求继续使用 `x-gct-read-intent`；模拟和真实执行使用不同的 `x-gct-trading-intent`。
@@ -857,7 +752,7 @@ CREATE INDEX carry_events_batch_idx
 ### 18.2 能力和连接状态
 
 ```http
-GET /api/sk-hynix-carry/capabilities
+GET /api/sk-hynix-arbitrage/capabilities
 ```
 
 响应：
@@ -890,56 +785,27 @@ GET /api/sk-hynix-carry/capabilities
 
 `phase` 枚举：`READ_ONLY_FIXTURE | READ_ONLY_LIVE | SIMULATION | LIVE_DISABLED | LIVE_READY`。前端只能根据服务端能力启用相应功能，不能用本地配置自行推断。
 
-### 18.3 标的映射
+### 18.3 固定策略规范
 
 ```http
-GET /api/sk-hynix-carry/mappings?status=VERIFIED
+GET /api/sk-hynix-arbitrage/spec
 ```
 
-返回 `CarryInstrumentMapping[]`。默认返回所有状态，`status` 仅支持单个合法枚举。
-
-后续真实只读阶段增加：
-
-```http
-POST /api/sk-hynix-carry/mappings/verify
-x-gct-read-intent: verify-carry-mapping
-```
-
-请求只携带用户选择的候选标识：
-
-```json
-{
-  "ibkr": { "conId": 123456789 },
-  "perp": { "venue": "OKX", "symbol": "SKHYNIXUSDT" },
-  "candidateMappingId": "skh-krx-okx"
-}
-```
-
-客户端不能提交或覆盖经济换算比例。后端重新查询 IBKR ContractDetails 和交易所合约元数据，并与服务端版本化的候选映射规范比较；候选规范包含预期经济底层和换算比例，但不包含账户凭证。只有官方元数据与候选规范全部一致，并经过业务验证流程记录 `verificationSource` 后，才创建 `VERIFIED` 版本。没有候选规范、元数据不完整或无法证明经济等价时只保存 `UNVERIFIED` 结果，不允许用户仅通过页面勾选绕过。
-
-暂停映射：
-
-```http
-POST /api/sk-hynix-carry/mappings/:id/suspend
-x-gct-trading-intent: suspend-carry-mapping
-```
-
-暂停仅阻止新开仓，不能删除历史持仓映射，也不能阻止已有持仓平仓。
+返回只读的 `SkHynixArbitrageSpec`，包括规范版本、状态、IBKR `000660` 合约身份、允许参与排行的 `SKHYNIX` 永续列表、逐合约换算比例和验证来源。不存在映射列表、验证、创建、修改或暂停接口；规范变更通过代码评审和部署配置发布新版本。`SUSPENDED` 阻止新开仓，但不阻止已有持仓使用其历史规范数据安全平仓。
 
 ### 18.4 机会查询
 
 采用 POST 是因为查询包含结构化条件，但它仍是只读请求：
 
 ```http
-POST /api/sk-hynix-carry/opportunities/query
-x-gct-read-intent: carry-opportunities
+POST /api/sk-hynix-arbitrage/opportunities/query
+x-gct-read-intent: sk-hynix-arbitrage-opportunities
 ```
 
 请求：
 
 ```json
 {
-  "mappingIds": [],
   "requestedNotional": "1000",
   "reportCurrency": "USDT",
   "horizonSeconds": 86400,
@@ -947,8 +813,8 @@ x-gct-read-intent: carry-opportunities
 }
 ```
 
-- `mappingIds=[]` 表示所有可参与排行的映射。
-- 最大映射数量 100，`horizonSeconds` 范围为 1 个资金费结算周期至 30 天。
+- 后端固定比较规范中所有已批准的 `SKHYNIX` 永续合约，客户端不能传入任意股票或永续代码。
+- `horizonSeconds` 范围为所选合约的 1 个资金费结算周期至 30 天。
 - 第一阶段由 fixture QuoteProvider 提供行情；后续阶段接口不变。
 
 响应：
@@ -959,7 +825,9 @@ x-gct-read-intent: carry-opportunities
   "calculatedAt": "2026-08-09T08:00:00.000Z",
   "opportunities": [
     {
-      "mappingId": "map-skh-krx-okx-v1",
+      "specVersion": "2026-08-09.1",
+      "perpVenue": "OKX",
+      "perpSymbol": "SKHYNIXUSDT",
       "eligible": false,
       "ineligibilityReasons": ["FIXTURE_DATA"],
       "requestedNotional": "1000",
@@ -997,8 +865,8 @@ fixture 返回的 `eligible` 必须为 `false`，避免示例数据通过正式�
 ### 18.5 创建权威预览
 
 ```http
-POST /api/sk-hynix-carry/previews
-x-gct-read-intent: carry-preview
+POST /api/sk-hynix-arbitrage/previews
+x-gct-read-intent: sk-hynix-arbitrage-preview
 ```
 
 开仓请求：
@@ -1006,7 +874,8 @@ x-gct-read-intent: carry-preview
 ```json
 {
   "mode": "OPEN",
-  "mappingId": "map-skh-krx-okx-v1",
+  "perpVenue": "OKX",
+  "perpSymbol": "SKHYNIXUSDT",
   "requestedNotional": "1000",
   "reportCurrency": "USDT",
   "horizonSeconds": 86400,
@@ -1019,7 +888,7 @@ x-gct-read-intent: carry-preview
 ```json
 {
   "mode": "CLOSE",
-  "positionId": "carry-pos-01",
+  "positionId": "skha-pos-01",
   "closeFraction": "0.5",
   "expectedPositionVersion": 7,
   "maxSlippageBps": "20"
@@ -1034,8 +903,10 @@ x-gct-read-intent: carry-preview
 {
   "previewId": "preview-uuid",
   "mode": "CLOSE",
-  "mappingId": "map-skh-krx-okx-v1",
-  "positionId": "carry-pos-01",
+  "specVersion": "2026-08-09.1",
+  "perpVenue": "OKX",
+  "perpSymbol": "SKHYNIXUSDT",
+  "positionId": "skha-pos-01",
   "positionVersion": 7,
   "expiresAt": "2026-08-09T08:00:02.000Z",
   "eligible": true,
@@ -1054,18 +925,17 @@ x-gct-read-intent: carry-preview
 }
 ```
 
-fixture 预览可展示但始终不可提交。真实行情预览默认有效期 2 秒；具体 TTL 为服务端配置，并通过 `expiresAt` 返回。
+fixture 预览可展示但始终不可提交。真实行情预览默认有效期 2 秒；具体 TTL 为服务端配置，并通过 `expiresAt` 返回。`previewId` 只引用进程内短期缓存，不写数据库；执行接口会重新验证请求、规范版本、持仓版本和最新行情，并把最终定价上下文写入执行批次。
 
 ### 18.6 持仓查询
 
 ```http
-GET /api/sk-hynix-carry/positions?environment=LIVE&state=OPEN
-GET /api/sk-hynix-carry/positions/:id
-GET /api/sk-hynix-carry/positions/:id/fills?cursor=...&limit=50
-GET /api/sk-hynix-carry/positions/:id/funding?cursor=...&limit=50
+GET /api/sk-hynix-arbitrage/positions?environment=LIVE&state=OPEN
+GET /api/sk-hynix-arbitrage/positions/:id
+GET /api/sk-hynix-arbitrage/positions/:id/fills?cursor=...&limit=50
 ```
 
-列表默认按 `updatedAt DESC`，使用 `cursor` 和 `limit` 分页，`limit` 最大 100。详情包含策略账本数量、账户远端对账数量、偏差、累计资金费、费用、关联活动批次以及 `rowVersion`。成交和资金费接口按事件时间与 ID 组成稳定 cursor，避免新增记录导致翻页重复。
+列表默认按 `updatedAt DESC`，使用 `cursor` 和 `limit` 分页，`limit` 最大 100。详情包含策略账本数量、账户远端对账数量、偏差、从 Gate CrossEx 查询并校验的累计资金费、`fundingAttributionState/fundingRefreshedAt`、费用、关联活动批次以及 `rowVersion`。成交接口按成交时间与 ID 组成稳定 cursor，避免新增记录导致翻页重复。当前页面不提供逐笔资金费流水页，因此不新增 `/funding` 明细接口。
 
 账户远端持仓与策略账本不一致时，返回：
 
@@ -1090,8 +960,8 @@ GET /api/sk-hynix-carry/positions/:id/funding?cursor=...&limit=50
 阶段 3 启用：
 
 ```http
-POST /api/sk-hynix-carry/simulations/executions
-x-gct-trading-intent: simulate-carry
+POST /api/sk-hynix-arbitrage/simulations/executions
+x-gct-trading-intent: simulate-sk-hynix-arbitrage
 Idempotency-Key: <random-128-bit-or-more>
 ```
 
@@ -1109,28 +979,27 @@ Idempotency-Key: <random-128-bit-or-more>
 阶段 5 启用：
 
 ```http
-POST /api/sk-hynix-carry/executions
-x-gct-trading-intent: execute-carry
+POST /api/sk-hynix-arbitrage/executions
+x-gct-trading-intent: execute-sk-hynix-arbitrage
 Idempotency-Key: <random-128-bit-or-more>
 ```
 
 请求与模拟执行相同。服务端依次执行：
 
-1. 检查编译/配置级 `CARRY_LIVE_EXECUTION_ENABLED`。
+1. 检查编译/配置级 `SK_HYNIX_ARBITRAGE_LIVE_EXECUTION_ENABLED`。
 2. 检查全局 `tradingSession.liveTradingEnabled`。
 3. 检查 IBKR、交易所、FX 和 Recovery 状态均为可执行。
-4. 检查预览未过期、映射仍有效、持仓版本未变化。
+4. 检查预览未过期、固定规范版本和永续合约仍有效、持仓版本未变化。
 5. 使用最新行情重新定价；如果相对预览超过最大滑点则拒绝。
-6. 将最新行情保存为新的执行定价快照。
-7. 按第 17.1 节事务创建批次和订单腿。
-8. 事务提交后并发调用两边 Adapter。
+6. 按第 17.1 节事务将最新定价上下文、批次和订单腿一起落库。
+7. 事务提交后并发调用两边 Adapter。
 
 接口在批次持久化完成后立即返回 HTTP 202：
 
 ```json
 {
-  "executionId": "carry-exec-uuid",
-  "positionId": "carry-pos-01",
+  "executionId": "skha-exec-uuid",
+  "positionId": "skha-pos-01",
   "status": "submitting",
   "createdAt": "2026-08-09T08:00:00.000Z"
 }
@@ -1141,14 +1010,13 @@ HTTP 超时不能代表提交失败。客户端使用相同幂等键重试，或
 ### 18.9 执行查询与控制
 
 ```http
-GET /api/sk-hynix-carry/executions/:id
-GET /api/sk-hynix-carry/executions/:id/events?afterSequence=0
+GET /api/sk-hynix-arbitrage/executions/:id
 
-POST /api/sk-hynix-carry/executions/:id/cancel
-x-gct-trading-intent: cancel-carry-execution
+POST /api/sk-hynix-arbitrage/executions/:id/cancel
+x-gct-trading-intent: cancel-sk-hynix-arbitrage-execution
 
-POST /api/sk-hynix-carry/executions/:id/reconcile
-x-gct-trading-intent: reconcile-carry-execution
+POST /api/sk-hynix-arbitrage/executions/:id/reconcile
+x-gct-trading-intent: reconcile-sk-hynix-arbitrage-execution
 ```
 
 - `cancel` 只撤销未成交剩余订单，不能回滚已成交数量。
@@ -1159,50 +1027,49 @@ x-gct-trading-intent: reconcile-carry-execution
 
 | HTTP | error | 含义 |
 |---|---|---|
-| 400 | `invalid_carry_request` | Schema 或字段组合错误 |
+| 400 | `invalid_sk_hynix_arbitrage_request` | Schema 或字段组合错误 |
 | 403 | `missing_read_intent` / `missing_trading_intent` | 缺少意图请求头 |
 | 403 | `live_trading_locked` | 当前会话未授权真实交易 |
-| 403 | `carry_live_execution_disabled` | 功能尚未启用真实执行 |
-| 404 | `carry_mapping_not_found` | 映射不存在 |
-| 404 | `carry_position_not_found` | 策略持仓不存在 |
-| 404 | `carry_execution_not_found` | 执行批次不存在 |
-| 409 | `carry_mapping_unverified` | 映射不可用于该操作 |
-| 409 | `carry_preview_expired` | 预览已过期 |
-| 409 | `carry_position_changed` | 持仓版本或数量已变化 |
-| 409 | `carry_execution_in_progress` | 同一持仓已有活动批次 |
-| 409 | `carry_idempotency_conflict` | 幂等键对应不同请求 |
-| 409 | `carry_reconciliation_required` | 远端与账本未对齐 |
-| 422 | `carry_quote_ineligible` | 行情存在但不满足交易规则 |
-| 422 | `carry_insufficient_depth` | 最大滑点内深度不足 |
+| 403 | `sk_hynix_arbitrage_live_execution_disabled` | 功能尚未启用真实执行 |
+| 404 | `sk_hynix_arbitrage_position_not_found` | 策略持仓不存在 |
+| 404 | `sk_hynix_arbitrage_execution_not_found` | 执行批次不存在 |
+| 409 | `sk_hynix_arbitrage_spec_unavailable` | 固定策略规范未验证、已停用或实时元数据不一致 |
+| 409 | `sk_hynix_arbitrage_perp_not_approved` | 永续合约不在当前规范允许列表中 |
+| 409 | `sk_hynix_arbitrage_preview_expired` | 预览已过期 |
+| 409 | `sk_hynix_arbitrage_position_changed` | 持仓版本或数量已变化 |
+| 409 | `sk_hynix_arbitrage_execution_in_progress` | 同一持仓已有活动批次 |
+| 409 | `sk_hynix_arbitrage_idempotency_conflict` | 幂等键对应不同请求 |
+| 409 | `sk_hynix_arbitrage_reconciliation_required` | 远端与账本未对齐 |
+| 422 | `sk_hynix_arbitrage_quote_ineligible` | 行情存在但不满足交易规则 |
+| 422 | `sk_hynix_arbitrage_insufficient_depth` | 最大滑点内深度不足 |
 | 429 | `rate_limit_exceeded` | 本地或上游限频 |
-| 502 | `carry_upstream_rejected` | 上游明确拒绝请求 |
-| 503 | `carry_ibkr_unavailable` | TWS/Gateway 不可用 |
-| 503 | `carry_perp_unavailable` | 永续行情或执行不可用 |
-| 503 | `carry_fx_unavailable` | 汇率源不可用 |
-| 503 | `carry_recovery_in_progress` | 启动恢复尚未完成 |
+| 502 | `sk_hynix_arbitrage_upstream_rejected` | 上游明确拒绝请求 |
+| 503 | `sk_hynix_arbitrage_ibkr_unavailable` | TWS/Gateway 不可用 |
+| 503 | `sk_hynix_arbitrage_perp_unavailable` | 永续行情或执行不可用 |
+| 503 | `sk_hynix_arbitrage_fx_unavailable` | 汇率源不可用 |
+| 503 | `sk_hynix_arbitrage_recovery_in_progress` | 启动恢复尚未完成 |
 
-涉及上游的错误只返回脱敏 `label`，详细原始信息写入本地日志和执行事件时必须去除凭证、账户号及敏感头。
+涉及上游的错误只返回脱敏 `label`；详细原始信息写入本地结构化日志或订单腿的 `failure_detail_json` 前必须去除凭证、账户号及敏感头。
 
 ## 19. WebSocket 协议详细设计
 
 继续复用现有终端 WebSocket，不建立第二条浏览器连接。`TerminalStreamMessageSchema` 增加：
 
 ```text
-carry.capabilities
-carry.opportunity.snapshot
-carry.opportunity.update
-carry.position.snapshot
-carry.position.update
-carry.execution.snapshot
-carry.execution.update
-carry.execution.event
+sk_hynix_arbitrage.capabilities
+sk_hynix_arbitrage.opportunity.snapshot
+sk_hynix_arbitrage.opportunity.update
+sk_hynix_arbitrage.position.snapshot
+sk_hynix_arbitrage.position.update
+sk_hynix_arbitrage.execution.snapshot
+sk_hynix_arbitrage.execution.update
 ```
 
 公共事件结构：
 
 ```json
 {
-  "type": "carry.execution.update",
+  "type": "sk_hynix_arbitrage.execution.update",
   "payload": {
     "sequence": 108,
     "updatedAt": "2026-08-09T08:00:01.000Z",
@@ -1216,8 +1083,8 @@ carry.execution.event
 - 每类投影维护单调递增 `sequence`；进程内 sequence 重启后可重置，但完整 snapshot 带新的 `streamInstanceId`。
 - 客户端按 `streamInstanceId + sequence` 丢弃旧更新。
 - 新连接先收到 capabilities、position snapshot 和非终态 execution snapshot。
-- 机会订阅按当前页面选择的 mapping IDs 和目标金额建立，离开页面立即释放。
-- 机会更新最多每 200 ms 合并发送一次，执行和成交事件不做节流。
+- 机会订阅固定覆盖规范中所有已批准的 `SKHYNIX` 永续，并按目标金额和持有周期建立，离开页面立即释放。
+- 机会更新最多每 200 ms 合并发送一次，执行状态和成交更新不做节流。
 - WebSocket 只作为低延迟投影；断线后 REST 快照和数据库账本是恢复依据。
 - 消息必须先通过共享 Zod Schema，校验失败时前端忽略该消息并触发 REST 刷新。
 
@@ -1225,15 +1092,14 @@ carry.execution.event
 
 ```json
 {
-  "type": "carry.watch",
-  "mappingIds": ["map-skh-krx-okx-v1"],
+  "type": "sk_hynix_arbitrage.watch",
   "requestedNotional": "1000",
   "horizonSeconds": 86400,
   "maxSlippageBps": "20"
 }
 ```
 
-每个连接最多订阅 100 个映射；后端按规范化订阅键共享计算结果，避免每个浏览器订阅重复计算。
+客户端不能通过 WebSocket 指定任意标的。后端按规范版本、目标金额、持有周期和最大滑点组成订阅键，共享计算结果，避免每个浏览器订阅重复计算。
 
 ## 20. Adapter 接口详细设计
 
@@ -1254,7 +1120,7 @@ interface IbkrMarketDataAdapter {
   start(): Promise<void>;
   stop(): Promise<void>;
   status(): IbkrAdapterStatus;
-  resolveContract(conId: number): Promise<IbkrContractDetails>;
+  resolveSkHynix000660Contract(): Promise<IbkrContractDetails>;
   subscribeDepth(
     contract: IbkrResolvedContract,
     listener: (book: IbkrDepthSnapshot) => void,
@@ -1268,7 +1134,7 @@ interface IbkrMarketDataAdapter {
 
 要求：
 
-- ContractDetails 必须与映射中的 conId、secType、交易所、主交易所和币种一致。
+- ContractDetails 必须与当前 `SK_HYNIX_ARBITRAGE_SPEC` 中 `000660` 的 conId、localSymbol、secType、交易所、主交易所和 KRW 币种完全一致。
 - 显式记录 TWS `marketDataType`，延迟或冻结行情不能冒充实时行情。
 - 盘口序列断裂、断线或 TWS error code 表示订阅失效时，立即使相关机会失去交易资格。
 - 订阅按引用计数管理，页面离开且无活动持仓时释放行情。
@@ -1318,14 +1184,14 @@ interface PerpExecutionAdapter {
   cancel(identity: PerpOrderIdentity): Promise<void>;
   queryOrder(identity: PerpOrderIdentity): Promise<PerpOrderSnapshot | null>;
   listFills(since: string): Promise<PerpExecution[]>;
-  listFundingCashflows(since: string): Promise<PerpFundingCashflow[]>;
+  listFundingFees(key: PerpInstrumentKey, since: string): Promise<PerpFundingFee[]>;
   readPosition(key: PerpInstrumentKey): Promise<PerpPosition>;
   onOrder(listener: (event: PerpOrderEvent) => void): () => void;
   onExecution(listener: (event: PerpExecution) => void): () => void;
 }
 ```
 
-实现可复用 `crossex-client` 的低层认证请求和私有流，但不能把订单交给现有 `TradingRuntime` 管理。Carry Adapter 使用独立客户端订单 ID 前缀并将回报路由给 `CarryExecutionCoordinator`，避免两个运行时同时认领订单。
+实现可复用 `crossex-client` 的低层认证请求和私有流，但不能把订单交给现有 `TradingRuntime` 管理。`listFundingFees` 读取 Gate CrossEx `/crossex/account_book` 的 `FUNDING_FEE`，并使用 `/crossex/positions` 的累计 `funding_fee` 做一致性检查。SkHynixArbitrage Adapter 使用 `SKHA-` 客户端订单 ID 前缀并将回报路由给 `SkHynixArbitrageExecutionCoordinator`，避免两个运行时同时认领订单。
 
 ### 20.6 FX Adapter
 
@@ -1339,6 +1205,76 @@ interface FxMarketDataAdapter {
 
 FX 路径记录每一跳的 Bid/Ask、来源和时间戳。KRW→USD→USDT 的方向必须使用实际可执行侧，不能用中间价掩盖换汇成本。缺少任意一跳时禁止执行。
 
+### 20.7 Node.js TWS 客户端选型
+
+IBKR 官方 TWS API 当前主要提供 Python、Java、C++ 和 C# 等客户端，没有官方 Node.js 客户端；Node.js 接入属于第三方实现，领域接口不能直接暴露第三方类型。候选限定为同一维护者的两层实现：
+
+| 候选 | 定位 | 优点 | 主要风险 | 本项目结论 |
+|---|---|---|---|---|
+| `@stoqey/ib` | 直接实现 TWS Socket 协议的 TypeScript 客户端 | `IBApi` 接近官方请求/回调模型，可直接获得订单、成交、佣金、错误码和连接事件；Node 要求 `>=18` | 需要自行管理 request ID、订阅、回调关联、重连和状态聚合；项目 README 明确说明测试覆盖仍需完善 | **推荐**，只使用稳定 `IBApi` |
+| `@stoqey/ibkr` | 基于 `@stoqey/ib` 的高层封装 | 内置连接管理、账户/持仓/订单缓存和统一事件总线；Node 要求 `>=20.19`，与本仓库兼容 | 全局事件总线和缓存模型可能弱化本策略对原始状态顺序、`permId/executionId` 和结果未知状态的控制；仍继承底层库风险 | 兼容性备选，不作为默认实现 |
+
+不使用 `@stoqey/ib` 的 `IBApiNext`：项目自身将其标记为 preview，功能尚未完全覆盖且接口稳定性没有保证。依赖首次引入时固定精确版本并提交 lockfile；升级必须重新运行契约测试，不能使用自动漂移的版本范围。
+
+参考资料：[`@stoqey/ib`](https://github.com/stoqey/ib)、[`@stoqey/ibkr`](https://github.com/stoqey/ibkr)、[IBKR TWS API 文档](https://ibkrcampus.com/campus/ibkr-api-page/twsapi-doc/)。
+
+### 20.8 `@stoqey/ib` 封装边界
+
+第三方库只允许出现在后端 `SkHynixArbitrageIbkrClient` 内部：
+
+```text
+@stoqey/ib IBApi/EventName/Contract/Order
+                ↓
+SkHynixArbitrageIbkrClient
+  request ID 分配、回调关联、超时、取消订阅、错误分类
+                ↓
+IbkrMarketDataAdapter / IbkrExecutionAdapter
+  只输出本设计定义的领域对象
+                ↓
+SkHynixArbitrageQuoteCoordinator / SkHynixArbitrageExecutionCoordinator
+```
+
+禁止 HTTP 路由、Repository、共享 Schema 或 React 组件导入 `@stoqey/ib`。这样后续切换到 `@stoqey/ibkr`、官方其他语言 sidecar 或新版协议时，不改变数据库和 API。
+
+客户端必须显式实现：
+
+- 先注册 `error`、`connected`、`disconnected`、`nextValidId`、`openOrder`、`orderStatus`、`execDetails`、`commissionReport` 和行情回调，再调用 `connect()`。
+- 连接只有在 API 握手完成、收到有效 `nextValidId` 且启动对账完成后才进入交易 `READY`；TCP 连接成功不等于可下单。
+- request ID 与 order ID 使用独立分配器；一次性请求在对应 `*End` 回调、错误或超时后释放，流式订阅显式保存取消函数。
+- 所有回调先转换为不可变领域事件，再进入按 `positionId/batchId` 串行的协调器；第三方回调不能直接写数据库。
+- `undefined`、IBKR 最大值哨兵、重复 `orderStatus`、缺失中间状态和乱序成交必须在封装层归一化；不能假设每次状态变化都有唯一回调。
+- 库日志必须经过现有脱敏器，禁止输出账户号、完整订单对象或 TWS 敏感字段。
+
+### 20.9 TWS 请求与领域能力映射
+
+| 领域能力 | TWS API / `@stoqey/ib` 请求与回调 | 本地处理 |
+|---|---|---|
+| 验证 `000660` 合约 | `reqContractDetails` → `contractDetails/contractDetailsEnd` | 与 `SK_HYNIX_ARBITRAGE_SPEC` 的 conId、localSymbol、secType、交易所和 KRW 币种逐项比较 |
+| 行情类型 | `reqMarketDataType`、`marketDataType` | REALTIME/FROZEN/DELAYED/DELAYED_FROZEN 归一化；非实时报价禁止执行 |
+| 股票盘口 | `reqMktDepth` → 深度回调；必要时 `reqMktData` 获取补充 tick | 按 position/operation 维护带 sequence 和时间戳的订单簿，断档后整本作废并重订阅 |
+| 交易时段 | ContractDetails 的 trading/liquid hours 与时区 | 第一版只允许常规交易时段，服务端计算市场状态 |
+| 账户持仓 | `reqPositions` → `position/positionEnd` | 只用于远端对账，不覆盖策略持仓账本 |
+| 活跃订单恢复 | `reqOpenOrders`/`reqAllOpenOrders` → `openOrder/orderStatus/openOrderEnd` | 使用 clientId、orderId、permId 和本地 client order ref 关联订单腿 |
+| 成交恢复 | `reqExecutions` → `execDetails/execDetailsEnd`、`commissionReport` | 按 executionId 去重写入 `sk_hynix_arbitrage_fills`；IB Gateway 默认只能返回当天午夜后的成交，因此本地成交表是长期账本 |
+| 提交订单 | `placeOrder` → `openOrder/orderStatus/error` | 仅 `IbkrExecutionAdapter` 可调用；返回超时视为 `UNKNOWN`，先对账后决定下一步 |
+| 撤单 | `cancelOrder` → `orderStatus/error` | 请求成功不等于已撤销，直到收到终态或查询确认 |
+
+`orderRef` 写入本地确定生成的 `SKHA-...` 客户端订单标识；`orderId` 用于当前 client session，`permId` 返回后立即持久化，`executionId` 用于成交去重。不能只凭 `orderId` 做跨重启关联。
+
+### 20.10 兼容性验证门槛
+
+引入依赖前先建立不连接真实账户的 adapter contract test 和一个单独的 paper-account smoke test 脚本。只有以下项目全部通过，才能把 `@stoqey/ib` 固定为实现依赖：
+
+1. 当前仓库 Node 版本下安装、ESM 导入、TypeScript 编译和进程退出无残留句柄。
+2. 能准确解析 `000660` ContractDetails、KRW 币种、交易所、时区和交易时段。
+3. 能区分实时、冻结和延迟行情，并正确重建多档盘口。
+4. 能接收部分成交、重复状态、佣金晚于成交、拒单、撤单和断线重连回报。
+5. `nextValidId`、orderId、permId、executionId 在重启恢复测试中关联正确。
+6. paper account 只提交最小允许数量的保护限价测试订单，并立即撤单；该脚本不进入自动测试，也不能默认执行。
+7. 运行至少一次 TWS 和一次 IB Gateway 兼容性测试，记录版本、API 版本和发现的差异。
+
+若任一核心回调缺失、乱序无法解释或重连后订单身份无法可靠恢复，则保持 `IbkrExecutionAdapter` 禁用；可以评估 `@stoqey/ibkr`，但必须通过同一套契约测试，不能因其接口更简单而降低验收标准。
+
 ## 21. TWS / IB Gateway 运行设计
 
 ### 21.1 进程边界
@@ -1347,7 +1283,7 @@ FX 路径记录每一跳的 Bid/Ask、来源和时间戳。KRW→USD→USDT 的�
 - IB Gateway/TWS 是独立进程，后端通过配置的 host、port 和 clientId 连接。
 - 默认只允许 `127.0.0.1`；远程部署只能绑定私网，并由主机防火墙限制来源。
 - 只读行情阶段必须启用 Gateway/TWS 的 API Read-Only 设置。
-- 真实执行阶段需用户明确关闭 Read-Only，并同时启用应用的 `CARRY_LIVE_EXECUTION_ENABLED`；只满足一项仍不能交易。
+- 真实执行阶段需用户明确关闭 Read-Only，并同时启用应用的 `SK_HYNIX_ARBITRAGE_LIVE_EXECUTION_ENABLED`；只满足一项仍不能交易。
 
 ### 21.2 会话管理
 
@@ -1389,7 +1325,7 @@ CANCEL_PENDING -> CANCELLED | PARTIALLY_FILLED | FILLED | UNKNOWN
 UNKNOWN -> ACKNOWLEDGED | PARTIALLY_FILLED | FILLED | FAILED | CANCELLED
 ```
 
-终态回报不能被较旧事件回退。相同远端时间戳时，以累计成交量更大的事件优先；不能比较的事件保留到执行事件表并触发对账。
+终态回报不能被较旧状态回退。相同远端时间戳时，以累计成交量更大的回报优先；无法可靠比较时将订单腿置为 `UNKNOWN`、记录脱敏结构化日志并触发远端对账，不能猜测状态。
 
 ### 22.2 批次状态派生
 
@@ -1413,17 +1349,17 @@ PARTIALLY_CLOSED -> CLOSING | MANUAL_INTERVENTION
 MANUAL_INTERVENTION -> OPEN | PARTIALLY_CLOSED | CLOSED
 ```
 
-开仓两腿均明确失败且没有成交时，零持仓记录转为 `CLOSED`；平仓两腿均明确失败且没有新成交时，持仓恢复为批次记录的 `previous_position_state`。人工干预后的状态恢复必须先完成远端对账并写审计事件，不能由前端直接修改数据库状态。
+开仓两腿均明确失败且没有成交时，零持仓记录转为 `CLOSED`；平仓两腿均明确失败且没有新成交时，持仓恢复为批次记录的 `previous_position_state`。人工干预后的状态恢复必须先完成远端对账并写安全审计，不能由前端直接修改数据库状态。
 
 ### 22.4 补偿算法
 
 1. 汇总两条腿所有 PRIMARY 和 COMPENSATION 成交。
-2. 按映射乘数、成交价和执行时 FX 计算实际经济敞口。
+2. 按持仓固化的规范版本、换算比例、成交价和执行时 FX 计算实际经济敞口。
 3. 先撤销可能继续扩大失衡的未成交订单。
 4. 在最新可执行深度下比较两种风险降低路径：补足落后腿，或反向减少领先腿。
 5. 选择预计执行后绝对净敞口更小且不违反 Reduce-only/持仓上限的路径。
 6. 修复数量受剩余持仓、深度、最大滑点、最大修复名义金额和尝试次数限制。
-7. 每次修复重新创建 `REPAIR` 定价快照和 COMPENSATION 订单腿。
+7. 每次修复创建新的 COMPENSATION 订单腿，并在腿记录中固化当次定价上下文和哈希。
 
 默认上限在进入真实执行评审前确定并写入 `risk_rules`。代码硬上限：最多 3 次自动补偿、总窗口不超过 30 秒；部署配置只能收紧，不能放宽代码硬上限。
 
@@ -1440,10 +1376,10 @@ STARTING -> RECONCILING -> READY | BLOCKED
 ### 23.2 启动流程
 
 1. 打开数据库并完成完整性与迁移校验。
-2. 载入所有非终态批次、订单腿、持仓和映射版本。
+2. 载入所有非终态批次、订单腿、持仓及其固化的规范版本。
 3. 连接 IBKR 和交易所只读查询通道。
 4. 按 clientOrderId、remoteOrderId、permId 查询每条腿。
-5. 拉取缺失成交和资金费，按远端唯一 ID 去重补录。
+5. 拉取缺失成交并按远端 execution ID 去重补录；重新查询 Gate 资金费并刷新累计值和归属状态，不插入资金费明细行。
 6. 比较策略账本与远端账户持仓。
 7. 对仍可能成交的遗留订单发起撤单。
 8. 所有状态明确且账本可解释时进入 `READY`，否则进入 `BLOCKED` 并标记人工干预。
@@ -1469,22 +1405,22 @@ STARTING -> RECONCILING -> READY | BLOCKED
 复用现有 `risk_rules` 表保存可配置阈值，scope 使用 `strategy`，metric 使用以下固定名称：
 
 ```text
-carry.max_open_notional
-carry.max_total_notional
-carry.max_residual_notional
-carry.max_residual_bps
-carry.max_slippage_bps
-carry.max_ibkr_quote_age_ms
-carry.max_perp_quote_age_ms
-carry.max_fx_quote_age_ms
-carry.max_cross_source_skew_ms
-carry.max_compensation_notional
+sk_hynix_arbitrage.max_open_notional
+sk_hynix_arbitrage.max_total_notional
+sk_hynix_arbitrage.max_residual_notional
+sk_hynix_arbitrage.max_residual_bps
+sk_hynix_arbitrage.max_slippage_bps
+sk_hynix_arbitrage.max_ibkr_quote_age_ms
+sk_hynix_arbitrage.max_perp_quote_age_ms
+sk_hynix_arbitrage.max_fx_quote_age_ms
+sk_hynix_arbitrage.max_cross_source_skew_ms
+sk_hynix_arbitrage.max_compensation_notional
 ```
 
 规则：
 
 - 缺少任一真实执行必需规则时 fail closed。
-- 实际使用的规则值写入定价快照，保证事后可解释。
+- 实际使用的规则值写入批次或补偿腿的定价上下文，保证事后可解释。
 - 第一阶段 fixture 可以使用显式示例值，但 `eligible=false`。
 - 真实执行硬限制不得仅依赖数据库配置；代码保留最大滑点、最大补偿次数和补偿时间的不可放宽上限。
 - 持仓总名义金额使用股票和永续归一化后的较大值，不能用净额抵消后规避限制。
@@ -1509,30 +1445,25 @@ carry.max_compensation_notional
 - 每次启动恢复为交易锁定；
 - 用户明确接受风险说明后才能启用真实交易。
 
-Carry 真实下单还需同时满足功能级 feature flag、Recovery READY、两边 Adapter 交易能力 READY 和映射 VERIFIED。
+SkHynixArbitrage 真实下单还需同时满足功能级 feature flag、Recovery READY、两边 Adapter 交易能力 READY、固定规范 `VERIFIED`，并且实时合约元数据与规范一致。
 
 ### 25.3 审计事件
 
 至少记录：
 
 ```text
-carry_mapping_verified
-carry_mapping_suspended
-carry_preview_created（仅记录可用于模拟或真实执行的持久化预览，不记录排行刷新）
-carry_simulation_submitted
-carry_live_execution_submitted
-carry_execution_cancel_requested
-carry_compensation_started
-carry_manual_intervention_required
-carry_reconciliation_completed
-carry_position_closed
+sk_hynix_arbitrage_live_execution_submitted
+sk_hynix_arbitrage_execution_cancel_requested
+sk_hynix_arbitrage_compensation_started
+sk_hynix_arbitrage_manual_intervention_required
+sk_hynix_arbitrage_reconciliation_completed
 ```
 
-审计 payload 包含 correlationId、资源 ID、状态和规范化数量，不包含凭证和完整上游报文。
+这些记录只进入现有 `audit_events`，用于安全审计和后台排错；当前策略页面没有审计日志入口，也不查询该表。审计 payload 包含 correlationId、资源 ID、状态和规范化数量，不包含凭证和完整上游报文。持仓、委托、双腿状态和历史成交分别由四张策略专用表提供。
 
 ## 26. 可观测性和运维
 
-- `/api/health` 增加 Carry 汇总：phase、mapping 数、Adapter 状态、Recovery 状态和未解决批次数量；不泄露合约账户信息。
+- `/api/health` 增加 SkHynixArbitrage 汇总：phase、specVersion/specStatus、Adapter 状态、Recovery 状态和未解决批次数量；不泄露合约账户信息。
 - 结构化日志统一携带 `correlationId`、`batchId`、`positionId`、`legId`，禁止只记录自然语言。
 - 对行情过期、盘口断流、pacing、重连、未知订单、补偿和人工干预使用明确事件名。
 - SQLite 备份继续使用现有备份脚本；恢复备份后首次启动必须进行全量远端对账。
@@ -1545,9 +1476,10 @@ carry_position_closed
 
 - 从空库执行 `0018`，以及从当前生产迁移链升级。
 - 外键、状态 CHECK、幂等唯一索引和单持仓活动批次索引。
-- 定价快照不可变性和 content hash。
-- 重复成交、重复资金费、乱序事件去重。
-- 成交事务失败时订单腿、持仓、事件全部回滚。
+- 批次和补偿腿定价上下文不可变性及 content hash。
+- 重复成交和乱序订单回报去重；Gate 资金费重复查询不会重复累计。
+- Gate 资金费查询覆盖不完整时为 `UNAVAILABLE`，存在策略外同合约持仓时为 `AMBIGUOUS`，两者都不能计入精确策略收益。
+- 成交事务失败时订单腿、持仓和批次全部回滚。
 - 数据维护不删除活动或真实账本记录。
 
 ### 27.2 API Schema 和权限
@@ -1557,14 +1489,14 @@ carry_position_closed
 - 缺少 intent、交易锁定、feature flag 关闭和 Recovery BLOCKED 均 fail closed。
 - fixture 机会和预览永远不能提交到模拟或真实 Adapter。
 - 相同幂等键同请求返回原批次，不同请求返回 409。
-- 预览过期、映射版本变化、持仓 rowVersion 变化和行情滑点变化。
+- 预览过期、规范版本变化、持仓 rowVersion 变化和行情滑点变化。
 
 ### 27.3 定价
 
 - 股票 Ask/永续 Bid 开仓和股票 Bid/永续 Ask 平仓。
 - 多档 VWAP、深度不足、最大滑点边界。
 - KRW/USD/USDT 多跳汇率的正确 Bid/Ask 方向。
-- 合约乘数、非 1:1 映射、股票交易单位和永续步长。
+- 固定规范中的合约乘数、非 1:1 换算比例、股票交易单位和永续步长。
 - 正/负资金费及 1、4、8 小时等不同周期。
 - 预计平仓价差、手续费、佣金、税费、融资和取整残差。
 
@@ -1611,10 +1543,10 @@ carry_position_closed
 总体设计覆盖最终真实执行，但按以下独立实施计划交付：
 
 1. **只读页面与 fixture：** 路由、React 组件、共享 Schema、纯计算引擎、fixture API 和前端/E2E 测试。
-2. **数据库基础：** `0018`、Repository、不可变预览快照、模拟账本和事务测试。
-3. **真实只读行情：** 映射验证、IBKR/永续/FX 行情 Adapter、机会流和交易资格。
+2. **数据库基础：** `0018`、四张策略专用表、Repository、执行定价上下文、模拟账本和事务测试。
+3. **真实只读行情：** 固定规范验证、IBKR `000660`/SKHYNIX 永续/FX 行情 Adapter、机会流和交易资格。
 4. **模拟协调器：** 双腿状态机、幂等、补偿、恢复和模拟 E2E。
 5. **真实执行准备：** TWS 库兼容性验证、Gateway 运维、安全与风险参数验收。
 6. **真实执行：** 两边执行 Adapter、资金费对账、实盘恢复和受控启用。
 
-第 1 份实施计划只覆盖第 1 项，但后续实现不得偏离本设计中的数据库、API、事件和恢复协议。任何真实合约代码、换算比例、费用或交易时段规则必须在第 3/5 阶段用真实账户权限和官方合约元数据验证后，作为版本化映射或风险配置落地，不能直接抄用 Demo 示例值。
+第 1 份实施计划只覆盖第 1 项，但后续实现不得偏离本设计中的数据库、API、状态更新和恢复协议。IBKR `000660` 的 conId/交易所/币种、每个 SKHYNIX 永续的底层定义与换算比例、费用和交易时段规则，必须在第 3/5 阶段用真实账户权限和官方合约元数据验证后写入版本化 `SK_HYNIX_ARBITRAGE_SPEC` 或风险配置，不能直接抄用 Demo 示例值。

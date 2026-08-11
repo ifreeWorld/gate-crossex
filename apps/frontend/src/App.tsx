@@ -17,7 +17,6 @@ import {
   type OrderBookSnapshot,
   type PrivateStreamStatus,
   type PublicTrade,
-  type StrategyConfig,
   type StrategyRecord,
   type TerminalStreamHandle,
   type TradingMode,
@@ -25,7 +24,7 @@ import {
   type VenueFeeRate,
 } from './api.js';
 import { parseStoredFavorites } from './local-preferences.js';
-import { DEFAULT_FRONTEND_ROUTE, frontendPath, frontendRoute, type FrontendRoute } from './frontend-routes.js';
+import { DEFAULT_FRONTEND_ROUTE, frontendPath, frontendRoute, type FrontendRoute, type StrategyRouteKind } from './frontend-routes.js';
 import { LanguageContext, translate, useLanguage, type Language, type Theme } from './i18n.js';
 import type { FundingMetric, PairedPositionPrefill } from './route-shared.js';
 import brandMark from './assets/brand-mark.svg';
@@ -33,6 +32,7 @@ import brandMark from './assets/brand-mark.svg';
 const TradingView = lazy(() => import('./trade-route.js').then((module) => ({ default: module.TradingView })));
 const StrategyView = lazy(() => import('./strategy-route.js').then((module) => ({ default: module.StrategyView })));
 const PremiumStrategyView = lazy(() => import('./strategy-route.js').then((module) => ({ default: module.PremiumStrategyView })));
+const SkHynixArbitrageRoute = lazy(() => import('./sk-hynix-arbitrage/route.js').then((module) => ({ default: module.SkHynixArbitrageRoute })));
 const FundingDetailView = lazy(() => import('./funding-route.js').then((module) => ({ default: module.FundingDetailView })));
 const FundingRatesView = lazy(() => import('./funding-route.js').then((module) => ({ default: module.FundingRatesView })));
 const PortfolioView = lazy(() => import('./portfolio-route.js').then((module) => ({ default: module.PortfolioView })));
@@ -40,7 +40,7 @@ const SOURCE_CODE_URL = 'https://github.com/your-quantguy/gate-crossex';
 const LICENSE_URL = `${SOURCE_CODE_URL}/blob/main/LICENSE`;
 
 type Workspace = 'Trade' | 'Strategy' | 'Funding Rates' | 'Portfolio';
-type StrategyKind = StrategyConfig['kind'];
+type StrategyKind = StrategyRouteKind;
 type FundingHistoryDuration = 1 | 7 | 30;
 type FundingHistoryCache = Record<FundingHistoryDuration, Record<string, FundingHistoryEntry>>;
 
@@ -54,6 +54,7 @@ const navItems: { label: Workspace; glyph: string }[] = [
 const strategyPages: Array<{ kind: StrategyKind; glyph: string; label: string; detail: string }> = [
   { kind: 'position', glyph: '◎', label: 'Cross-exchange hedge', detail: 'Execute a fixed two-venue position, then stop' },
   { kind: 'premium', glyph: '≒', label: 'SK hynix premium bot', detail: 'Trade the SK hynix ADR premium vs the Korean listing' },
+  { kind: 'skHynixArbitrage', glyph: '₩', label: 'SK hynix funding arbitrage', detail: 'IBKR 000660 vs SKHYNIX perpetuals' },
 ];
 
 const DIALOG_FOCUSABLE = [
@@ -752,9 +753,11 @@ function App() {
 
   const content = useMemo(() => {
     if (workspace === 'Trade') return <TradingView asset={selectedAsset} catalog={availableCatalog} onSelectAsset={selectAsset} marketSnapshot={marketSnapshot} tradingSnapshot={tradingSnapshot} authenticatedPortfolio={authenticatedPortfolio} balances={balances} fees={fees} orderBook={orderBook} publicTrades={publicTrades} candleSeries={candleSeries} candleBackfilling={candleBackfilling} watchMarket={watchMarket} watchQuotes={watchQuotes} seedCandles={seedCandles} onTradingChanged={refreshTrading} onPositionsRefresh={refreshPositions} onLeverageChanged={refreshLeverageState} tradingMode={tradingMode} onOpenModeDialog={openModeDialog} favorites={favorites} onToggleFavorite={toggleFavorite} confirmOrders={confirmOrders} onSetConfirmOrders={setConfirmOrders} />;
-    if (workspace === 'Strategy') return strategyKind === 'premium'
-      ? <PremiumStrategyView marketSnapshot={marketSnapshot} catalog={availableCatalog} strategies={strategies} balances={balances} authenticatedPortfolio={authenticatedPortfolio} tradingSnapshot={tradingSnapshot} tradingMode={tradingMode} onOpenModeDialog={openModeDialog} onStrategiesChanged={refreshStrategies} onPositionsRefresh={refreshPositions} onLeverageChanged={refreshLeverageState} watchQuotes={watchQuotes} />
-      : <StrategyView mode={strategyKind} prefill={positionPrefill} marketSnapshot={marketSnapshot} catalog={availableCatalog} fees={fees} strategies={strategies} balances={balances} authenticatedPortfolio={authenticatedPortfolio} tradingSnapshot={tradingSnapshot} tradingMode={tradingMode} onOpenModeDialog={openModeDialog} onStrategiesChanged={refreshStrategies} onPositionsRefresh={refreshPositions} onLeverageChanged={refreshLeverageState} watchQuotes={watchQuotes} />;
+    if (workspace === 'Strategy') {
+      if (strategyKind === 'skHynixArbitrage') return <SkHynixArbitrageRoute />;
+      if (strategyKind === 'premium') return <PremiumStrategyView marketSnapshot={marketSnapshot} catalog={availableCatalog} strategies={strategies} balances={balances} authenticatedPortfolio={authenticatedPortfolio} tradingSnapshot={tradingSnapshot} tradingMode={tradingMode} onOpenModeDialog={openModeDialog} onStrategiesChanged={refreshStrategies} onPositionsRefresh={refreshPositions} onLeverageChanged={refreshLeverageState} watchQuotes={watchQuotes} />;
+      return <StrategyView mode={strategyKind} prefill={positionPrefill} marketSnapshot={marketSnapshot} catalog={availableCatalog} fees={fees} strategies={strategies} balances={balances} authenticatedPortfolio={authenticatedPortfolio} tradingSnapshot={tradingSnapshot} tradingMode={tradingMode} onOpenModeDialog={openModeDialog} onStrategiesChanged={refreshStrategies} onPositionsRefresh={refreshPositions} onLeverageChanged={refreshLeverageState} watchQuotes={watchQuotes} />;
+    }
     if (workspace === 'Funding Rates') return fundingDetailAsset
       ? <FundingDetailView asset={fundingDetailAsset} onBack={() => navigate({ workspace: 'Funding Rates', asset: null })} />
       : <FundingRatesView metric={fundingMetric} onMetricChange={setFundingMetric} marketSnapshot={marketSnapshot} onMarketFallback={refreshMarketSnapshot} onOpenAsset={openFundingDetail} onOpenStrategy={openFundingStrategy} fundingOverview={fundingOverview} onFundingOverview={setFundingOverview} fundingHistoryCache={fundingHistoryCache} onFundingHistoryEntries={mergeFundingHistory} />;

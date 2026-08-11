@@ -97,7 +97,7 @@ test.describe.serial('local trading terminal', () => {
     const firstStrategy = page.getByRole('menuitem', { name: /Cross-exchange hedge/ });
     await expect(firstStrategy).toBeFocused();
     await firstStrategy.press('End');
-    const finalStrategy = page.getByRole('menuitem', { name: /SK hynix premium bot/ });
+    const finalStrategy = page.getByRole('menuitem', { name: /SK hynix funding arbitrage/ });
     await expect(finalStrategy).toBeFocused();
     await finalStrategy.press('Escape');
     await expect(strategyTrigger).toBeFocused();
@@ -121,6 +121,38 @@ test.describe.serial('local trading terminal', () => {
     await expect(finalVenue).toBeFocused();
     await finalVenue.press('Escape');
     await expect(venueTrigger).toBeFocused();
+  });
+
+  test('keeps the SK Hynix arbitrage workflow read-only', async ({ page }) => {
+    const tradingRequests: string[] = [];
+    page.on('request', (request) => {
+      if (request.headers()['x-gct-trading-intent']) tradingRequests.push(request.url());
+    });
+    await page.goto('/strategies/sk-hynix-arbitrage');
+    const riskDialog = page.getByRole('dialog', { name: 'Risk disclaimer' });
+    if (await riskDialog.isVisible()) {
+      await riskDialog.getByRole('checkbox', { name: 'I have read and understand the risks above.' }).check();
+      await riskDialog.getByRole('button', { name: /Continue in read-only mode/ }).click();
+    }
+    tradingRequests.length = 0;
+
+    await expect(page).toHaveURL(/\/strategies\/sk-hynix-arbitrage$/);
+    await expect(page.getByRole('heading', { name: 'SK 海力士资金费率套利' })).toBeVisible();
+    await expect(page.getByText('IBKR 韩国股票 000660 多头 ↔ 交易所 SKHYNIX 永续空头')).toBeVisible();
+    await expect(page.getByLabel('连接状态')).toContainText('IBKR · TWS API');
+    await expect(page.getByRole('heading', { name: '对冲标的' })).toBeVisible();
+    await expect(page.getByText('实时 USD/KRW')).toBeVisible();
+    await page.getByLabel('预计持有周期').selectOption('28800');
+    await page.getByRole('button', { name: '模拟同时开仓' }).click();
+    await expect(page.getByLabel('双腿同步轨道')).toContainText('模拟执行完成');
+    await page.getByRole('tab', { name: /历史成交/ }).click();
+    await expect(page.getByRole('table', { name: '历史成交' })).toContainText('SIM-');
+    await page.getByRole('tab', { name: '平仓' }).click();
+    await page.getByRole('button', { name: '部分平仓' }).click();
+    await page.getByRole('button', { name: /50%/ }).click();
+    await expect(page.getByText('平仓后剩余')).toBeVisible();
+    await expect(page.getByText('交易所只减仓').locator('..')).toContainText('开启');
+    expect(tradingRequests).toEqual([]);
   });
 
   test('shows total funding fees for grouped positions and preserves each venue leg', async ({ page }) => {

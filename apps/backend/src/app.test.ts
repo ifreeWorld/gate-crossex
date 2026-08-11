@@ -406,6 +406,29 @@ afterEach(async () => {
 });
 
 describe('local backend', () => {
+  it('serves the SK Hynix arbitrage fixture through read-only strategy endpoints', async () => {
+    const { app } = await createTestApp();
+    const headers = { host: '127.0.0.1:17840' };
+    const capabilities = await app.inject({ method: 'GET', url: '/api/sk-hynix-arbitrage/capabilities', headers });
+    expect(capabilities.statusCode).toBe(200);
+    expect(capabilities.json()).toMatchObject({ phase: 'READ_ONLY_FIXTURE', liveExecutionEnabled: false });
+
+    const missingIntent = await app.inject({ method: 'POST', url: '/api/sk-hynix-arbitrage/opportunities/query', headers, payload: {} });
+    expect(missingIntent.statusCode).toBe(403);
+
+    const opportunities = await app.inject({
+      method: 'POST', url: '/api/sk-hynix-arbitrage/opportunities/query',
+      headers: { ...headers, 'x-gct-read-intent': 'sk-hynix-arbitrage-opportunities' },
+      payload: { requestedNotional: '1000', reportCurrency: 'USDT', horizonSeconds: 86400, maxSlippageBps: '20' },
+    });
+    expect(opportunities.statusCode).toBe(200);
+    expect(opportunities.json().opportunities).toHaveLength(4);
+    expect(opportunities.json().opportunities.every((item: { eligible: boolean }) => !item.eligible)).toBe(true);
+
+    const execution = await app.inject({ method: 'POST', url: '/api/sk-hynix-arbitrage/executions', headers, payload: {} });
+    expect(execution.statusCode).toBe(404);
+  });
+
   it('reports live-only mode, migration state, and script-free credential handling', async () => {
     const { app } = await createTestApp();
     const health = await app.inject({ method: 'GET', url: '/health', headers: { host: '127.0.0.1:17840' } });
