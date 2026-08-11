@@ -42,24 +42,28 @@ export function usePairCandleHistory(
     const load = async () => {
       if (inFlight) return;
       inFlight = true;
-      try {
-        const [leftResponse, rightResponse] = await Promise.all([
-          api.candles(leftSymbol, interval, { limit: 300 }),
-          api.candles(rightSymbol, interval, { limit: 300 }),
-        ]);
-        if (!cancelled) setHistory((current) => current.key === key ? {
+      const [leftResult, rightResult] = await Promise.allSettled([
+        api.candles(leftSymbol, interval, { limit: 300 }),
+        api.candles(rightSymbol, interval, { limit: 300 }),
+      ]);
+      if (!cancelled) setHistory((current) => {
+        if (current.key !== key) return current;
+        const leftResponse = leftResult.status === 'fulfilled' ? leftResult.value : null;
+        const rightResponse = rightResult.status === 'fulfilled' ? rightResult.value : null;
+        const left = leftResponse ? mergeCandleHistory(current.left, leftResponse.candles) : current.left;
+        const right = rightResponse ? mergeCandleHistory(current.right, rightResponse.candles) : current.right;
+        return {
           key,
-          left: mergeCandleHistory(current.left, leftResponse.candles),
-          right: mergeCandleHistory(current.right, rightResponse.candles),
-          leftHasMore: leftResponse.hasMore,
-          rightHasMore: rightResponse.hasMore,
-          status: 'live',
-        } : current);
-      } catch {
-        if (!cancelled) setHistory((current) => current.key === key ? { ...current, status: 'failed' } : current);
-      } finally {
-        inFlight = false;
-      }
+          left,
+          right,
+          leftHasMore: leftResponse?.hasMore ?? current.leftHasMore,
+          rightHasMore: rightResponse?.hasMore ?? current.rightHasMore,
+          status: left.length > 0 && right.length > 0
+            ? 'live'
+            : leftResult.status === 'rejected' || rightResult.status === 'rejected' ? 'failed' : 'live',
+        };
+      });
+      inFlight = false;
     };
 
     void load();
@@ -82,10 +86,12 @@ export function usePairCandleHistory(
     loadingRef.current.add(key);
     requestedRef.current.add(requestKey);
 
-    void Promise.all([
+    void Promise.allSettled([
       loadLeft ? api.candles(leftSymbol, interval, { before: oldestLeft.startTime, limit: 300 }) : null,
       loadRight ? api.candles(rightSymbol, interval, { before: oldestRight.startTime, limit: 300 }) : null,
-    ]).then(([leftResponse, rightResponse]) => {
+    ]).then(([leftResult, rightResult]) => {
+      const leftResponse = leftResult.status === 'fulfilled' ? leftResult.value : null;
+      const rightResponse = rightResult.status === 'fulfilled' ? rightResult.value : null;
       setHistory((current) => current.key === key ? {
         ...current,
         left: leftResponse ? mergeCandleHistory(current.left, leftResponse.candles) : current.left,
@@ -93,8 +99,9 @@ export function usePairCandleHistory(
         leftHasMore: leftResponse ? leftResponse.candles.length > 0 && leftResponse.hasMore : current.leftHasMore,
         rightHasMore: rightResponse ? rightResponse.candles.length > 0 && rightResponse.hasMore : current.rightHasMore,
       } : current);
-    }).catch(() => {
-      requestedRef.current.delete(requestKey);
+      if (leftResult.status === 'rejected' || rightResult.status === 'rejected') {
+        requestedRef.current.delete(requestKey);
+      }
     }).finally(() => {
       loadingRef.current.delete(key);
     });

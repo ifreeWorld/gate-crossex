@@ -44,16 +44,24 @@ interface GatewayScript {
 class ScriptedGateway implements TradingCrossExGateway {
   readonly createRequests: CrossExOrderRequest[] = [];
   readonly queriedOrderIds: string[] = [];
+  positions: GateCrossExPortfolio['positions'] = [];
+  leverage = '20';
+  maxRiskPositionValue = '10000';
   private sequence = 0;
 
   constructor(private readonly script: GatewayScript = {}) {}
 
   async queryAccount(): Promise<GateCrossExAccount> { throw new GateApiError(0, 'NOT_SCRIPTED'); }
-  async queryPositions(): Promise<GateCrossExPortfolio['positions']> { throw new GateApiError(0, 'NOT_SCRIPTED'); }
+  async queryPositions(): Promise<GateCrossExPortfolio['positions']> { return this.positions; }
   async queryPortfolio(): Promise<GateCrossExPortfolio> { throw new GateApiError(0, 'NOT_SCRIPTED'); }
   async querySymbols(): Promise<GateCrossExSymbol[]> { return []; }
-  async queryRiskLimits(): Promise<GateCrossExRiskLimit[]> { return []; }
-  async queryLeverages(): Promise<Record<string, string>> { return {}; }
+  async queryRiskLimits(symbols: string[]): Promise<GateCrossExRiskLimit[]> { return symbols.map((symbol) => ({ symbol, tiers: [{
+    tier: '1', min_risk_limit_value: '0', max_risk_limit_value: this.maxRiskPositionValue,
+    quick_cal_amount: '0', leverage_max: this.leverage, maintenance_rate: '0.01',
+  }] })); }
+  async queryLeverages(_credentials: GateCredentials, symbols: string[]): Promise<Record<string, string>> {
+    return Object.fromEntries(symbols.map((symbol) => [symbol, this.leverage]));
+  }
   async setLeverage(_credentials: GateCredentials, symbol: string, leverage: string): Promise<{ symbol: string; leverage: string }> { return { symbol, leverage }; }
   async queryFeeRates(): Promise<GateFeeRate[]> { return []; }
 
@@ -178,6 +186,17 @@ describe('trading runtime order submission', () => {
     const fills = runtime.snapshot().fills as Array<{ id: string }>;
     expect(fills).toHaveLength(1);
     expect(gateway.createRequests).toHaveLength(1);
+  });
+
+  it('rejects a manual order before submission when its final position exceeds the selected leverage tier', async () => {
+    const { runtime, gateway } = await createHarness();
+    gateway.maxRiskPositionValue = '5000';
+
+    await expect(runtime.createOrder(marketOrderInput, undefined, '100000'))
+      .rejects.toMatchObject({ code: 'order_position_exceeds_leverage_limit', statusCode: 409 });
+
+    expect(gateway.createRequests).toHaveLength(0);
+    expect(runtime.listOrders()).toHaveLength(0);
   });
 
   it('buffers pushes that carry only the remote id and replays them once acceptance records it', async () => {

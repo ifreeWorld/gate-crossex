@@ -15,6 +15,9 @@ import {
   applyFundingAssetOrder,
   averageAvailableFundingRate,
   cumulativeFundingPercent,
+  currentFundingComparisonRate,
+  currentFundingMetricRate,
+  fundingPercentScaledTo8h,
   fundingHistoryRequestKey,
 } from './funding-rates.js';
 import type { ExchangeLogoId } from './exchange-logos.js';
@@ -34,14 +37,17 @@ import {
 import { useLanguage } from './i18n.js';
 
 const FundingHistoryChart = lazy(() => import('./charts.js').then((module) => ({ default: module.FundingHistoryChart })));
-const FUNDING_OVERVIEW_POLL_MS = 10_000;
 
 interface FundingPairRow {
   asset: string;
   name: string;
   icon: string;
-  /** Percent per 8h interval, aligned with `exchanges`; null = venue reported nothing. */
+  /** Native percent per venue settlement, aligned with `exchanges`. */
   rates: Array<number | null>;
+  /** Comparable 8h percent, aligned with `exchanges`. */
+  rates8h: Array<number | null>;
+  /** Native funding interval in hours, aligned with `exchanges`. */
+  intervalHours: Array<number | null>;
   /** Preferred CrossEx symbol per venue, used to request realized funding history. */
   symbols: Array<string | null>;
   /** Whether the venue lists the pair at all, aligned with `exchanges`. */
@@ -72,8 +78,9 @@ function fundingMetricRate(
   historyBySymbol: Readonly<Record<string, FundingHistoryEntry>>,
 ): number | null {
   const currentRate = item.rates[venueIndex];
-  if (metric === 'Per interval') return currentRate;
-  if (metric === 'APR') return currentRate === null ? null : currentRate * 1095;
+  if (metric === 'Per interval' || metric === 'APR') {
+    return currentFundingMetricRate(currentRate, item.rates8h[venueIndex], metric);
+  }
   const symbol = item.symbols[venueIndex];
   const history = symbol ? historyBySymbol[symbol] : undefined;
   if (!history || history.status !== 'ok') return null;
@@ -88,7 +95,9 @@ function fundingArb(
   historyBySymbol: Readonly<Record<string, FundingHistoryEntry>>,
 ): { spread: number | null; low?: { venue: (typeof exchanges)[number]; rate: number }; high?: { venue: (typeof exchanges)[number]; rate: number } } {
   const selectedRates = visibleExchanges.flatMap(({ venue, index }) => {
-    const rate = fundingMetricRate(item, index, metric, historyBySymbol);
+    const rate = metric === 'Per interval' || metric === 'APR'
+      ? currentFundingComparisonRate(item.rates8h[index], metric)
+      : fundingMetricRate(item, index, metric, historyBySymbol);
     return rate === null ? [] : [{ venue, rate }];
   });
   if (selectedRates.length < 2) return { spread: null };
@@ -103,7 +112,9 @@ function averageFunding(
   historyBySymbol: Readonly<Record<string, FundingHistoryEntry>>,
 ) {
   return averageAvailableFundingRate(
-    item.rates.map((_rate, index) => fundingMetricRate(item, index, metric, historyBySymbol)),
+    item.rates.map((_rate, index) => metric === 'Per interval' || metric === 'APR'
+      ? currentFundingComparisonRate(item.rates8h[index], metric)
+      : fundingMetricRate(item, index, metric, historyBySymbol)),
     item.listed,
     visibleExchanges.map(({ index }) => index),
   );
@@ -141,6 +152,7 @@ const OI_FILTER_PRESETS = [
 ];
 const FUNDING_PAGE_SIZES = [25, 50, 100];
 const DEFAULT_MIN_AVG_OI_MILLIONS = '5';
+const FUNDING_OVERVIEW_POLL_MS = 30_000;
 
 type FundingDetailDuration = 1 | 7 | 30;
 type FundingDetailMode = 'settlement' | 'cumulative';
@@ -159,11 +171,17 @@ interface FundingDetailVenueRow {
   fetchedAt: string;
 }
 
-export function FundingDetailView({ asset, onBack }: { asset: string; onBack: () => void }) {
+export function FundingDetailView({ asset, onBack, fundingOverview, onFundingOverview }: {
+  asset: string;
+  onBack: () => void;
+  fundingOverview: FundingOverviewResponse | null;
+  onFundingOverview: (overview: FundingOverviewResponse) => void;
+}) {
   const { t, language, theme } = useLanguage();
   const [duration, setDuration] = useState<FundingDetailDuration>(30);
   const [mode, setMode] = useState<FundingDetailMode>('cumulative');
-  const [venues, setVenues] = useState<FundingOverviewVenueEntry[]>([]);
+  const [venues, setVenues] = useState<FundingOverviewVenueEntry[]>(() =>
+    fundingOverview?.assets.find((entry) => entry.asset === asset)?.venues ?? []);
   const [seriesBySymbol, setSeriesBySymbol] = useState<Record<string, FundingHistorySeriesEntry>>({});
   const [rangeFrom, setRangeFrom] = useState<number | null>(null);
   const [pending, setPending] = useState(0);
@@ -173,9 +191,20 @@ export function FundingDetailView({ asset, onBack }: { asset: string; onBack: ()
   useEffect(() => {
     let cancelled = false;
     setFailed(false);
+    const cached = fundingOverview?.assets.find((entry) => entry.asset === asset);
+    if (cached) {
+      setVenues(cached.venues);
+      return () => { cancelled = true; };
+    }
+    if (fundingOverview) {
+      setVenues([]);
+      setFailed(true);
+      return () => { cancelled = true; };
+    }
     void api.fundingOverview()
       .then((response) => {
         if (cancelled) return;
+        onFundingOverview(response);
         const selected = response.assets.find((entry) => entry.asset === asset);
         if (!selected) {
           setFailed(true);
@@ -186,7 +215,7 @@ export function FundingDetailView({ asset, onBack }: { asset: string; onBack: ()
       })
       .catch(() => { if (!cancelled) setFailed(true); });
     return () => { cancelled = true; };
-  }, [asset]);
+  }, [asset, fundingOverview, onFundingOverview]);
 
   useEffect(() => {
     if (venues.length === 0) return;
@@ -195,17 +224,15 @@ export function FundingDetailView({ asset, onBack }: { asset: string; onBack: ()
     setRangeFrom(null);
     setPending(venues.length);
     setFailed(false);
-    for (const venue of venues) {
-      void api.fundingHistorySeries([venue.symbol], duration)
-        .then((response) => {
-          if (cancelled) return;
-          const entry = response.entries[0];
-          if (entry) setSeriesBySymbol((current) => ({ ...current, [entry.symbol]: entry }));
-          setRangeFrom((current) => current === null ? response.from : Math.min(current, response.from));
-        })
-        .catch(() => { if (!cancelled) setFailed(true); })
-        .finally(() => { if (!cancelled) setPending((current) => Math.max(0, current - 1)); });
-    }
+    const symbols = [...new Set(venues.map((venue) => venue.symbol))];
+    void api.fundingHistorySeries(symbols, duration)
+      .then((response) => {
+        if (cancelled) return;
+        setSeriesBySymbol(Object.fromEntries(response.entries.map((entry) => [entry.symbol, entry])));
+        setRangeFrom(response.from);
+      })
+      .catch(() => { if (!cancelled) setFailed(true); })
+      .finally(() => { if (!cancelled) setPending(0); });
     return () => { cancelled = true; };
   }, [duration, venues]);
 
@@ -285,6 +312,7 @@ export function FundingDetailView({ asset, onBack }: { asset: string; onBack: ()
             theme={theme}
             locale={locale}
             placeholder={pending > 0 ? t('Loading venue histories…') : t('Funding history unavailable.')}
+            showDataTable={false}
           />
         </Suspense>
         <div className="funding-detail-legend">{chartSeries.map((item) => {
@@ -334,16 +362,19 @@ export function FundingRatesView({ marketSnapshot, onMarketFallback, onOpenAsset
   const [historyRefreshTick, setHistoryRefreshTick] = useState(0);
   const historySymbolsRef = useRef<string[]>([]);
   const marketFallbackRequestedRef = useRef(false);
+  const initialOverviewRef = useRef(fundingOverview);
   const sortRequestRef = useRef(0);
   const [preparingSort, setPreparingSort] = useState<FundingSortKey | null>(null);
   const [minOiMillionsText, setMinOiMillionsText] = useState(DEFAULT_MIN_AVG_OI_MILLIONS);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
 
-  // Poll the all-pairs overview while this page is mounted; the backend fetches nothing otherwise.
+  // Poll the all-pairs overview while this page is mounted. Returning from a detail page can reuse
+  // the parent cache until its normal refresh boundary instead of immediately requesting it again.
   useEffect(() => {
     let cancelled = false;
     let inFlight = false;
+    let timer: number | undefined;
     const load = () => {
       if (inFlight) return;
       inFlight = true;
@@ -357,11 +388,20 @@ export function FundingRatesView({ marketSnapshot, onMarketFallback, onOpenAsset
             void onMarketFallback().catch(() => undefined);
           }
         })
-        .finally(() => { inFlight = false; });
+        .finally(() => {
+          inFlight = false;
+          if (!cancelled) timer = window.setTimeout(load, FUNDING_OVERVIEW_POLL_MS);
+        });
     };
-    load();
-    const timer = window.setInterval(load, FUNDING_OVERVIEW_POLL_MS);
-    return () => { cancelled = true; window.clearInterval(timer); };
+    const cachedAt = Date.parse(initialOverviewRef.current?.fetchedAt ?? '');
+    const initialDelay = Number.isFinite(cachedAt)
+      ? Math.min(FUNDING_OVERVIEW_POLL_MS, Math.max(0, FUNDING_OVERVIEW_POLL_MS - (Date.now() - cachedAt)))
+      : 0;
+    timer = window.setTimeout(load, initialDelay);
+    return () => {
+      cancelled = true;
+      if (timer !== undefined) window.clearTimeout(timer);
+    };
   }, [onFundingOverview, onMarketFallback]);
 
   const overview = fundingOverview;
@@ -384,6 +424,8 @@ export function FundingRatesView({ marketSnapshot, onMarketFallback, onOpenAsset
       const entryByVenue = new Map<string, FundingOverviewVenueEntry>();
       for (const entry of overviewAssets.get(asset)?.venues ?? []) entryByVenue.set(entry.venue, entry);
       const rates: Array<number | null> = [];
+      const rates8h: Array<number | null> = [];
+      const intervalHours: Array<number | null> = [];
       const symbols: Array<string | null> = [];
       const listed: boolean[] = [];
       let oi = 0;
@@ -395,18 +437,23 @@ export function FundingRatesView({ marketSnapshot, onMarketFallback, onOpenAsset
         const hubLive = hub && hub.source === 'gate_crossex_websocket' ? hub : null;
         // Venue REST first for page-wide consistency, live CrossEx pushes fill its gaps; seed
         // values appear only while no overview exists at all (cold start / REST outage).
+        const interval = entry?.fundingIntervalHours ?? null;
         const rate = entry?.fundingRate != null ? Number(entry.fundingRate) * 100
           : hubLive ? Number(hubLive.fundingRate) * 100
             : useFallback && hub ? Number(hub.fundingRate) * 100 : null;
+        const rate8h = entry?.fundingRate8h != null ? Number(entry.fundingRate8h) * 100
+          : fundingPercentScaledTo8h(rate, interval);
         const venueOi = entry?.openInterestValue != null ? Number(entry.openInterestValue)
           : hubLive && Number(hubLive.openInterestValue) > 0 ? Number(hubLive.openInterestValue)
             : useFallback && hub ? Number(hub.openInterestValue) : 0;
         if (Number.isFinite(venueOi) && venueOi > 0) { oi += venueOi; oiVenues += 1; }
         rates.push(rate !== null && Number.isFinite(rate) ? rate : null);
+        rates8h.push(rate8h !== null && Number.isFinite(rate8h) ? rate8h : null);
+        intervalHours.push(interval);
         symbols.push(entry?.symbol ?? null);
         listed.push(Boolean(entry) || Boolean(hub));
       }
-      return { asset, name: assetName(asset), icon: assetIcon(asset), rates, symbols, listed, oi, avgOi: oiVenues > 0 ? oi / oiVenues : 0, oiVenues };
+      return { asset, name: assetName(asset), icon: assetIcon(asset), rates, rates8h, intervalHours, symbols, listed, oi, avgOi: oiVenues > 0 ? oi / oiVenues : 0, oiVenues };
     });
   }, [overview, overviewState, marketSnapshot]);
 
@@ -639,6 +686,11 @@ export function FundingRatesView({ marketSnapshot, onMarketFallback, onOpenAsset
     return `$${Math.round(value)}`;
   }
 
+  function formatInterval(hours: number | null) {
+    if (hours === null || !Number.isFinite(hours) || hours <= 0) return null;
+    return `${Number.isInteger(hours) ? hours.toFixed(0) : hours.toFixed(1)}h`;
+  }
+
   if (!overview && overviewState === 'loading') {
     return <div className="alternate-view funding-view">
       <section className="view-heading funding-heading">
@@ -689,8 +741,8 @@ export function FundingRatesView({ marketSnapshot, onMarketFallback, onOpenAsset
           <thead><tr>
             <th><button className="sort-header asset-sort" onClick={() => changeSort('asset')}>{t('Asset')} {sortMark('asset')}</button></th>
             <th><button className="sort-header" onClick={() => changeSort('oi')}>{t('Open interest')} {sortMark('oi')}</button></th>
-            <th><button className="sort-header" onClick={() => changeSort('average')}><span><strong>{t('Average rate')}</strong><small>{t('Tradable venues')}</small></span>{sortMark('average')}</button></th>
-            <th><button className="sort-header arb-sort" onClick={() => changeSort('arb')}><span><strong>{t('Max arb')}</strong><small>{t('Best spread')}</small></span>{sortMark('arb')}</button></th>
+            <th><button className="sort-header" onClick={() => changeSort('average')}><span><strong>{t('Average rate')}</strong><small>{metric === 'Per interval' ? t('8h equivalent') : t('Tradable venues')}</small></span>{sortMark('average')}</button></th>
+            <th><button className="sort-header arb-sort" onClick={() => changeSort('arb')}><span><strong>{t('Max arb')}</strong><small>{metric === 'Per interval' ? t('8h equivalent spread') : t('Best spread')}</small></span>{sortMark('arb')}</button></th>
             {visibleExchanges.map(({ venue }) => <th key={venue.id}><button className="sort-header exchange-sort" onClick={() => changeSort(venue.id as FundingSortKey)}><span className="exchange-heading"><VenueIcon id={venue.id} short={venue.short} /><span><strong>{venue.name}</strong>{sortMark(venue.id as FundingSortKey)}</span></span></button></th>)}
           </tr></thead>
           <tbody>{visibleMarkets.map((item, index) => {
@@ -699,7 +751,7 @@ export function FundingRatesView({ marketSnapshot, onMarketFallback, onOpenAsset
             const highArb = arb.high;
             const average = getAverage(item);
             return <tr key={item.asset} className="funding-clickable-row" onClick={() => onOpenAsset(item.asset)}>
-              <td><button className="funding-history-link" aria-label={`${item.asset} ${t('Historical funding')}`} onClick={(event) => { event.stopPropagation(); onOpenAsset(item.asset); }}><span className={`funding-asset asset-tone-${index % 5}`}>{item.icon}</span><span><strong>{item.asset}</strong><small>{item.name} {t('Perpetual').toLowerCase()}</small></span><span className="funding-row-arrow">→</span></button></td>
+              <td><button className="funding-history-link" aria-label={`${item.asset} ${t('Historical funding')}`} onClick={(event) => { event.stopPropagation(); onOpenAsset(item.asset); }}><span className={`funding-asset asset-tone-${index % 5}`}>{item.icon}</span><span><strong>{item.asset}</strong><small>{item.name} {t('Perpetual').toLowerCase()}</small></span></button></td>
               <td>{item.oi > 0
                 ? <><strong className="oi-value">{formatOi(item.oi)}</strong><span className="oi-bar"><i style={{ width: `${Math.max(4, (item.oi / maxOi) * 100)}%` }} /></span><small className="oi-avg">{t('avg')} {formatOi(item.avgOi)}</small></>
                 : <><strong className="oi-value">—</strong><small className="oi-avg">{t('no data')}</small></>}</td>
@@ -718,8 +770,9 @@ export function FundingRatesView({ marketSnapshot, onMarketFallback, onOpenAsset
                       : historicalMetric ? t('history unavailable') : t('no data');
                   return <td key={`${item.asset}-${venue.id}`}><strong className="funding-rate funding-missing">{historicalMetric && symbol && (historyPending.has(symbol) || !historyBySymbol[symbol]) ? '…' : '—'}</strong><small>{detail}</small></td>;
                 }
-                const colorClass = arb.spread !== null && rate === arb.high?.rate ? 'funding-highest' : arb.spread !== null && rate === arb.low?.rate ? 'funding-lowest' : 'funding-base';
-                return <td key={`${item.asset}-${venue.id}`}><strong className={`funding-rate ${colorClass}`}>{formatRate(rate)}</strong><small className={metric === 'APR' ? undefined : 'funding-period-label'}>{metric === 'APR' ? t('annualized') : metric === 'Per interval' ? t('next payment') : `${t('cumulative')} ${metric}`}</small></td>;
+                const colorClass = arb.spread !== null && venue.id === arb.high?.venue.id ? 'funding-highest' : arb.spread !== null && venue.id === arb.low?.venue.id ? 'funding-lowest' : 'funding-base';
+                const interval = formatInterval(item.intervalHours[rateIndex]);
+                return <td key={`${item.asset}-${venue.id}`}><strong className={`funding-rate ${colorClass}`}>{formatRate(rate)}</strong><small className={metric === 'APR' ? undefined : 'funding-period-label'}>{metric === 'APR' ? t('annualized') : metric === 'Per interval' ? `${t('next payment')}${interval ? ` · ${interval}` : ''}` : `${t('cumulative')} ${metric}`}</small></td>;
               })}
             </tr>;
           })}</tbody>

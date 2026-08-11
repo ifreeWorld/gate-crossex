@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { AuthenticatedPortfolioSnapshot, TradingSnapshot } from './api.js';
-import { prepareStrategyPositions } from './strategy-positions.js';
+import { groupStrategyPositions, prepareStrategyPositions, type StrategyPositionRow } from './strategy-positions.js';
 
 function portfolio(
   overrides: Partial<AuthenticatedPortfolioSnapshot> = {},
@@ -121,6 +121,36 @@ describe('strategy positions', () => {
         fundingFee: 0.5, tradingFee: 0.2, netPnl: closeTo(0.284),
       })],
     });
+  });
+
+  it('groups same-asset venue legs with the aggregate values used by the trading page', () => {
+    const row = (overrides: Partial<StrategyPositionRow>): StrategyPositionRow => ({
+      id: 'row', symbol: 'BYBIT_FUTURE_HYPE_USDT', venue: 'BYBIT', asset: 'HYPE', quote: 'USDT', side: 'Long', quantity: 100,
+      value: 5_200, entryPrice: 51, markPrice: 52, leverage: '5', unrealizedPnl: 100,
+      netPnl: 100, fundingFee: null, tradingFee: null,
+      ...overrides,
+    });
+
+    expect(groupStrategyPositions([
+      row({ id: 'long', venue: 'BYBIT' }),
+      row({ id: 'short', venue: 'DERIBIT', quote: 'USDC', side: 'Short', quantity: -100, value: 5_100, entryPrice: 52, markPrice: 51, unrealizedPnl: 100 }),
+    ])).toEqual([expect.objectContaining({
+      key: 'HYPE-PERP', quantity: 0, grossQuantity: 200, grossNotional: 10_300,
+      weightedEntryPrice: 51.5, weightedMarkPrice: 51.5, unrealizedPnl: 200,
+      venueCount: 2, fullyHedged: true, leverage: '5',
+    })]);
+  });
+
+  it('groups SKHY and SKHYNIX as one expandable premium pair', () => {
+    const rows: StrategyPositionRow[] = [
+      { id: 'adr', symbol: 'GATE_FUTURE_SKHY_USDT', venue: 'GATE', asset: 'SKHY', quote: 'USDT', side: 'Short', quantity: -1, value: 230, entryPrice: 230, markPrice: 229, leverage: '5', unrealizedPnl: 1, netPnl: 1, fundingFee: null, tradingFee: null },
+      { id: 'local', symbol: 'BINANCE_FUTURE_SKHYNIX_USDT', venue: 'BINANCE', asset: 'SKHYNIX', quote: 'USDT', side: 'Long', quantity: 0.1, value: 170, entryPrice: 1700, markPrice: 1710, leverage: '5', unrealizedPnl: 1, netPnl: 1, fundingFee: null, tradingFee: null },
+    ];
+
+    expect(groupStrategyPositions(rows)).toEqual([expect.objectContaining({
+      key: 'SKHY-SKHYNIX-PERP', label: 'SKHY / SKHYNIX', mixedAssets: true,
+      legs: rows, grossNotional: 400, unrealizedPnl: 2, fullyHedged: true,
+    })]);
   });
 });
 

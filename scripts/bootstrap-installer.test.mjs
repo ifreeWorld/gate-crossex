@@ -8,7 +8,6 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
-  realpathSync,
   rmSync,
   writeFileSync,
 } from 'node:fs';
@@ -42,6 +41,7 @@ function makeSourceArchive(directory, label) {
   writeFileSync(join(source, 'bootstrap.sh'), '#!/bin/bash\nexit 0\n');
   writeExecutable(join(source, 'run'), '#!/bin/bash\nexit 0\n');
   writeFileSync(join(source, 'scripts/launcher.mjs'), '/* fixture */\n');
+  copyFileSync(join(root, 'scripts/check-for-update.mjs'), join(source, 'scripts/check-for-update.mjs'));
   writeFileSync(join(source, 'fixture-version.txt'), `${label}\n`);
   const archive = join(directory, `source-${label}.tar.gz`);
   execFileSync('tar', ['-czf', archive, '-C', dirname(source), source.split('/').at(-1)]);
@@ -91,6 +91,7 @@ function makeWindowsSourceArchive(directory, label) {
 import fixtureVersion from '@gate-crossex/bootstrap-fixture';
 if (fixtureVersion !== '${label}') throw new Error('workspace link resolved the wrong fixture');
 `);
+  copyFileSync(join(root, 'scripts/check-for-update.mjs'), join(source, 'scripts/check-for-update.mjs'));
   mkdirSync(join(source, 'packages/bootstrap-fixture'), { recursive: true });
   writeFileSync(join(source, 'packages/bootstrap-fixture/package.json'), `${JSON.stringify({
     name: '@gate-crossex/bootstrap-fixture',
@@ -134,6 +135,13 @@ if (process.argv[2] === 'ci') {
   const archive = join(directory, `${assetRoot}.zip`);
   execFileSync('tar.exe', ['-a', '-cf', archive, '-C', dirname(runtime), assetRoot]);
   return archive;
+}
+
+function assertWindowsWorkspaceResolution(installRoot, label) {
+  assert.equal(
+    readFileSync(join(installRoot, 'node_modules/@gate-crossex/bootstrap-fixture/index.js'), 'utf8'),
+    `export default '${label}';\n`,
+  );
 }
 
 test('Unix bootstrap installs atomically, updates, and preserves local state', {
@@ -230,10 +238,7 @@ test('Windows bootstrap installs, updates, and preserves local state', {
     assert.equal(readFileSync(join(installRoot, 'fixture-version.txt'), 'utf8').trim(), 'first');
     assert.equal(existsSync(join(installRoot, '.runtime/node.exe')), true);
     assert.equal(existsSync(join(installRoot, 'node_modules/.bin/tsx.cmd')), true);
-    assert.equal(
-      realpathSync.native(join(installRoot, 'node_modules/@gate-crossex/bootstrap-fixture')).toLowerCase(),
-      realpathSync.native(join(installRoot, 'packages/bootstrap-fixture')).toLowerCase(),
-    );
+    assertWindowsWorkspaceResolution(installRoot, 'first');
 
     writeFileSync(join(installRoot, '.local-data/preserved.txt'), 'local state\n');
     writeFileSync(join(installRoot, '.env'), 'SECRET=preserved\n');
@@ -244,10 +249,7 @@ test('Windows bootstrap installs, updates, and preserves local state', {
     assert.equal(readFileSync(join(installRoot, '.local-data/preserved.txt'), 'utf8').trim(), 'local state');
     assert.equal(readFileSync(join(installRoot, '.env'), 'utf8').trim(), 'SECRET=preserved');
     assert.equal(readFileSync(join(installRoot, 'logs/preserved.log'), 'utf8').trim(), 'log');
-    assert.equal(
-      realpathSync.native(join(installRoot, 'node_modules/@gate-crossex/bootstrap-fixture')).toLowerCase(),
-      realpathSync.native(join(installRoot, 'packages/bootstrap-fixture')).toLowerCase(),
-    );
+    assertWindowsWorkspaceResolution(installRoot, 'second');
 
     // Windows PowerShell can keep the process working directory even after
     // run.ps1 calls Set-Location. Relative .NET file access must still use the

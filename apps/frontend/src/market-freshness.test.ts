@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Candle, LiveMarket, MarketSnapshot } from './api.js';
-import { assessMarketPairFreshness, candleTailIsFresh, freshMarketPair } from './market-freshness.js';
+import { assessMarketPairFreshness, candleTailIsFresh, freshMarketPair, lastKnownLiveMarketPair } from './market-freshness.js';
 
 function market(symbol: string, updatedAt: number, source: LiveMarket['source'] = 'gate_crossex_websocket'): LiveMarket {
   const [venue = 'GATE', , asset = 'SKHY'] = symbol.split('_');
@@ -48,6 +48,18 @@ describe('premium market freshness', () => {
     expect(assessMarketPairFreshness(seeded, leftSymbol, rightSymbol, now).reason).toBe('non_live');
     expect(assessMarketPairFreshness(snapshot(now - 16_000, now), leftSymbol, rightSymbol, now).reason).toBe('stale');
     expect(assessMarketPairFreshness(snapshot(now - 6_000, now), leftSymbol, rightSymbol, now).reason).toBe('skew');
+  });
+
+  it('keeps last-known streamed prices displayable without making them executable', () => {
+    const stale = snapshot(now - 60_000, now - 45_000);
+    expect(freshMarketPair(stale, leftSymbol, rightSymbol, now)).toBeNull();
+    expect(lastKnownLiveMarketPair(stale, leftSymbol, rightSymbol)).toEqual({
+      left: stale.markets[0],
+      right: stale.markets[1],
+    });
+
+    stale.markets[0] = market(leftSymbol, now, 'demo_seed');
+    expect(lastKnownLiveMarketPair(stale, leftSymbol, rightSymbol)).toBeNull();
   });
 
   it('rejects an old candle tail instead of rendering cached history as live', () => {

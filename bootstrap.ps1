@@ -140,14 +140,21 @@ function Repair-WorkspaceLinks([string]$InstallRoot) {
                 throw "Invalid workspace package name: $WorkspaceName"
             }
             $LinkPath = Join-Path $RootPath (Join-Path 'node_modules' $WorkspaceName.Replace('/', '\'))
-            $ExistingLink = Get-Item -LiteralPath $LinkPath -Force -ErrorAction SilentlyContinue
+            $LinkParent = Split-Path -Parent $LinkPath
+            $LinkName = Split-Path -Leaf $LinkPath
+            New-Item -ItemType Directory -Path $LinkParent -Force | Out-Null
+            # Get-Item can miss a junction after its staging target has moved.
+            # Enumerating the parent exposes the reparse point without following
+            # its now-dangling target, so it can be replaced deterministically.
+            $ExistingLink = Get-ChildItem -LiteralPath $LinkParent -Force |
+                Where-Object { [string]::Equals($_.Name, $LinkName, [StringComparison]::OrdinalIgnoreCase) } |
+                Select-Object -First 1
             if ($null -ne $ExistingLink) {
                 if (($ExistingLink.Attributes -band [IO.FileAttributes]::ReparsePoint) -eq 0) {
                     throw "Refusing to replace a non-link workspace path: $LinkPath"
                 }
                 Remove-Item -LiteralPath $LinkPath -Force
             }
-            New-Item -ItemType Directory -Path (Split-Path -Parent $LinkPath) -Force | Out-Null
             New-Item -ItemType Junction -Path $LinkPath -Target $WorkspaceDirectory | Out-Null
             if (-not (Test-Path -LiteralPath (Join-Path $LinkPath 'package.json') -PathType Leaf)) {
                 throw "Could not repair workspace link: $LinkPath"
@@ -219,7 +226,7 @@ function Install-GateCrossExSource {
         (Get-Content -LiteralPath $PackageJson -Raw | ConvertFrom-Json).name -ne 'gate-crossex-terminal') {
         throw 'The source archive does not identify itself as Gate CrossEx.'
     }
-    foreach ($Required in @('package-lock.json', 'bootstrap.ps1', 'run.ps1', 'scripts\launcher.mjs')) {
+    foreach ($Required in @('package-lock.json', 'bootstrap.ps1', 'run.ps1', 'scripts\launcher.mjs', 'scripts\check-for-update.mjs')) {
         if (-not (Test-Path -LiteralPath (Join-Path $Script:NewRoot $Required))) {
             throw "The source archive is missing $Required."
         }

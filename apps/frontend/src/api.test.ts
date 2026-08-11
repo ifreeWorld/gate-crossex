@@ -62,6 +62,34 @@ describe('local API request coordination', () => {
     await expect(api.tradingSnapshot()).rejects.toEqual(new ApiError(200, 'invalid_backend_response'));
   });
 
+  it('validates fixed-rate opportunities from the local Boros proxy', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({
+      strategies: [{
+        id: 'ETH-2-1790294400-OKX-Hyperliquid',
+        longMarket: {
+          marketId: 185, address: '0x6bb121533f78d8d0c8a847b0ab399e0399966563', tokenId: 2,
+          name: 'ETHUSDT', assetSymbol: 'ETH', maturity: 1790294400, state: 'Normal',
+          impliedApr: 0.0225, maxLeverage: 2.1, maxPerpLeverage: 100, ammId: 0, platformName: 'OKX',
+        },
+        shortMarket: {
+          marketId: 102, address: '0xd035309b604d6e252d29ce1d61e9a1e0a0553918', tokenId: 2,
+          name: 'ETHUSDC', assetSymbol: 'ETH', maturity: 1790294400, state: 'Normal',
+          impliedApr: 0.0628, maxLeverage: 2.1, maxPerpLeverage: 25, ammId: 1020, platformName: 'Hyperliquid',
+        },
+        daysToMaturity: 50, impliedAprSpread: 0.0403, maxPerpLeverage: 10, aprTimesMaxLeverage: 0.1487,
+      }],
+      totalCount: 1,
+      fetchedAt: '2026-08-06T10:00:00.000Z',
+      cacheStatus: 'fresh',
+      source: 'boros_open_api',
+    }))));
+
+    await expect(api.borosStrategies()).resolves.toMatchObject({
+      strategies: [{ id: 'ETH-2-1790294400-OKX-Hyperliquid' }],
+      source: 'boros_open_api',
+    });
+  });
+
   it('turns an expired request deadline into an actionable timeout error', async () => {
     const timeout = AbortSignal.abort();
     vi.spyOn(AbortSignal, 'timeout').mockReturnValue(timeout);

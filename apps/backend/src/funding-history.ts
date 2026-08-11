@@ -218,14 +218,23 @@ export class FundingHistoryService {
     symbols: readonly string[],
     durationMs: number,
   ): Promise<FundingHistorySeriesResponse> {
-    const summary = await this.loadMany(symbols, durationMs);
+    this.pruneIfNeeded();
+    const uniqueSymbols = [...new Set(symbols)];
+    if (uniqueSymbols.length > this.maxRequestSymbols) {
+      throw new Error(`Funding history request exceeds the ${this.maxRequestSymbols}-symbol budget`);
+    }
+    for (const symbol of uniqueSymbols) this.touchSymbol(symbol);
+    // Unlike matrix totals, charts must not render a stale tail and then remain stale for the
+    // lifetime of the page. Wait for any required tail refresh before reading the raw points.
+    const entries = await Promise.all(uniqueSymbols.map(async (symbol) =>
+      await this.loadFresh(symbol, durationMs)));
     const to = this.now();
     const from = to - Math.min(durationMs, THIRTY_DAYS_MS);
     return {
-      entries: summary.entries.map((entry) => ({
+      entries: entries.map((entry) => ({
         symbol: entry.symbol,
-        // loadMany waits for missing coverage, so `pending` is exclusive to
-        // the cache-first summary API and cannot escape through series data.
+        // Fresh series loads wait for missing coverage, so `pending` is exclusive to the
+        // cache-first summary API and cannot escape through series data.
         status: entry.status === 'pending' ? 'unavailable' : entry.status,
         points: entry.status === 'ok'
           ? readFundingRateHistory(this.database, entry.symbol, from, to)
@@ -288,6 +297,19 @@ export class FundingHistoryService {
       return Promise.resolve(this.readEntry(symbol, endTime, requiredWindowMs));
     }
     return this.refresh(symbol, requiredWindowMs);
+  }
+
+  private async loadFresh(symbol: string, requiredWindowMs: number): Promise<FundingHistoryEntry> {
+    const endTime = this.now();
+    const coverage = readFundingHistoryCoverage(this.database, symbol);
+    const coversWindow = coverage !== null && coverage.coveredFrom <= endTime - requiredWindowMs;
+    const tailIsFresh = coverage !== null && coverage.coveredTo >= endTime - this.freshMs;
+    if (coversWindow && tailIsFresh) return this.readEntry(symbol, endTime, requiredWindowMs);
+    if ((this.failures.get(symbol)?.until ?? 0) > endTime) {
+      return this.readEntry(symbol, endTime, requiredWindowMs);
+    }
+    await this.refresh(symbol, requiredWindowMs);
+    return this.readEntry(symbol, this.now(), requiredWindowMs);
   }
 
   private refresh(symbol: string, requiredWindowMs: number): Promise<FundingHistoryEntry> {

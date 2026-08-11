@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { maximumTransferAmount } from './transfer-amount.js';
-import { transferAccountsFor } from './transfer-rules.js';
+import { transferAccountsFor, transferFeeForRoute } from './transfer-rules.js';
 
 describe('maximumTransferAmount', () => {
   it('preserves whole amounts and truncates fractional excess without rounding above the balance', () => {
@@ -32,5 +32,21 @@ describe('transferAccountsFor', () => {
     expect(transferAccountsFor('BTC', 'ISOLATED_EXCHANGE')).not.toContain('CROSSEX_KRAKEN');
     expect(transferAccountsFor('BTC', 'ISOLATED_EXCHANGE')).not.toContain('CROSSEX_HYPERLIQUID');
     expect(transferAccountsFor('USDT', 'CROSS_EXCHANGE')).toEqual(['SPOT', 'CROSSEX']);
+  });
+});
+
+describe('transferFeeForRoute', () => {
+  it('uses the venue-specific USDC withdrawal fees when Gate Spot is the destination', () => {
+    expect(transferFeeForRoute('USDC', 'CROSSEX_BINANCE', 'SPOT', '99')).toBe('0.6');
+    expect(transferFeeForRoute('USDC', 'CROSSEX_OKX', 'SPOT', '99')).toBe('0.17');
+    expect(transferFeeForRoute('USDC', 'CROSSEX_BYBIT', 'SPOT', '99')).toBe('0.8');
+    expect(transferFeeForRoute('USDC', 'CROSSEX_GATE', 'SPOT', '99')).toBe('0.999');
+    expect(transferFeeForRoute('USDC', 'CROSSEX_HYPERLIQUID', 'SPOT', '99')).toBe('1');
+    expect(transferFeeForRoute('USDC', 'CROSSEX_DERIBIT', 'SPOT', '99')).toBe('5');
+  });
+
+  it('keeps the Gate API estimate for other assets and transfer directions', () => {
+    expect(transferFeeForRoute('USDC', 'SPOT', 'CROSSEX_BINANCE', '0.25')).toBe('0.25');
+    expect(transferFeeForRoute('USDT', 'CROSSEX_BINANCE', 'SPOT', '0.4')).toBe('0.4');
   });
 });

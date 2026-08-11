@@ -123,6 +123,266 @@ test.describe.serial('local trading terminal', () => {
     await expect(venueTrigger).toBeFocused();
   });
 
+  test('guides a Boros hedge into a validated CrossEx execution setup', async ({ page }) => {
+    await page.request.post('/__e2e/trading-mode', { data: { mode: 'live' } });
+    await page.route('**/api/boros/strategies', async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      await route.continue();
+    });
+    await page.route('**/api/trading/leverage/*', async (route) => {
+      const symbol = decodeURIComponent(new URL(route.request().url()).pathname.split('/').at(-1) ?? '');
+      await route.fulfill({ json: { symbol, leverage: '5' } });
+    });
+    const gateBtcRiskResponse = await page.request.get('/api/crossex/instruments/GATE_FUTURE_BTC_USDT/risk-limits');
+    expect(gateBtcRiskResponse.ok()).toBe(true);
+    const gateBtcRisk = await gateBtcRiskResponse.json() as { item: { tiers: Array<{ leverageMax: string }> } };
+    expect(gateBtcRisk.item.tiers.map((tier) => tier.leverageMax)).toEqual(['25']);
+    await page.goto('/strategies/boros');
+    await expect(page.getByRole('status', { name: 'Loading Boros opportunities…' })).toBeVisible();
+    const riskDialog = page.getByRole('dialog', { name: 'Risk disclaimer' });
+    await riskDialog.waitFor({ state: 'visible', timeout: 1_000 }).catch(() => undefined);
+    if (await riskDialog.isVisible()) {
+      await riskDialog.getByRole('checkbox', { name: 'I have read and understand the risks above.' }).check();
+      await riskDialog.getByRole('button', { name: /Continue in read-only mode/ }).click();
+    }
+
+    await expect(page.getByRole('heading', { name: 'Boros by Pendle.' })).toBeVisible();
+    const mainNavigation = page.getByRole('navigation', { name: 'Main navigation' });
+    await expect(mainNavigation.getByRole('button', { name: /Boros by Pendle/ })).toBeVisible();
+    await mainNavigation.getByRole('button', { name: /Strategy/ }).click();
+    await expect(page.getByRole('menu', { name: 'Strategy mode' }).getByText('Boros by Pendle')).toHaveCount(0);
+    await page.keyboard.press('Escape');
+    const opportunities = page.getByRole('radiogroup', { name: 'Fixed-rate strategies' });
+    const exchangeFilter = page.getByRole('group', { name: 'Exchange filter' });
+    await expect(exchangeFilter.getByRole('checkbox')).toHaveCount(3);
+    await expect(exchangeFilter.getByRole('checkbox', { name: 'OKX' })).toBeChecked();
+    await expect(exchangeFilter.getByRole('checkbox', { name: 'Hyperliquid' })).toBeChecked();
+    await expect(exchangeFilter.getByRole('checkbox', { name: 'Lighter' })).not.toBeChecked();
+    await expect(opportunities.getByRole('radio')).toHaveCount(1);
+    await expect(opportunities.getByText('Est. fixed APR after fees')).toHaveCount(1);
+    await expect(opportunities.getByText('$100k per leg · fees included')).toHaveCount(1);
+    await exchangeFilter.getByRole('checkbox', { name: 'Lighter' }).check();
+    await expect(opportunities.getByRole('radio')).toHaveCount(2);
+    await expect(opportunities).toHaveCSS('gap', '1px');
+    const opportunityCards = opportunities.getByRole('radio');
+    await expect(opportunityCards.first()).toContainText('CrossEx ready');
+    await expect(opportunities.getByText('Est. fixed APR after fees')).toHaveCount(2);
+    await expect(opportunities.getByText('$100k per leg · fees included')).toHaveCount(2);
+    const opportunityGroups = await opportunityCards.evaluateAll((cards) => cards.map((card) => ({
+      ready: !card.classList.contains('unavailable'),
+      apr: Number.parseFloat(card.querySelector('.boros-opportunity-apr strong')?.textContent ?? ''),
+    })));
+    expect(opportunityGroups.map(({ ready }) => ready)).toEqual(
+      [...opportunityGroups].sort((left, right) => Number(right.ready) - Number(left.ready)).map(({ ready }) => ready),
+    );
+    for (const ready of [true, false]) {
+      const aprs = opportunityGroups.filter((opportunity) => opportunity.ready === ready).map(({ apr }) => apr);
+      expect(aprs).toEqual([...aprs].sort((left, right) => right - left));
+    }
+    const readyOpportunity = opportunities.getByRole('radio', { name: /OKX ↔ Hyperliquid/ });
+    await readyOpportunity.click();
+    await expect(readyOpportunity).toHaveAttribute('aria-checked', 'true');
+    const lighterOpportunity = opportunities.getByRole('radio', { name: /OKX ↔ Lighter/ });
+    const readyBadge = opportunities.getByRole('radio', { name: /OKX ↔ Hyperliquid/ }).locator('em');
+    const unavailableBadge = lighterOpportunity.locator('em');
+    expect(await readyBadge.evaluate((element) => getComputedStyle(element).backgroundColor))
+      .not.toBe(await unavailableBadge.evaluate((element) => getComputedStyle(element).backgroundColor));
+    await expect(lighterOpportunity).toContainText('Not executable on CrossEx');
+    await lighterOpportunity.click();
+    await expect(lighterOpportunity).toHaveAttribute('aria-checked', 'true');
+    await expect(page.getByText('Direct CrossEx execution unavailable')).toBeVisible();
+    await expect(page.getByRole('textbox', { name: 'Position size' })).toBeDisabled();
+    await expect(lighterOpportunity).toContainText('OKX 50× · Lighter 50×');
+    await opportunities.getByRole('radio', { name: /OKX ↔ Hyperliquid/ }).click();
+    const firstStep = page.locator('.boros-step').first();
+    await expect(page.locator('.boros-view > .boros-kpis')).toHaveCount(0);
+    await expect(firstStep.getByLabel('Strategy summary')).toBeVisible();
+    await expect(page.getByRole('spinbutton', { name: 'Leverage for both sides' })).toHaveCount(0);
+    await expect(exchangeFilter.getByRole('checkbox')).toHaveCount(3);
+    for (const exchange of ['OKX', 'Hyperliquid', 'Lighter']) {
+      await expect(exchangeFilter.getByRole('checkbox', { name: exchange })).toBeChecked();
+    }
+    await expect(exchangeFilter.getByText('CrossEx supported', { exact: true })).toBeVisible();
+    await expect(exchangeFilter.getByText('Manual on Boros', { exact: true })).toBeVisible();
+    await expect(exchangeFilter.locator('.boros-exchange-group.supported')).toContainText('OKX');
+    await expect(exchangeFilter.locator('.boros-exchange-group.supported')).toContainText('Hyperliquid');
+    await expect(exchangeFilter.locator('.boros-exchange-group.manual')).toContainText('Lighter');
+    const setupBox = await page.getByRole('region', { name: 'Filter exchanges' }).boundingBox();
+    const opportunitiesBox = await page.getByRole('region', { name: 'Fixed-rate strategies' }).boundingBox();
+    expect(setupBox?.y).toBeLessThan(opportunitiesBox?.y ?? 0);
+    const exchangeHeading = exchangeFilter.locator('.boros-exchange-head > span');
+    const matchCount = exchangeFilter.getByText('2 matching opportunities');
+    const exchangeHeadingBox = await exchangeHeading.boundingBox();
+    const matchCountBox = await matchCount.boundingBox();
+    expect(Math.abs((exchangeHeadingBox?.y ?? 0) - (matchCountBox?.y ?? 0))).toBeLessThan(4);
+    await expect(exchangeFilter.getByRole('button', { name: 'All selected' })).toBeDisabled();
+    await exchangeFilter.getByRole('checkbox', { name: 'Hyperliquid' }).uncheck();
+    await expect(opportunities.getByRole('radio')).toHaveCount(1);
+    await expect(exchangeFilter.getByRole('button', { name: 'Select all' })).toBeEnabled();
+    await expect(page.getByRole('link', { name: /Open long market on Boros/ })).toHaveAttribute('href', 'https://boros.pendle.finance/markets/185?direction=long');
+    await expect(page.getByRole('link', { name: /Open short market on Boros/ })).toHaveAttribute('href', 'https://boros.pendle.finance/markets/187?direction=short');
+    await exchangeFilter.getByRole('checkbox', { name: 'Hyperliquid' }).check();
+    await expect(opportunities.getByRole('radio')).toHaveCount(2);
+    await expect(opportunities.getByRole('radio', { name: /days to maturity.*Matures on/ })).toHaveCount(2);
+    for (const maturityDate of await opportunities.locator('.boros-opportunity-expiry small:last-child').all()) {
+      await expect(maturityDate).toHaveCSS('white-space', 'nowrap');
+    }
+    await opportunities.getByRole('radio', { name: /OKX ↔ Hyperliquid/ }).click();
+    const returnAfterFees = page.getByLabel('Strategy summary').getByText('Return after fees').locator('..').locator('strong');
+    const initialReturn = await returnAfterFees.textContent();
+    const selectedOpportunityApr = opportunities.getByRole('radio', { name: /OKX ↔ Hyperliquid/ }).locator('.boros-opportunity-apr strong');
+    const initialOpportunityApr = await selectedOpportunityApr.textContent();
+    expect(initialReturn).toMatch(/%$/);
+    expect(initialOpportunityApr).toMatch(/%$/);
+    await expect(opportunities.getByRole('radio', { name: /OKX ↔ Hyperliquid/ })).toContainText('OKX 50× · Hyperliquid 40×');
+    await expect(page.getByRole('link', { name: /Open long market on Boros/ })).toHaveAttribute('href', 'https://boros.pendle.finance/markets/185?direction=long');
+    await expect(page.getByRole('link', { name: /Open short market on Boros/ })).toHaveAttribute('href', 'https://boros.pendle.finance/markets/102?direction=short');
+
+    const quantity = page.getByRole('textbox', { name: 'Position size' });
+    const quantitySection = page.locator('.boros-size-setup');
+    await expect(quantity).toBeEnabled();
+    expect((await quantity.boundingBox())?.width).toBeLessThan(230);
+    const borosConfirmation = page.getByRole('checkbox', { name: /I opened both Boros positions/ });
+    const borosConfirmationSection = page.locator('.boros-confirm');
+    const entryThreshold = page.getByRole('textbox', { name: 'Entry threshold' });
+    const openPositions = page.getByRole('button', { name: 'Open positions' });
+    await expect(borosConfirmation).toBeEnabled();
+    await borosConfirmation.click();
+    await expect(borosConfirmation).not.toBeChecked();
+    await expect(quantity).toBeFocused();
+    await expect(quantitySection).toHaveClass(/attention/);
+    await expect(borosConfirmationSection).not.toHaveClass(/attention/);
+    await entryThreshold.click();
+    await expect(quantity).toBeFocused();
+    await expect(quantitySection).toHaveClass(/attention/);
+    await openPositions.click();
+    await expect(quantity).toBeFocused();
+    await expect(quantitySection).toHaveClass(/attention/);
+    await quantity.fill('0.1');
+    await expect(quantitySection).not.toHaveClass(/attention/);
+    const perOrderQuantity = page.getByRole('textbox', { name: 'Per-order quantity' });
+    await expect(perOrderQuantity).toHaveValue('0.1');
+    await expect(page.getByLabel('Total amount')).toHaveText('0.1');
+    await perOrderQuantity.fill('0.05');
+    const executionMethod = page.getByRole('group', { name: 'Execution method' });
+    await executionMethod.getByRole('button', { name: /Maker–Taker/ }).click();
+    const makerLeg = page.getByRole('group', { name: 'Choose maker leg' });
+    await makerLeg.getByRole('button', { name: /Hyperliquid/ }).click();
+    await expect(executionMethod.getByRole('button', { name: /Maker–Taker/ })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByText('0.1 YU-ETH', { exact: true })).toHaveCount(2);
+    await expect(page.getByText('0.1 ETH', { exact: true })).toHaveCount(3);
+    const preflight = page.getByRole('region', { name: 'Position margin and return preview' });
+    await expect(preflight.getByText('Estimated Boros margin')).toBeVisible();
+    await expect(preflight.getByText('Estimated CrossEx margin at current leverage')).toBeVisible();
+    await expect(preflight.getByText('CrossEx available margin')).toBeVisible();
+    await expect(preflight.getByText('CrossEx margin check')).toBeVisible();
+    await expect(preflight.getByText('Estimated profit after fees')).toBeVisible();
+    const stepMarkers = page.locator('.boros-step-marker span');
+    await expect(stepMarkers).toHaveText(['1', '2', '3']);
+    expect(await stepMarkers.nth(0).evaluate((element) => getComputedStyle(element).backgroundColor))
+      .not.toBe(await stepMarkers.nth(1).evaluate((element) => getComputedStyle(element).backgroundColor));
+    const orderReviewLabels = page.locator('.boros-review dt');
+    await expect(orderReviewLabels.nth(0)).toHaveText('Entry threshold');
+    await expect(orderReviewLabels.nth(1)).toHaveText('Current slippage');
+    await expect(page.getByText('Current executable spread', { exact: true })).toHaveCount(0);
+    await expect(page.getByText('Minimum accepted spread', { exact: true })).toHaveCount(0);
+    await expect(entryThreshold).toHaveAttribute('type', 'text');
+    await entryThreshold.click();
+    await expect(borosConfirmation).toBeFocused();
+    await expect(borosConfirmationSection).toHaveClass(/attention/);
+    await openPositions.click();
+    await expect(borosConfirmation).toBeFocused();
+    await expect(borosConfirmationSection).toHaveClass(/attention/);
+    await page.request.post('/__e2e/fresh-quotes');
+    await borosConfirmation.check();
+    await entryThreshold.fill('-2');
+    await expect(borosConfirmationSection).not.toHaveClass(/attention/);
+    await expect(stepMarkers.nth(1)).toHaveText('2');
+    expect(await stepMarkers.nth(1).evaluate((element) => getComputedStyle(element).backgroundColor))
+      .toBe(await stepMarkers.nth(0).evaluate((element) => getComputedStyle(element).backgroundColor));
+    await expect(openPositions).toBeEnabled();
+    await openPositions.click();
+    const confirmExecution = page.getByRole('dialog', { name: 'Confirm CrossEx positions' });
+    await expect(confirmExecution).toBeVisible();
+    await expect(confirmExecution).toContainText('0.1 ETH · OKX_FUTURE_ETH_USDT · 50×');
+    await expect(confirmExecution).toContainText('0.1 ETH · HYPERLIQUID_FUTURE_ETH_USDC · 40×');
+    await expect(confirmExecution).toContainText('0.05 ETH');
+    await expect(confirmExecution).toContainText('Maker–Taker · Hyperliquid maker');
+    await expect(confirmExecution).toContainText('Entry threshold');
+    await expect(confirmExecution).toContainText('-2 bps');
+    await expect(confirmExecution.getByRole('button', { name: /Confirm and open/ })).toBeVisible();
+    await confirmExecution.getByRole('button', { name: 'Go back' }).click();
+    await expect(confirmExecution).toHaveCount(0);
+    const strategySummary = page.getByLabel('Strategy summary');
+    await expect(strategySummary).toContainText('OKX 50× · Hyperliquid 40×');
+    await expect(strategySummary).toContainText('Net fixed APR');
+    await expect(strategySummary).toContainText('Return after fees');
+    await expect(strategySummary).not.toContainText('Gross fixed APR');
+    await expect(strategySummary).not.toContainText('Return before fees');
+    await expect(strategySummary.getByRole('button')).toHaveCount(1);
+    await expect(page.getByRole('region', { name: 'Net fixed APR calculation' })).toHaveCount(0);
+    await expect(page.getByRole('region', { name: 'Expected profit and fees' })).toHaveCount(0);
+    const returnDetailsButton = page.locator('button[aria-controls="boros-return-details"]');
+    await expect(returnDetailsButton).toHaveText('View details');
+    await returnDetailsButton.click();
+    const aprDetails = page.getByRole('region', { name: 'Net fixed APR calculation' });
+    const economics = page.getByRole('region', { name: 'Expected profit and fees' });
+    expect(await aprDetails.evaluate((element) => Boolean(element.closest('.boros-preflight-step')))).toBe(true);
+    expect(await economics.evaluate((element) => Boolean(element.closest('.boros-preflight-step')))).toBe(true);
+    await expect(returnDetailsButton).toHaveText('Hide details');
+    await expect(aprDetails.getByText('Annual fixed spread', { exact: true })).toBeVisible();
+    await expect(aprDetails.getByText('Reference notional', { exact: true })).toBeVisible();
+    await expect(aprDetails.getByText('Boros margin', { exact: true })).toBeVisible();
+    await expect(aprDetails).toContainText('total for both Boros legs');
+    await expect(aprDetails.getByText('OKX · Boros margin', { exact: true })).toBeVisible();
+    await expect(aprDetails.getByText('Hyperliquid · Boros margin', { exact: true })).toBeVisible();
+    await expect(aprDetails).toContainText('6.0000% × 0.137y × 0.4762');
+    await expect(aprDetails.getByText('Perpetual margin', { exact: true })).toBeVisible();
+    await expect(aprDetails.getByText('Allocated capital', { exact: true })).toBeVisible();
+    await expect(aprDetails.getByText('Net annual profit', { exact: true })).toBeVisible();
+    await expect(aprDetails).toContainText('OKX 50× · Hyperliquid 40×');
+    await expect(aprDetails).toContainText('Uses Gate CrossEx risk-limit leverage and expected fees.');
+    await expect(aprDetails.getByText(/Net fixed APR = Return after fees ÷ Time to maturity/)).toBeVisible();
+    await expect(economics.getByText('Profit before fees')).toBeVisible();
+    await expect(economics.getByText('Profit after fees')).toBeVisible();
+    await expect(economics.getByText('Boros opening fees')).toBeVisible();
+    await expect(economics.getByText('Boros settlement fees')).toBeVisible();
+    await expect(economics.getByText('Perp open + close')).toHaveCount(2);
+    await expect(economics.getByText('Boros gas')).toBeVisible();
+    const longDirectionBadge = page.locator('.boros-fixed-legs em.long');
+    const shortDirectionBadge = page.locator('.boros-fixed-legs em.short');
+    expect(await longDirectionBadge.evaluate((element) => getComputedStyle(element).backgroundColor))
+      .not.toBe(await shortDirectionBadge.evaluate((element) => getComputedStyle(element).backgroundColor));
+    const currentSlippage = page.getByLabel('Current slippage');
+    await expect(entryThreshold).toBeVisible();
+    await expect(currentSlippage).toContainText(/\d+\.\d{2}/);
+    await expect(currentSlippage).toHaveJSProperty('tagName', 'OUTPUT');
+    await expect(currentSlippage.locator('xpath=..').locator('input')).toHaveCount(0);
+    expect(await entryThreshold.evaluate((element) => Boolean(element.closest('.boros-review')))).toBe(true);
+    await expect(page.locator('.boros-step')).toHaveCount(3);
+    const strategyPanel = page.locator('.running-strategies');
+    await expect(strategyPanel).toBeVisible();
+    await expect(strategyPanel.getByRole('tab', { name: /Positions/ })).toBeVisible();
+    await expect(strategyPanel.getByRole('tab', { name: /Running/ })).toBeVisible();
+    await expect(strategyPanel.getByRole('tab', { name: /Historical/ })).toBeVisible();
+    await page.request.post('/__e2e/trading-mode', { data: { mode: 'readonly' } });
+
+    const results = await new AxeBuilder({ page }).analyze();
+    expect(results.violations.map((violation) => ({
+      id: violation.id,
+      targets: violation.nodes.map((node) => node.target.join(' ')),
+    }))).toEqual([]);
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    const widths = await page.evaluate(() => ({
+      viewport: window.innerWidth,
+      root: document.documentElement.scrollWidth,
+      body: document.body.scrollWidth,
+    }));
+    expect(widths.root).toBe(widths.viewport);
+    expect(widths.body).toBe(widths.viewport);
+  });
+
   test('shows total funding fees for grouped positions and preserves each venue leg', async ({ page }) => {
     await page.request.post('/__e2e/grouped-positions');
     try {
@@ -313,6 +573,12 @@ test.describe.serial('local trading terminal', () => {
     const fundingControlOrder = await page.locator('.funding-card').evaluate((card) =>
       [...card.children].slice(0, 3).map((child) => child.className));
     expect(fundingControlOrder).toEqual(['exchange-filter', 'oi-filter', 'funding-toolbar']);
+    await expect(page.getByRole('columnheader', { name: /Average rate 8h equivalent/ })).toBeVisible();
+    const hypeRow = page.locator('.funding-clickable-row').filter({ hasText: 'HYPE' });
+    await expect(hypeRow.getByText('next payment · 1h', { exact: true })).toBeVisible();
+    await expect(hypeRow.getByText('next payment · 8h', { exact: true })).toBeVisible();
+    await expect(hypeRow.locator('.funding-row-arrow')).toHaveCount(0);
+    await expect(hypeRow.getByText('next payment · 1h', { exact: true })).toHaveCSS('white-space', 'nowrap');
     const toolbarGap = await page.locator('.funding-toolbar').evaluate((toolbar) => {
       const [search, periods] = [...toolbar.children].map((child) => child.getBoundingClientRect());
       return periods.left - search.right;
@@ -327,6 +593,8 @@ test.describe.serial('local trading terminal', () => {
   });
 
   test('preserves the selected funding period after viewing pair details', async ({ page }) => {
+    const requestedPaths: string[] = [];
+    page.on('request', (request) => requestedPaths.push(`${request.method()} ${new URL(request.url()).pathname}`));
     await page.goto('/funding-rates');
     const riskDialog = page.getByRole('dialog', { name: 'Risk disclaimer' });
     await riskDialog.waitFor({ state: 'visible', timeout: 1_000 }).catch(() => undefined);
@@ -340,10 +608,20 @@ test.describe.serial('local trading terminal', () => {
     await expect(thirtyDays).toHaveAttribute('aria-pressed', 'true');
     await page.locator('.funding-clickable-row').first().click();
     await expect(page).toHaveURL(/\/funding-rates\/[A-Z0-9]+$/);
+    await expect(page.locator('.funding-detail-chart-wrap details.chart-data')).toHaveCount(0);
+    await expect.poll(() => requestedPaths.filter((path) => path === 'POST /api/markets/funding-history/series').length).toBe(1);
     await page.getByRole('button', { name: 'Back to funding rates' }).click();
 
     await expect(page).toHaveURL(/\/funding-rates$/);
     await expect(page.getByRole('button', { name: 'Cumulative 30d', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    expect(requestedPaths.filter((path) => path === 'GET /api/markets/funding-overview')).toHaveLength(1);
+    expect(requestedPaths).not.toEqual(expect.arrayContaining([
+      'GET /api/markets/catalog',
+      'GET /api/trading/snapshot',
+      'GET /api/strategies',
+      'GET /api/onboarding/connection',
+      'GET /api/crossex/fees',
+    ]));
   });
 
   test('opens a paired position with the funding-arbitrage pair preconfigured', async ({ page }) => {

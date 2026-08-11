@@ -69,6 +69,8 @@ Use the corresponding `.\run.ps1` commands on Windows.
 
 For bootstrap-managed source snapshots, `update` stages and validates a fresh source tree before activation and preserves `.local-data`, logs, and `.env`. For a normal Git checkout, it retains the fast-forward-only `git pull` workflow.
 
+An interactive `./run` startup checks the latest published GitHub release with a short timeout and offers to run the existing update command when a newer semantic version is available. It skips development branches, pinned bootstrap refs, redirected input/output, and sessions with `GCT_SKIP_UPDATE_CHECK=1`; network failures never block startup. The PowerShell launcher provides the same behavior.
+
 ## Development rules
 
 - Add new migrations; never edit a migration that may already have been released. Startup rejects checksum changes.

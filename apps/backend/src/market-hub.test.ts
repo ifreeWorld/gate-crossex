@@ -152,6 +152,25 @@ describe('CrossEx price provenance', () => {
 });
 
 describe('CrossEx dynamic market channels', () => {
+  it('does not evict a dynamic market while a client is watching its quote', () => {
+    const hub = new CrossExMarketHub('ws://127.0.0.1:1');
+    const symbol = 'GATE_FUTURE_SKHY_USDT';
+    expect(hub.ensureMarkets([{ symbol, venue: 'GATE', asset: 'SKHY' }])).toBe(true);
+    const internals = hub as unknown as {
+      dynamicMarkets: Map<string, number>;
+      evictIdleDynamicMarkets(): void;
+    };
+    const release = hub.watchQuotes([symbol]);
+    internals.dynamicMarkets.set(symbol, 0);
+    internals.evictIdleDynamicMarkets();
+    expect(hub.snapshot().markets.some((market) => market.symbol === symbol)).toBe(true);
+
+    release();
+    internals.dynamicMarkets.set(symbol, 0);
+    internals.evictIdleDynamicMarkets();
+    expect(hub.snapshot().markets.some((market) => market.symbol === symbol)).toBe(false);
+  });
+
   it('chunks every public subscription request at the documented 100-symbol limit', async () => {
     const { hub, received } = await createHubHarness();
     await waitFor(() => received.some((message) => message.channel === 'ticker'));

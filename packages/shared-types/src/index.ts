@@ -502,8 +502,12 @@ export const FundingOverviewVenueEntrySchema = z.object({
   venue: z.string(),
   symbol: z.string(),
   quote: z.string(),
-  /** 8h-equivalent funding fraction (venues on 1h/4h cycles are scaled); null when the venue reported nothing. */
+  /** Native fraction charged or paid at one venue funding interval. */
   fundingRate: z.string().nullable(),
+  /** Native funding interval in hours; null when the venue row is unavailable. */
+  fundingIntervalHours: z.number().positive().max(24).nullable(),
+  /** 8h-equivalent fraction used for cross-venue comparisons. */
+  fundingRate8h: z.string().nullable(),
   nextFundingAt: z.string().nullable(),
   /** Open interest in USD; null when the venue publishes no bulk OI (BINANCE) or the row is missing. */
   openInterestValue: z.string().nullable(),
@@ -601,12 +605,20 @@ export const PublicTradeSchema = z.object({
 });
 export type PublicTrade = z.infer<typeof PublicTradeSchema>;
 
+export const SymbolFeeRateSchema = z.object({
+  symbol: z.string(),
+  makerFee: z.string(),
+  takerFee: z.string(),
+});
+export type SymbolFeeRate = z.infer<typeof SymbolFeeRateSchema>;
+
 export const VenueFeeRateSchema = z.object({
   venue: z.string(),
   spotMakerFee: z.string(),
   spotTakerFee: z.string(),
   futureMakerFee: z.string(),
   futureTakerFee: z.string(),
+  specialFees: z.array(SymbolFeeRateSchema).optional(),
 });
 export type VenueFeeRate = z.infer<typeof VenueFeeRateSchema>;
 
@@ -750,6 +762,83 @@ export type AuthenticatedPortfolioSnapshot = z.infer<typeof AuthenticatedPortfol
 const PositiveDecimalTextSchema = z.string().regex(/^\d+(?:\.\d+)?$/);
 const SignedDecimalTextSchema = z.string().regex(/^-?\d+(?:\.\d+)?$/);
 
+/** Public fixed-rate opportunity returned by Pendle's Boros strategy API. */
+export const BorosStrategyMarketSchema = z.object({
+  marketId: z.number().int().positive(),
+  address: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
+  tokenId: z.number().int().nonnegative(),
+  name: z.string().min(1),
+  assetSymbol: z.string().regex(/^[A-Z0-9]+$/),
+  maturity: z.number().int().positive(),
+  state: z.string().min(1),
+  impliedApr: z.number().finite(),
+  maxLeverage: z.number().positive(),
+  maxPerpLeverage: z.number().positive(),
+  ammId: z.number().int().nonnegative(),
+  platformName: z.string().min(1),
+  /** Enriched by the local backend from Boros market configuration (decimal rate, 1 = 100%). */
+  takerFeeRate: z.number().finite().nonnegative().optional(),
+  /** Annualized fee charged across periodic settlements (decimal rate, 1 = 100%). */
+  settleFeeRate: z.number().finite().nonnegative().optional(),
+  /** Boros initial-margin factor (kIM, decimal rate, 1 = 100%). */
+  initialMarginFactor: z.number().finite().nonnegative().optional(),
+  /** Minimum absolute APR used by Boros for margin calculations. */
+  marginRateFloor: z.number().finite().nonnegative().optional(),
+  /** Minimum remaining term used by Boros for margin calculations, in seconds. */
+  marginTimeFloorSeconds: z.number().int().nonnegative().optional(),
+  /** Live remaining term returned by Boros, in seconds. */
+  timeToMaturitySeconds: z.number().int().nonnegative().optional(),
+});
+export type BorosStrategyMarket = z.infer<typeof BorosStrategyMarketSchema>;
+
+export const BorosStrategySchema = z.object({
+  id: z.string().min(1),
+  longMarket: BorosStrategyMarketSchema,
+  shortMarket: BorosStrategyMarketSchema,
+  daysToMaturity: z.number().int().positive(),
+  impliedAprSpread: z.number().finite(),
+  maxPerpLeverage: z.number().positive(),
+  aprTimesMaxLeverage: z.number().finite(),
+});
+export type BorosStrategy = z.infer<typeof BorosStrategySchema>;
+
+export const BorosUpstreamStrategiesResponseSchema = z.object({
+  strategies: z.array(BorosStrategySchema),
+  totalCount: z.number().int().nonnegative(),
+});
+export type BorosUpstreamStrategiesResponse = z.infer<typeof BorosUpstreamStrategiesResponseSchema>;
+
+export const BorosMarketFeeConfigSchema = z.object({
+  marketId: z.number().int().positive(),
+  imData: z.object({
+    marginFloor: z.number().finite().nonnegative(),
+  }),
+  config: z.object({
+    takerFee: z.string().regex(/^\d+$/),
+    kIM: z.string().regex(/^\d+$/),
+    tThresh: z.number().int().nonnegative(),
+  }),
+  extConfig: z.object({
+    settleFeeRate: z.string().regex(/^\d+$/),
+  }),
+  data: z.object({
+    timeToMaturity: z.number().int().nonnegative(),
+  }),
+});
+export type BorosMarketFeeConfig = z.infer<typeof BorosMarketFeeConfigSchema>;
+
+export const BorosUpstreamMarketFeesResponseSchema = z.object({
+  results: z.array(BorosMarketFeeConfigSchema),
+}).passthrough();
+export type BorosUpstreamMarketFeesResponse = z.infer<typeof BorosUpstreamMarketFeesResponseSchema>;
+
+export const BorosStrategiesResponseSchema = BorosUpstreamStrategiesResponseSchema.extend({
+  fetchedAt: z.iso.datetime(),
+  cacheStatus: z.enum(['fresh', 'stale']),
+  source: z.literal('boros_open_api'),
+});
+export type BorosStrategiesResponse = z.infer<typeof BorosStrategiesResponseSchema>;
+
 export const StrategyConfigSchema = z.object({
   kind: z.enum(['position', 'auto', 'premium']),
   asset: z.string(),
@@ -778,6 +867,16 @@ export const StrategyConfigSchema = z.object({
   reduceOnly: z.boolean(),
   executionMethod: z.enum(['TAKER_TAKER', 'MAKER_TAKER']),
   makerLeg: z.enum(['left', 'right']).optional(),
+  closePlan: z.object({
+    orderCount: z.number().int().min(2).max(100),
+    intervalSeconds: z.number().int().min(1).max(86_400),
+    targets: z.array(z.object({
+      symbol: z.string(),
+      side: z.enum(['BUY', 'SELL']),
+      quantity: PositiveDecimalTextSchema,
+      positionSide: z.enum(['NONE', 'LONG', 'SHORT']),
+    })).min(1).max(20),
+  }).optional(),
 });
 export type StrategyConfig = z.infer<typeof StrategyConfigSchema>;
 

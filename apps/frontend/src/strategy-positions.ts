@@ -1,6 +1,7 @@
 import type { AuthenticatedPortfolioSnapshot, TradingSnapshot } from './api.js';
 import { comparePositionDisplayOrder } from './position-display-order.js';
 import { netPositionPnl, positionFundingFee, positionTradingFee } from './position-funding-fees.js';
+import { positionGroupKey, positionGroupLabel } from './position-grouping.js';
 import { parseNumber, symbolParts } from './route-shared.js';
 
 export interface StrategyPositionRow {
@@ -24,6 +25,23 @@ export interface StrategyPositionRow {
 export interface StrategyPositionsView {
   status: 'unavailable' | 'stale' | 'fresh';
   rows: StrategyPositionRow[];
+}
+
+export interface StrategyPositionGroup {
+  key: string;
+  asset: string;
+  label: string;
+  mixedAssets: boolean;
+  legs: StrategyPositionRow[];
+  quantity: number;
+  grossQuantity: number;
+  grossNotional: number;
+  weightedEntryPrice: number;
+  weightedMarkPrice: number;
+  unrealizedPnl: number;
+  venueCount: number;
+  fullyHedged: boolean;
+  leverage: string | null;
 }
 
 function portfolioRows(portfolio: AuthenticatedPortfolioSnapshot): StrategyPositionRow[] {
@@ -130,4 +148,47 @@ export function prepareStrategyPositions(
   const rows = [...rowsByMarket.values()].sort(comparePositionDisplayOrder);
 
   return { status: 'fresh', rows };
+}
+
+/** Match the trading terminal's position grouping: one expandable row per asset. */
+export function groupStrategyPositions(rows: readonly StrategyPositionRow[]): StrategyPositionGroup[] {
+  const groups = new Map<string, StrategyPositionRow[]>();
+  for (const row of rows) {
+    const key = positionGroupKey(row.asset);
+    const legs = groups.get(key) ?? [];
+    legs.push(row);
+    groups.set(key, legs);
+  }
+
+  return [...groups.entries()].map(([groupKey, legs]) => {
+    const assets = [...new Set(legs.map((leg) => leg.asset))];
+    const asset = assets[0];
+    const mixedAssets = assets.length > 1;
+    const quantity = legs.reduce((sum, leg) => sum + leg.quantity, 0);
+    const grossQuantity = legs.reduce((sum, leg) => sum + Math.abs(leg.quantity), 0);
+    const grossNotional = legs.reduce((sum, leg) => sum + leg.value, 0);
+    const leverages = new Set(legs.map((leg) => leg.leverage));
+    return {
+      key: `${groupKey}-PERP`,
+      asset,
+      label: positionGroupLabel(assets),
+      mixedAssets,
+      legs,
+      quantity,
+      grossQuantity,
+      grossNotional,
+      weightedEntryPrice: grossQuantity > 0
+        ? legs.reduce((sum, leg) => sum + leg.entryPrice * Math.abs(leg.quantity), 0) / grossQuantity
+        : 0,
+      weightedMarkPrice: grossQuantity > 0
+        ? legs.reduce((sum, leg) => sum + leg.markPrice * Math.abs(leg.quantity), 0) / grossQuantity
+        : 0,
+      unrealizedPnl: legs.reduce((sum, leg) => sum + leg.unrealizedPnl, 0),
+      venueCount: new Set(legs.map((leg) => leg.venue)).size,
+      fullyHedged: mixedAssets
+        ? legs.some((leg) => leg.quantity > 0) && legs.some((leg) => leg.quantity < 0)
+        : grossQuantity > 0 && Math.abs(quantity) <= Math.max(1e-12, grossQuantity * 1e-9),
+      leverage: leverages.size === 1 ? [...leverages][0] : null,
+    };
+  });
 }

@@ -1,5 +1,6 @@
 import {
   AuthenticatedPortfolioSnapshotSchema,
+  BorosStrategiesResponseSchema,
   CandleSeriesResponseSchema,
   CredentialConnectionStatusSchema,
   CrossExPortfolioActivityResponseSchema,
@@ -29,6 +30,9 @@ import {
   UserPreferencesResponseSchema,
   VenueFeeRatesResponseSchema,
   type AuthenticatedPortfolioSnapshot,
+  type BorosStrategy,
+  type BorosStrategyMarket,
+  type BorosStrategiesResponse,
   type Candle,
   type CandleInterval,
   type CandleSeriesResponse,
@@ -80,6 +84,9 @@ import {
 
 export type {
   AuthenticatedPortfolioSnapshot,
+  BorosStrategy,
+  BorosStrategyMarket,
+  BorosStrategiesResponse,
   Candle,
   CandleInterval,
   CandleSeriesResponse,
@@ -241,6 +248,7 @@ async function request<T>(schema: RuntimeSchema<T>, path: string, init?: Request
 
 export const api = {
   markets: () => request(MarketSnapshotSchema, '/api/markets'),
+  borosStrategies: () => request(BorosStrategiesResponseSchema, '/api/boros/strategies'),
   marketCatalog: () => request(MarketCatalogResponseSchema, '/api/markets/catalog'),
   publicMarketSnapshot: (symbol: string) => request(PublicMarketSnapshotResponseSchema, `/api/crossex/instruments/${encodeURIComponent(symbol)}/market-snapshot`),
   fundingOverview: (options: { fresh?: boolean } = {}) => request(

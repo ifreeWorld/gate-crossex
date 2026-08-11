@@ -334,7 +334,7 @@ describe('Gate APIv4 signing', () => {
     const fetchMock = vi.fn(async (url: string | URL | Request) => {
       expect(String(url)).toBe('https://api.gateio.ws/api/v4/crossex/fee');
       return new Response(JSON.stringify([
-        { exchange_type: 'BINANCE', spot_maker_fee: '0.0001', spot_taker_fee: '0.00025', future_maker_fee: '0.00006', future_taker_fee: '0.00022', special_fee_list: [] },
+        { exchange_type: 'BINANCE', spot_maker_fee: '0.0001', spot_taker_fee: '0.00025', future_maker_fee: '0.00006', future_taker_fee: '0.00022', special_fee_list: [{ symbol: 'BINANCE_FUTURE_BTC_USDT', maker_fee_rate: '0.00001', taker_fee_rate: '0.00002' }] },
         { exchange_type: 'KRAKEN', spot_maker_fee: '0.0001', spot_taker_fee: '0.00025', future_maker_fee: '0.00006', future_taker_fee: '0.00022' },
       ]), { status: 200 });
     });
@@ -343,6 +343,7 @@ describe('Gate APIv4 signing', () => {
     const fees = await client.queryFeeRates({ apiKey: 'test-api-key', apiSecret: 'test-secret' });
 
     expect(fees).toHaveLength(2);
+    expect(fees[0]?.special_fee_list).toEqual([{ symbol: 'BINANCE_FUTURE_BTC_USDT', maker_fee_rate: '0.00001', taker_fee_rate: '0.00002' }]);
     expect(fees[1]).toMatchObject({ exchange_type: 'KRAKEN', future_taker_fee: '0.00022' });
   });
 

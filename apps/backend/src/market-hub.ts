@@ -183,6 +183,7 @@ export class CrossExMarketHub {
   private readonly invalidSymbols = new Map<string, Set<string>>();
   private readonly markets = new Map<string, LiveMarket>();
   private readonly listeners = new Set<MarketListener>();
+  private readonly quoteWatchers = new Map<string, number>();
   private readonly bookWatchers = new Map<string, number>();
   private readonly tradeWatchers = new Map<string, number>();
   private readonly klineWatchers = new Map<string, number>();
@@ -336,6 +337,25 @@ export class CrossExMarketHub {
       if (book?.emitTimer) clearTimeout(book.emitTimer);
       this.books.delete(symbol);
     });
+  }
+
+  /** Keep dynamically discovered ticker markets registered while a client displays them. */
+  watchQuotes(symbols: string[]): () => void {
+    const watched = [...new Set(symbols)].filter((symbol) => this.markets.has(symbol));
+    for (const symbol of watched) {
+      this.quoteWatchers.set(symbol, (this.quoteWatchers.get(symbol) ?? 0) + 1);
+      if (this.dynamicMarkets.has(symbol)) this.dynamicMarkets.set(symbol, Date.now());
+    }
+    let released = false;
+    return () => {
+      if (released) return;
+      released = true;
+      for (const symbol of watched) {
+        const count = (this.quoteWatchers.get(symbol) ?? 1) - 1;
+        if (count > 0) this.quoteWatchers.set(symbol, count);
+        else this.quoteWatchers.delete(symbol);
+      }
+    };
   }
 
   watchTrades(symbol: string): () => void {
@@ -498,6 +518,7 @@ export class CrossExMarketHub {
   }
 
   private isActivelyWatched(symbol: string): boolean {
+    if ((this.quoteWatchers.get(symbol) ?? 0) > 0) return true;
     return [...this.bookWatchers.keys(), ...this.tradeWatchers.keys(), ...this.klineWatchers.keys()]
       .some((key) => key.endsWith(`:${symbol}`));
   }

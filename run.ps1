@@ -94,9 +94,45 @@ function Ensure-Dependencies {
   }
 }
 
+function Test-UpdateBranch {
+  if (-not (Test-Path -LiteralPath '.git')) { return $true }
+  if (-not (Get-Command git -ErrorAction SilentlyContinue)) { return $false }
+  $Branch = ([string](& git branch --show-current 2>$null)).Trim()
+  return $Branch -in 'main', 'master'
+}
+
+function Offer-Update {
+  if ([Console]::IsInputRedirected -or [Console]::IsOutputRedirected) { return }
+  if ($env:GCT_SKIP_UPDATE_CHECK -eq '1' -or -not (Test-UpdateBranch)) { return }
+
+  $UpdateInfo = (& $NodeCommand scripts/check-for-update.mjs 2>$null | Select-Object -First 1)
+  if ([string]::IsNullOrWhiteSpace($UpdateInfo)) { return }
+  $Versions = $UpdateInfo -split "`t", 2
+  if ($Versions.Count -ne 2) { return }
+
+  Write-Host "Gate CrossEx $($Versions[1]) is available (installed: v$($Versions[0]))."
+  Write-Host "Gate CrossEx $($Versions[1]) 有新版本可用（当前版本：v$($Versions[0])）。"
+  $Answer = Read-Host 'Update now? / 是否立即更新？ [y/N]'
+  if ($Answer -notmatch '^(y|yes)$') {
+    Write-Host 'Continuing without updating.'
+    return
+  }
+
+  Write-Host 'Starting the update. Run .\run.ps1 again when it finishes.'
+  & (Join-Path $Root 'run.ps1') update
+  if ($LASTEXITCODE -ne 0) { throw "Gate CrossEx update failed with exit code $LASTEXITCODE" }
+  exit 0
+}
+
 Ensure-Node
 switch ($Command) {
-  { $_ -in "start", "dev" } {
+  "start" {
+    Offer-Update
+    Ensure-Dependencies
+    Invoke-Launcher $Command
+    break
+  }
+  "dev" {
     Ensure-Dependencies
     Invoke-Launcher $Command
     break

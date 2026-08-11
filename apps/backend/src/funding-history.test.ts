@@ -164,6 +164,48 @@ describe('funding history service', () => {
     });
   });
 
+  it('waits for a stale series tail to refresh before returning chart points', async () => {
+    const database = testDatabase();
+    let currentTime = NOW;
+    const correctedTimestamp = NOW - (DAY / 2);
+    let releaseRefresh: ((points: Array<{ timestamp: number; rate: string }>) => void) | undefined;
+    const queryFundingHistory = vi.fn(async () => {
+      if (queryFundingHistory.mock.calls.length === 1) {
+        return [{ timestamp: correctedTimestamp, rate: '0.1' }];
+      }
+      return await new Promise<Array<{ timestamp: number; rate: string }>>((resolve) => {
+        releaseRefresh = resolve;
+      });
+    });
+    const service = new FundingHistoryService(database, gatewayWithHistory(queryFundingHistory), {
+      now: () => currentTime,
+      venueSpacingMs: NO_SPACING,
+    });
+    await service.loadSeries(['HYPERLIQUID_FUTURE_HYPE_USDC'], 30 * DAY);
+    currentTime += 16 * 60_000;
+
+    let resolved = false;
+    const pending = service.loadSeries(['HYPERLIQUID_FUTURE_HYPE_USDC'], 30 * DAY)
+      .finally(() => { resolved = true; });
+    await vi.waitFor(() => expect(queryFundingHistory).toHaveBeenCalledTimes(2));
+    expect(resolved).toBe(false);
+    releaseRefresh?.([
+      { timestamp: correctedTimestamp, rate: '0.2' },
+      { timestamp: currentTime - (60 * 60_000), rate: '0.03' },
+    ]);
+
+    await expect(pending).resolves.toMatchObject({
+      entries: [{
+        symbol: 'HYPERLIQUID_FUTURE_HYPE_USDC',
+        status: 'ok',
+        points: [
+          { timestamp: correctedTimestamp, rate: '0.2' },
+          { timestamp: currentTime - (60 * 60_000), rate: '0.03' },
+        ],
+      }],
+    });
+  });
+
   it('deduplicates simultaneous symbols and reuses persisted coverage after restart', async () => {
     const database = testDatabase();
     const queryFundingHistory = vi.fn(async () => [{ timestamp: NOW - DAY, rate: '0.0001' }]);

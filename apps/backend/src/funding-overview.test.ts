@@ -19,7 +19,7 @@ function gatewayReturning(handler: (venue: FundingStatVenue) => VenueFundingStat
 }
 
 const gateBtcStat: VenueFundingStat = {
-  venue: 'GATE', base: 'BTC', quote: 'USDT', fundingRate8h: '0.0001',
+  venue: 'GATE', base: 'BTC', quote: 'USDT', fundingRate: '0.00005', fundingIntervalHours: 4, fundingRate8h: '0.0001',
   nextFundingAt: '2026-07-23T08:00:00.000Z', openInterestValue: '2500000',
   lastPrice: '50000', change24h: '0.0125',
 };
@@ -50,11 +50,11 @@ describe('funding overview service', () => {
     expect(response.cacheStatus).toBe('fresh');
     expect(response.assets).toHaveLength(1);
     expect(response.assets[0]?.venues[0]).toMatchObject({
-      venue: 'GATE', fundingRate: '0.0001', openInterestValue: '2500000', lastPrice: '50000', change24h: '0.0125',
+      venue: 'GATE', fundingRate: '0.00005', fundingIntervalHours: 4, fundingRate8h: '0.0001', openInterestValue: '2500000', lastPrice: '50000', change24h: '0.0125',
     });
     // Binance listed in the catalog but absent from stats: the row exists with null data.
     expect(response.assets[0]?.venues[1]).toMatchObject({
-      venue: 'BINANCE', fundingRate: null, openInterestValue: null, lastPrice: null, change24h: null, fetchedAt: null,
+      venue: 'BINANCE', fundingRate: null, fundingIntervalHours: null, fundingRate8h: null, openInterestValue: null, lastPrice: null, change24h: null, fetchedAt: null,
     });
     expect(response.venueStatus.find((status) => status.venue === 'GATE')).toMatchObject({ status: 'ok', rowCount: 1 });
 
@@ -89,7 +89,7 @@ describe('funding overview service', () => {
 
   it('joins a canonical asset group to a venue stat through the native executable symbol', async () => {
     const hyperliquidSkhx: VenueFundingStat = {
-      venue: 'HYPERLIQUID', base: 'SKHX', quote: 'USDC', fundingRate8h: '-0.0001479312',
+      venue: 'HYPERLIQUID', base: 'SKHX', quote: 'USDC', fundingRate: '-0.0000184914', fundingIntervalHours: 1, fundingRate8h: '-0.0001479312',
       nextFundingAt: '2026-08-01T18:00:00.000Z', openInterestValue: '354341864',
       lastPrice: '1082.7', change24h: '0.012',
     };
@@ -104,7 +104,7 @@ describe('funding overview service', () => {
     expect(response.assets[0]).toMatchObject({ asset: 'SKHYNIX' });
     expect(response.assets[0]?.venues[0]).toMatchObject({
       symbol: 'HYPERLIQUID_FUTURE_SKHX_USDC',
-      fundingRate: '-0.0001479312',
+      fundingRate: '-0.0000184914', fundingIntervalHours: 1, fundingRate8h: '-0.0001479312',
       openInterestValue: '354341864',
       lastPrice: '1082.7',
     });
@@ -133,7 +133,7 @@ describe('funding overview service', () => {
     const response = service.buildResponse(catalogWith('BTC', [{ venue: 'GATE', symbol: 'GATE_FUTURE_BTC_USDT', quote: 'USDT' }]));
     expect(warned).toContain('GATE');
     expect(response.venueStatus.find((status) => status.venue === 'GATE')).toMatchObject({ status: 'error', rowCount: 1 });
-    expect(response.assets[0]?.venues[0]).toMatchObject({ fundingRate: '0.0001' });
+    expect(response.assets[0]?.venues[0]).toMatchObject({ fundingRate: '0.00005', fundingRate8h: '0.0001' });
   });
 
   it('degrades to null-data rows when the gateway lacks bulk stats support', async () => {

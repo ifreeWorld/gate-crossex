@@ -16,6 +16,23 @@ export type MarketPairFreshness =
   | { pair: FreshMarketPair; reason: null }
   | { pair: null; reason: MarketPairWaitReason };
 
+/**
+ * Return the last streamed prices for display, even after they stop being executable. The caller
+ * must still use `assessMarketPairFreshness` for readiness and show its warning alongside these
+ * values; demo placeholders are never presented as venue prices.
+ */
+export function lastKnownLiveMarketPair(
+  snapshot: MarketSnapshot | null,
+  leftSymbol: string,
+  rightSymbol: string,
+): FreshMarketPair | null {
+  const left = snapshot?.markets.find((market) => market.symbol === leftSymbol);
+  const right = snapshot?.markets.find((market) => market.symbol === rightSymbol);
+  return left?.source === 'gate_crossex_websocket' && right?.source === 'gate_crossex_websocket'
+    ? { left, right }
+    : null;
+}
+
 /** Explain why a pair is not executable so the UI does not collapse every failure into one hint. */
 export function assessMarketPairFreshness(
   snapshot: MarketSnapshot | null,

@@ -21,6 +21,8 @@ interface MarketSelectProps {
   assetIcon: (asset: string) => string;
   onSelect: (asset: string) => void;
   t: (key: string) => string;
+  /** Keep the trading-page price and 24h columns unless a simpler picker is requested. */
+  showMarketStats?: boolean;
 }
 
 function orderedVenues(entry: MarketCatalogAsset, preferredVenue: string) {
@@ -67,7 +69,7 @@ function formatRowPrice(price: number): string {
   return price.toLocaleString('en-US', { maximumSignificantDigits: 4 });
 }
 
-export function MarketSelect({ asset, label, venue, subtitle, icon, catalog, marketSnapshot, favorites, assetName, assetIcon, onSelect, t }: MarketSelectProps) {
+export function MarketSelect({ asset, label, venue, subtitle, icon, catalog, marketSnapshot, favorites, assetName, assetIcon, onSelect, t, showMarketStats = true }: MarketSelectProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [highlight, setHighlight] = useState(0);
@@ -78,6 +80,7 @@ export function MarketSelect({ asset, label, venue, subtitle, icon, catalog, mar
   const listId = useId();
 
   useEffect(() => {
+    if (!showMarketStats) return undefined;
     // The live CrossEx socket is intentionally bounded and cannot cover the full catalog. Its
     // all-venue REST sweep supplies prices for catalog-only rows and is cached by the backend.
     let cancelled = false;
@@ -85,7 +88,7 @@ export function MarketSelect({ asset, label, venue, subtitle, icon, catalog, mar
       if (!cancelled) setBulkOverview(response);
     }).catch(() => undefined);
     return () => { cancelled = true; };
-  }, []);
+  }, [showMarketStats]);
 
   useEffect(() => {
     if (!open) return;
@@ -183,7 +186,7 @@ export function MarketSelect({ asset, label, venue, subtitle, icon, catalog, mar
         <small>{subtitle}</small>
       </span>
     </button>
-    {open && <div className="pair-menu">
+    {open && <div className={`pair-menu${showMarketStats ? '' : ' without-stats'}`}>
       <label className="pair-search">
         <span aria-hidden="true">⌕</span>
         <input autoFocus value={query} placeholder={t('Search asset')} onChange={(event) => setQuery(event.target.value)}
@@ -192,7 +195,7 @@ export function MarketSelect({ asset, label, venue, subtitle, icon, catalog, mar
           aria-activedescendant={rows[highlight] ? `${listId}-${rows[highlight].asset}` : undefined} />
         <em>{catalog === null ? '…' : `${total.toLocaleString('en-US')}`}</em>
       </label>
-      <div className="pair-menu-head"><span>{t('Market name')}</span><span>{t('Price')}</span><span>24h</span></div>
+      <div className="pair-menu-head"><span>{t('Market name')}</span>{showMarketStats && <><span>{t('Price')}</span><span>24h</span></>}</div>
       <ul id={listId} role="listbox" aria-label={t('Market name')} ref={listRef}>
         {rows.map((entry, index) => {
           const live = referenceMarket(liveBySymbol, entry, venue);
@@ -212,10 +215,12 @@ export function MarketSelect({ asset, label, venue, subtitle, icon, catalog, mar
             onMouseDown={(event) => { event.preventDefault(); choose(entry.asset); }}>
               <span className="coin">{assetIcon(entry.asset)}</span>
               <span className="pair-row-name"><strong>{marketSymbol(entry.asset, quote, 'perpetual')}</strong><small>{assetName(entry.asset)} · {entry.venues.length}×</small></span>
-              <span className="pair-row-price">{formatRowPrice(price)}</span>
-              <span className={`pair-row-change${change !== null && change < 0 ? ' negative' : change !== null ? ' positive' : ''}`}>
-                {change !== null ? `${change >= 0 ? '+' : ''}${change.toFixed(2)}%` : '—'}
-              </span>
+              {showMarketStats && <>
+                <span className="pair-row-price">{formatRowPrice(price)}</span>
+                <span className={`pair-row-change${change !== null && change < 0 ? ' negative' : change !== null ? ' positive' : ''}`}>
+                  {change !== null ? `${change >= 0 ? '+' : ''}${change.toFixed(2)}%` : '—'}
+                </span>
+              </>}
           </li>;
         })}
         {rows.length === 0 && <li className="pair-empty">{catalog === null ? t('Loading instrument metadata…') : t('No matches')}</li>}

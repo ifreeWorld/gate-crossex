@@ -130,7 +130,7 @@ download_source() {
 
   grep -Eq '"name"[[:space:]]*:[[:space:]]*"gate-crossex-terminal"' "$NEW_ROOT/package.json" \
     || fail "the source archive does not identify itself as Gate CrossEx."
-  for required in package-lock.json bootstrap.sh run scripts/launcher.mjs; do
+  for required in package-lock.json bootstrap.sh run scripts/launcher.mjs scripts/check-for-update.mjs; do
     [ -e "$NEW_ROOT/$required" ] || fail "the source archive is missing $required."
   done
   chmod 700 "$NEW_ROOT/bootstrap.sh" "$NEW_ROOT/run"

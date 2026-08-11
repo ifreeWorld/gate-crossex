@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import type { AuthenticatedPortfolioSnapshot, LiveBalance } from './api.js';
-import { assessMarginCapacity, balanceFor, balanceUnitFor } from './route-shared.js';
+import {
+  assessMarginCapacity,
+  balanceFor,
+  balanceUnitFor,
+  classifyLeverageMargin,
+  maxPositionValueAtLeverage,
+  projectedPositionValue,
+} from './route-shared.js';
 
 function portfolio(accountMode: string, availableMargin: string): AuthenticatedPortfolioSnapshot {
   return {
@@ -55,5 +62,45 @@ describe('CrossEx margin capacity', () => {
       { venue: 'DERIBIT', required: 50, available: 100 },
       { venue: 'BYBIT', required: 200, available: 500 },
     ])).toEqual({ known: true, insufficient: true });
+  });
+
+  it('separates a higher-leverage requirement from insufficient capital at maximum leverage', () => {
+    expect(classifyLeverageMargin(
+      { known: true, insufficient: true },
+      { known: true, insufficient: false },
+      200,
+    )).toBe('higher_leverage_required');
+    expect(classifyLeverageMargin(
+      { known: true, insufficient: true },
+      { known: true, insufficient: true },
+      200,
+    )).toBe('insufficient_at_max');
+    expect(classifyLeverageMargin(
+      { known: true, insufficient: false },
+      { known: true, insufficient: false },
+      200,
+    )).toBe('sufficient');
+    expect(classifyLeverageMargin(null, { known: true, insufficient: false }, 200)).toBe('unknown');
+  });
+});
+
+describe('CrossEx leverage-tier position capacity', () => {
+  const tiers = [
+    { tier: '1', minRiskLimitValue: '0', maxRiskLimitValue: '100000', quickCalAmount: '0', leverageMax: '25', maintenanceRate: '0.01' },
+    { tier: '2', minRiskLimitValue: '100000', maxRiskLimitValue: '250000', quickCalAmount: '0', leverageMax: '20', maintenanceRate: '0.02' },
+    { tier: '3', minRiskLimitValue: '250000', maxRiskLimitValue: '500000', quickCalAmount: '0', leverageMax: '10', maintenanceRate: '0.03' },
+  ];
+
+  it('uses the furthest tier that permits the selected leverage', () => {
+    expect(maxPositionValueAtLeverage(tiers, 25)).toBe(100000);
+    expect(maxPositionValueAtLeverage(tiers, 20)).toBe(250000);
+    expect(maxPositionValueAtLeverage(tiers, 10)).toBe(500000);
+    expect(maxPositionValueAtLeverage(tiers, 30)).toBeNull();
+  });
+
+  it('checks the projected final position rather than only incremental exposure', () => {
+    expect(projectedPositionValue(4, 2, 100)).toBe(600);
+    expect(projectedPositionValue(-4, 2, 100)).toBe(200);
+    expect(projectedPositionValue(-4, 6, 100)).toBe(200);
   });
 });

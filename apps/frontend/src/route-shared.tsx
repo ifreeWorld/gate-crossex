@@ -1,13 +1,15 @@
 /* Shared route primitives intentionally combine hooks, render helpers, and constants. */
 /* eslint-disable react-refresh/only-export-components */
 import { useLayoutEffect, useRef } from 'react';
+import type { CrossExRiskLimitTier } from '@gate-crossex/shared-types';
 import type { AuthenticatedPortfolioSnapshot, CandleInterval, CrossExInstrument, LiveBalance, LiveMarket, MarketSnapshot, StrategyConfig } from './api.js';
 import { exchangeLogoFor, type ExchangeLogoId } from './exchange-logos.js';
 import { compactPrice } from './number-format.js';
 
 export type Side = 'Buy' | 'Sell';
 export type OrderType = 'Limit' | 'Market';
-export type Workspace = 'Trade' | 'Strategy' | 'Funding Rates' | 'Portfolio';
+export type Workspace = 'Trade' | 'Strategy' | 'Funding Rates' | 'Portfolio' | 'Trading Fees';
+export type NavigationLabel = Workspace | 'Boros by Pendle';
 export type StrategyKind = StrategyConfig['kind'];
 export type FundingMetric = 'Per interval' | 'APR' | '24h' | '7d' | '30d';
 export type FundingSortKey = 'asset' | 'oi' | 'arb' | 'average' | 'gate' | 'binance' | 'okx' | 'bybit' | 'kraken' | 'hyperliquid' | 'deribit';
@@ -159,6 +161,36 @@ export function incrementalExposure(existingQuantity: number, plannedQuantity: n
   return Math.max(0, Math.abs(existingQuantity + plannedQuantity) - Math.abs(existingQuantity));
 }
 
+/**
+ * Risk tiers lower the permitted leverage as position notional grows. At a selected leverage the
+ * largest usable position is the furthest tier boundary whose leverage ceiling still permits it.
+ */
+export function maxPositionValueAtLeverage(
+  tiers: CrossExRiskLimitTier[] | null | undefined,
+  leverage: number,
+): number | null {
+  if (!tiers || !Number.isFinite(leverage) || leverage <= 0) return null;
+  const eligibleValues = tiers.flatMap((tier) => {
+    const tierLeverage = Number(tier.leverageMax);
+    const maxPositionValue = Number(tier.maxRiskLimitValue);
+    return Number.isFinite(tierLeverage) && tierLeverage >= leverage
+      && Number.isFinite(maxPositionValue) && maxPositionValue > 0
+      ? [maxPositionValue]
+      : [];
+  });
+  return eligibleValues.length > 0 ? Math.max(...eligibleValues) : null;
+}
+
+/** Final absolute notional after applying a signed order/strategy quantity. */
+export function projectedPositionValue(
+  existingQuantity: number,
+  plannedQuantity: number,
+  referencePrice: number,
+): number | null {
+  if (![existingQuantity, plannedQuantity, referencePrice].every(Number.isFinite) || referencePrice <= 0) return null;
+  return Math.abs(existingQuantity + plannedQuantity) * referencePrice;
+}
+
 export function usesSharedCrossExMargin(portfolio: AuthenticatedPortfolioSnapshot | null): boolean {
   return portfolio?.snapshot.account.accountMode === 'CROSS_EXCHANGE';
 }
@@ -188,6 +220,13 @@ export interface MarginCapacityLeg {
   available: number | null;
 }
 
+export interface MarginCapacityAssessment {
+  known: boolean;
+  insufficient: boolean;
+}
+
+export type LeverageMarginStatus = 'sufficient' | 'higher_leverage_required' | 'insufficient_at_max' | 'unknown';
+
 /**
  * Cross-exchange mode has one authoritative USDT margin balance. Venue asset rows are allocation
  * details and must never cap a leg. Isolated mode instead compares each venue's grouped requirement
@@ -197,7 +236,7 @@ export function assessMarginCapacity(
   accountMode: string | undefined,
   aggregateAvailable: number | null,
   legs: MarginCapacityLeg[],
-): { known: boolean; insufficient: boolean } {
+): MarginCapacityAssessment {
   const aggregateKnown = aggregateAvailable !== null && Number.isFinite(aggregateAvailable);
   if (accountMode === 'CROSS_EXCHANGE' || (accountMode === undefined && aggregateKnown)) {
     const required = legs.reduce((sum, leg) => sum + leg.required, 0);
@@ -220,13 +259,26 @@ export function assessMarginCapacity(
   return { known, insufficient };
 }
 
-export const navItems: { label: Workspace; glyph: string }[] = [
+/** Distinguish a leverage-setting issue from a true capital shortfall at the risk-limit ceiling. */
+export function classifyLeverageMargin(
+  current: MarginCapacityAssessment | null,
+  maximum: MarginCapacityAssessment,
+  maximumRequiredMargin: number,
+): LeverageMarginStatus {
+  if (!Number.isFinite(maximumRequiredMargin) || maximumRequiredMargin <= 0 || !maximum.known) return 'unknown';
+  if (maximum.insufficient) return 'insufficient_at_max';
+  if (!current?.known) return 'unknown';
+  return current.insufficient ? 'higher_leverage_required' : 'sufficient';
+}
+
+export const navItems: { label: NavigationLabel; glyph: string }[] = [
   { label: 'Trade', glyph: '⌁' }, { label: 'Strategy', glyph: '⇄' }, { label: 'Funding Rates', glyph: '%' },
+  { label: 'Boros by Pendle', glyph: '◐' },
   { label: 'Portfolio', glyph: '◒' },
 ];
 
 /** Strategies listed under the nav "Strategy" dropdown; each opens its own dedicated page. */
-export const strategyPages: Array<{ kind: StrategyKind; glyph: string; label: string; detail: string }> = [
+export const strategyPages: Array<{ kind: StrategyKind | 'boros'; glyph: string; label: string; detail: string }> = [
   { kind: 'position', glyph: '◎', label: 'Cross-exchange hedge', detail: 'Execute a fixed two-venue position, then stop' },
   { kind: 'premium', glyph: '≒', label: 'SK hynix premium bot', detail: 'Trade the SK hynix ADR premium vs the Korean listing' },
 ];

@@ -1,4 +1,5 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { CrossExRiskLimitTier } from '@gate-crossex/shared-types';
 import {
   api,
   ApiError,
@@ -18,11 +19,10 @@ import {
 } from './api.js';
 import type { FundingChartSeries } from './charts.js';
 import { cumulativeFundingHistory, cumulativeFundingPnl } from './cumulative-funding-history.js';
-import { FundingRateTooltip } from './funding-rate-tooltip.js';
+import { fundingPercentScaledTo8h } from './funding-rates.js';
 import { marketSymbol } from './market-symbol.js';
-import { PositionPnlHeader, PositionPnlTooltip } from './position-pnl-tooltip.js';
 import { usePairCandleHistory } from './pair-candle-history.js';
-import { assessMarketPairFreshness, candleTailIsFresh, candleTimestampIsFresh } from './market-freshness.js';
+import { assessMarketPairFreshness, candleTailIsFresh, candleTimestampIsFresh, lastKnownLiveMarketPair } from './market-freshness.js';
 import {
   aggregatePremiumHistoryWeeks,
   buildPremiumHistory,
@@ -37,28 +37,24 @@ import {
 import { premiumReduceOnlyDefaults } from './premium-reduce-only.js';
 import { buildPriceDifferenceHistory, type PriceDifferenceHistoryPoint } from './price-difference-history.js';
 import {
-  estimatedPositionFunding,
-  fundingEstimateText,
-  fundingRateText,
-  livePositionFunding,
-} from './position-live-funding.js';
-import {
   ADR_ASSET,
   ADR_HEDGE_ASSET,
   DEFAULT_ADR_RATIO,
   FUNDING_VENUE_COLORS,
   PAIR_HISTORY_RANGES,
+  VenueCell,
   VenueIcon,
   assessMarginCapacity,
   balanceFor,
   balanceUnitFor,
   exchanges,
   formatAmount,
-  formatCountdown,
   incrementalExposure,
   isPositiveDecimal,
   liveMarketFor,
+  maxPositionValueAtLeverage,
   priceText,
+  projectedPositionValue,
   quoteFor,
   signedAmount,
   signedPortfolioQuantity,
@@ -73,8 +69,10 @@ import {
 import { strategyAssetOptions, strategyVenueSymbol } from './strategy-asset-options.js';
 import { StrategyAssetSearch } from './strategy-asset-search.js';
 import { localizeStrategyLogCondition, localizeStrategyLogResult, prepareStrategyLogs, type DisplayStrategyLog } from './strategy-logs.js';
-import { prepareStrategyPositions } from './strategy-positions.js';
+import { PositionCloseDialog, type ClosePositionTarget } from './position-close-dialog.js';
+import { groupStrategyPositions, prepareStrategyPositions, type StrategyPositionRow } from './strategy-positions.js';
 import { useLanguage, type Language } from './i18n.js';
+import { numericFutureFeeRate } from './fee-rates.js';
 
 const PremiumHistoryChart = lazy(() => import('./charts.js').then((module) => ({ default: module.PremiumHistoryChart })));
 const PriceDifferenceHistoryChart = lazy(() => import('./charts.js').then((module) => ({ default: module.PriceDifferenceHistoryChart })));
@@ -113,6 +111,7 @@ function minimumSizeIssue(
 }
 
 function strategyMaxAmount(config: StrategyConfig): string {
+  if (config.closePlan) return `${config.closePlan.orderCount} orders`;
   if (config.kind === 'premium' && config.grid) {
     const derived = (Number(config.perOrderQuantity) || 0) * (config.gridLevels ?? 0);
     return derived > 0 ? String(Number(derived.toFixed(8))) : '—';
@@ -121,6 +120,10 @@ function strategyMaxAmount(config: StrategyConfig): string {
 }
 
 function strategyMarketLabel(config: StrategyConfig): string {
+  if (config.closePlan) {
+    const assets = [...new Set(config.closePlan.targets.map((target) => symbolParts(target.symbol).asset))];
+    return assets.join(' / ');
+  }
   if (config.kind === 'premium') return `${config.asset} / ${config.hedgeAsset}`;
   const left = marketSymbol(config.asset, quoteFor(config.leftVenue.toLowerCase()), 'perpetual');
   const right = marketSymbol(config.asset, quoteFor(config.rightVenue.toLowerCase()), 'perpetual');
@@ -145,11 +148,25 @@ function strategyStartTime(createdAt: string, language: Language): { date: strin
   };
 }
 
-function RunningStrategiesPanel({ strategies, authenticatedPortfolio, tradingSnapshot, marketSnapshot, onStrategiesChanged, onPositionsRefresh }: {
+function strategyCloseTarget(position: StrategyPositionRow): ClosePositionTarget {
+  const symbol = `${position.venue}_FUTURE_${position.asset}_${position.quote}`;
+  const positionId = position.id.includes(':') ? position.id.slice(position.id.indexOf(':') + 1) : position.id;
+  return {
+    id: `${symbol}:${positionId}`,
+    positionId,
+    symbol,
+    quantity: String(position.quantity),
+    markPrice: String(position.markPrice),
+  };
+}
+
+export function RunningStrategiesPanel({ strategies, authenticatedPortfolio, tradingSnapshot, instruments, tradingMode, onOpenModeDialog, onStrategiesChanged, onPositionsRefresh }: {
   strategies: StrategyRecord[];
   authenticatedPortfolio: AuthenticatedPortfolioSnapshot | null;
   tradingSnapshot: TradingSnapshot | null;
-  marketSnapshot: MarketSnapshot | null;
+  instruments: CrossExInstrument[] | null;
+  tradingMode: TradingMode | null;
+  onOpenModeDialog: () => void;
   onStrategiesChanged: () => Promise<void>;
   onPositionsRefresh: () => Promise<void>;
 }) {
@@ -165,7 +182,9 @@ function RunningStrategiesPanel({ strategies, authenticatedPortfolio, tradingSna
   const [takeProfitDraft, setTakeProfitDraft] = useState('');
   const [updatingTakeProfitId, setUpdatingTakeProfitId] = useState<string | null>(null);
   const [historyPage, setHistoryPage] = useState(1);
-  const [fundingClock, setFundingClock] = useState(Date.now());
+  const [expandedPosition, setExpandedPosition] = useState<string | null>(null);
+  const [closeTargets, setCloseTargets] = useState<ClosePositionTarget[] | null>(null);
+  const [closeNotice, setCloseNotice] = useState<{ kind: 'ok' | 'error'; title: string; text: string } | null>(null);
   const runningStrategies = strategies.filter((strategy) => ['RUNNING', 'PAUSED'].includes(strategy.status));
   const historicalStrategies = strategies
     .filter((strategy) => !['RUNNING', 'PAUSED', 'STOPPING'].includes(strategy.status))
@@ -181,16 +200,30 @@ function RunningStrategiesPanel({ strategies, authenticatedPortfolio, tradingSna
     () => prepareStrategyPositions(authenticatedPortfolio, tradingSnapshot),
     [authenticatedPortfolio, tradingSnapshot],
   );
+  const positionGroups = useMemo(() => groupStrategyPositions(positionsView.rows), [positionsView.rows]);
   const selectedLogStrategy = strategies.find((strategy) => strategy.id === selectedLogStrategyId) ?? null;
   const logDialogRef = useDialogFocus(Boolean(selectedLogStrategy), () => setSelectedLogStrategyId(null));
+
+  function requestPositionClose(positions: StrategyPositionRow[]) {
+    if (tradingMode !== 'live') {
+      onOpenModeDialog();
+      return;
+    }
+    setCloseTargets(positions.map(strategyCloseTarget));
+  }
 
   useEffect(() => {
     setHistoryPage((current) => Math.min(current, historyPages));
   }, [historyPages]);
 
   useEffect(() => {
+    if (!closeNotice) return;
+    const timer = window.setTimeout(() => setCloseNotice(null), 4_500);
+    return () => window.clearTimeout(timer);
+  }, [closeNotice]);
+
+  useEffect(() => {
     if (!showingPositions) return;
-    const clockTimer = window.setInterval(() => setFundingClock(Date.now()), 1_000);
     let refreshInProgress = false;
     const refresh = () => {
       if (refreshInProgress) return;
@@ -200,7 +233,6 @@ function RunningStrategiesPanel({ strategies, authenticatedPortfolio, tradingSna
     refresh();
     const timer = window.setInterval(refresh, 5_000);
     return () => {
-      window.clearInterval(clockTimer);
       window.clearInterval(timer);
     };
   }, [showingPositions, onPositionsRefresh]);
@@ -267,8 +299,8 @@ function RunningStrategiesPanel({ strategies, authenticatedPortfolio, tradingSna
     }
   }
 
-  function kindLabel(kind: StrategyRecord['kind']): string {
-    return t(kind === 'auto' ? 'Price-difference bot' : kind === 'premium' ? 'SK hynix premium bot' : 'Cross-exchange hedge');
+  function kindLabel(strategy: StrategyRecord): string {
+    return t(strategy.config.closePlan ? 'Hedge position strategy' : strategy.kind === 'auto' ? 'Price-difference bot' : strategy.kind === 'premium' ? 'SK hynix premium bot' : 'Cross-exchange hedge');
   }
 
   return <>
@@ -280,49 +312,24 @@ function RunningStrategiesPanel({ strategies, authenticatedPortfolio, tradingSna
         <button role="tab" aria-selected={showingHistory} className={showingHistory ? 'active' : ''} onClick={() => { setActiveStrategyTab('historical'); setHistoryPage(1); setEditingTakeProfitId(null); }}>{t('Historical')} <span>({historicalStrategies.length})</span></button>
       </div>
       {showingPositions ? <>
-        {positionsView.status === 'fresh' && positionsView.rows.length > 0 && <div className="strategy-positions-table">
-          <div className="strategy-position-head"><span>{t('Contract')}</span><span>{t('Exchange')}</span><span>{t('Side')}</span><span>{t('Size')}</span><span>{t('Position notional')}</span><span>{t('Entry price')}</span><span>{t('Mark price')}</span><span>{t('Leverage')}</span><span className="position-pnl-column"><PositionPnlHeader /></span><span>{t('Settled funding')}</span><span>{t('Live funding rate')}</span><span>{t('Next funding settlement')}</span></div>
-          {positionsView.rows.map((position) => {
-            const venue = exchanges.find((item) => item.id === position.venue.toLowerCase());
-            const liveFunding = livePositionFunding(marketSnapshot, position.symbol, fundingClock);
-            const fundingEstimate = liveFunding
-              ? estimatedPositionFunding(position.quantity, position.markPrice, liveFunding.rate)
-              : null;
-            const fundingDirection = liveFunding
-              ? t(liveFunding.rate > 0 ? 'Longs pay shorts' : liveFunding.rate < 0 ? 'Shorts pay longs' : 'No funding payment at a zero rate')
-              : '';
-            const fundingTooltip = fundingEstimate === null ? undefined : fundingEstimateText(
-              fundingEstimate,
-              position.quote,
-              t('Estimated funding increase'),
-              t('Estimated funding deduction'),
-              fundingDirection,
-              t('Estimated from the current mark price and live rate; the final settlement may differ.'),
-            );
-            return <div className="strategy-position-row" key={position.id}>
-              <span><strong>{marketSymbol(position.asset, position.quote, 'perpetual')}</strong><small>{position.asset}</small></span>
-              <span>{venue?.name ?? position.venue}</span>
-              <span><small className={position.side === 'Long' ? 'long-tag' : 'short-tag'}>{t(position.side)}</small></span>
-              <span>{formatAmount(Math.abs(position.quantity), 4)} {position.asset}</span>
-              <span>${formatAmount(position.value)}</span>
-              <span>{priceText(position.entryPrice)}</span>
-              <span>{priceText(position.markPrice)}</span>
-              <span>{position.leverage ? `${position.leverage}×` : '—'}</span>
-              <PositionPnlTooltip
-                className={`strategy-position-pnl ${position.netPnl >= 0 ? 'positive' : 'negative'}`}
-                pricePnl={position.unrealizedPnl}
-                fundingFee={position.fundingFee}
-                tradingFee={position.tradingFee}
-                quote={position.quote}
-              >{signedAmount(position.netPnl)}</PositionPnlTooltip>
-              <span className={position.fundingFee !== null && position.fundingFee > 0 ? 'positive' : position.fundingFee !== null && position.fundingFee < 0 ? 'negative' : ''}>{position.fundingFee !== null ? signedAmount(position.fundingFee) : '—'}</span>
-              {fundingTooltip ? <FundingRateTooltip
-                className={`${liveFunding && liveFunding.rate > 0 ? 'positive' : liveFunding && liveFunding.rate < 0 ? 'negative' : ''}${fundingTooltip ? ' funding-rate-hover' : ''}`}
-                text={fundingTooltip}
-              >{liveFunding ? fundingRateText(liveFunding.rate) : '—'}</FundingRateTooltip> : <span>—</span>}
-              <span>{liveFunding ? formatCountdown(liveFunding.nextFundingAt, fundingClock) : '—'}</span>
-            </div>;
-          })}
+        {positionsView.status === 'fresh' && positionGroups.length > 0 && <div className="strategy-positions-table positions-table table-wrap">
+          <table><thead><tr><th>{t('Contract')}</th><th>{t('Exchange')}</th><th>{t('Size')}</th><th>{t('Position notional')}</th><th>{t('Entry price')}</th><th>{t('Mark price')}</th><th>{t('Leverage')}</th><th>{t('Unrealized PnL')}</th><th>{t('Close position')}</th></tr></thead><tbody>
+            {positionGroups.map((group) => {
+              if (group.legs.length === 1) {
+                const position = group.legs[0];
+                const venue = exchanges.find((item) => item.id === position.venue.toLowerCase());
+                return <tr key={group.key}><td><strong>{marketSymbol(position.asset, position.quote, 'perpetual')}</strong><small className={position.side === 'Long' ? 'long-tag' : 'short-tag'}>{t(position.side)}</small></td><td><VenueCell id={position.venue.toLowerCase()} name={venue?.name ?? position.venue} short={venue?.short ?? position.venue.slice(0, 2)} /></td><td>{formatAmount(position.quantity, 4)} {position.asset}</td><td>${formatAmount(position.value)}</td><td>{priceText(position.entryPrice)}</td><td>{priceText(position.markPrice)}</td><td>{position.leverage ? `${position.leverage}×` : '—'}</td><td className={position.unrealizedPnl >= 0 ? 'positive' : 'negative'}>{signedAmount(position.unrealizedPnl)}</td><td><button className="row-action close-position-action" onClick={() => requestPositionClose([position])}>{t('Close position')}</button></td></tr>;
+              }
+              const expanded = expandedPosition === group.key;
+              return <Fragment key={group.key}>
+                <tr className="aggregate-row"><td><button type="button" className={expanded ? 'expand-position expanded' : 'expand-position'} aria-expanded={expanded} aria-label={`${t('Positions')} · ${group.label}`} onClick={() => setExpandedPosition(expanded ? null : group.key)}>›</button><strong>{group.label} PERP</strong><small className={group.fullyHedged ? 'hedged-tag' : group.quantity >= 0 ? 'long-tag' : 'short-tag'}>{t(group.fullyHedged ? 'Hedged' : group.quantity >= 0 ? 'Long' : 'Short')}</small></td><td><span className="venue-group"><strong>{group.venueCount} {t(group.venueCount === 1 ? 'exchange' : 'exchanges')}</strong></span></td><td>{group.mixedAssets ? '—' : `${formatAmount(group.quantity, 4)} ${group.asset}`}</td><td>${formatAmount(group.grossNotional)}</td><td>{group.mixedAssets ? '—' : priceText(group.weightedEntryPrice)}</td><td>{group.mixedAssets ? '—' : priceText(group.weightedMarkPrice)}</td><td>{group.leverage ? `${group.leverage}×` : '—'}</td><td className={group.unrealizedPnl >= 0 ? 'positive' : 'negative'}>{signedAmount(group.unrealizedPnl)}</td><td><button className="row-action close-position-action" onClick={() => requestPositionClose(group.legs)}>{t('Close all')}</button></td></tr>
+                {expanded && group.legs.map((position) => {
+                  const venue = exchanges.find((item) => item.id === position.venue.toLowerCase());
+                  return <tr className="position-leg" key={position.id}><td><span className="leg-branch">↳</span><strong>{marketSymbol(position.asset, position.quote, 'perpetual')}</strong><small>{t('Venue leg')}</small></td><td><VenueCell id={position.venue.toLowerCase()} name={venue?.name ?? position.venue} short={venue?.short ?? position.venue.slice(0, 2)} /></td><td>{formatAmount(position.quantity, 4)} {position.asset}</td><td>{formatAmount(position.value)} {position.quote}</td><td>{priceText(position.entryPrice)}</td><td>{priceText(position.markPrice)}</td><td>{position.leverage ? `${position.leverage}×` : '—'}</td><td className={position.unrealizedPnl >= 0 ? 'positive' : 'negative'}>{signedAmount(position.unrealizedPnl)} {position.quote}</td><td><button className="row-action close-position-action" onClick={() => requestPositionClose([position])}>{t('Close position')}</button></td></tr>;
+                })}
+              </Fragment>;
+            })}
+          </tbody></table>
         </div>}
         {positionsView.status === 'fresh' && positionsView.rows.length === 0 && <div className="no-strategies"><span>◎</span><strong>{t('No open positions')}</strong><small>{t('The live account has no open futures positions.')}</small></div>}
         {positionsView.status === 'stale' && <div className="no-strategies stale-strategy-positions"><span>!</span><strong>{t('Position snapshot is stale')}</strong><small>{t('Waiting for a fresh account snapshot.')}</small></div>}
@@ -331,16 +338,19 @@ function RunningStrategiesPanel({ strategies, authenticatedPortfolio, tradingSna
         <div className={`running-table ${showingHistory ? 'historical' : ''}`}><div className="running-head">{showingHistory && <span>{t('Start time')}</span>}<span>{t('Strategy')}</span><span>{t('Market name')}</span><span>{t('Exchanges')}</span><span>{t('Entry / Exit')}</span>{showingHistory && <span>{t('Realized PnL')}</span>}<span>{t('Size limits')}</span><span>{t('Method')}</span><span>{t('Execution log')}</span><span>{t(showingHistory ? 'Duration' : 'Runtime')}</span><span>{t('Status')}</span>{!showingHistory && <span />}</div>{visibleStrategies.map((strategy) => {
       const config = strategy.config;
       const premium = config.kind === 'premium';
+      const timedClose = Boolean(config.closePlan);
       const shortPremium = config.leftSide === 'SELL';
       const leftVenue = exchanges.find((item) => item.id === config.leftVenue.toLowerCase());
       const rightVenue = exchanges.find((item) => item.id === config.rightVenue.toLowerCase());
       const startedAt = strategyStartTime(strategy.createdAt, language);
       return <div className="running-row" key={strategy.id}>
         {showingHistory && <span className="strategy-start-time"><strong>{startedAt.date}</strong><small>{startedAt.time}</small></span>}
-        <span><strong>{strategy.id}</strong><small>{kindLabel(strategy.kind)}</small></span>
+        <span><strong>{strategy.id}</strong><small>{kindLabel(strategy)}</small></span>
         <span><strong>{strategyMarketLabel(config)}</strong><small>{t(premium ? 'ADR premium' : 'Perpetual')}</small></span>
-        <span>{config.leftVenue === config.rightVenue ? leftVenue?.name ?? config.leftVenue : `${leftVenue?.name ?? config.leftVenue} ⇄ ${rightVenue?.name ?? config.rightVenue}`}</span>
-        <span>{premium
+        <span>{timedClose ? [...new Set(config.closePlan?.targets.map((target) => symbolParts(target.symbol).venue) ?? [])].join(' ⇄ ') : config.leftVenue === config.rightVenue ? leftVenue?.name ?? config.leftVenue : `${leftVenue?.name ?? config.leftVenue} ⇄ ${rightVenue?.name ?? config.rightVenue}`}</span>
+        <span>{timedClose
+          ? <><strong>{config.closePlan?.orderCount} {t('orders')}</strong><small>{config.closePlan?.intervalSeconds}s {t('Time gap between orders').toLowerCase()}</small></>
+          : premium
           ? <><strong>{shortPremium ? '≥' : '≤'} {config.entryPremiumPct}%</strong>{config.reduceOnly
             ? <small>{t('Reduce only · stop at target')}</small>
             : config.grid
@@ -353,7 +363,7 @@ function RunningStrategiesPanel({ strategies, authenticatedPortfolio, tradingSna
               : <small className="take-profit-value"><span>{shortPremium ? '≤' : '≥'} {config.takeProfitPremiumPct}%</span>{strategy.status === 'RUNNING' && <button className="edit-take-profit" onClick={() => editTakeProfit(strategy)}>{t('Edit take profit')}</button>}</small>}</>
           : <><strong>≥ {config.entryBps} bps</strong><small>{config.takeProfitBps ? `≤ ${config.takeProfitBps} bps` : t('Stop at full fill')}</small></>}</span>
         {showingHistory && <span className={`strategy-realized-pnl ${Number(strategy.realizedPnl) >= 0 ? 'positive' : 'negative'}`}><strong>{Number(strategy.realizedPnl) >= 0 ? '+' : ''}{Number(strategy.realizedPnl).toFixed(2)}</strong><small>USDT</small></span>}
-        <span>{config.perOrderQuantity} {config.asset} · {t('max')} {strategyMaxAmount(config)}</span>
+        <span>{timedClose ? `${config.closePlan?.targets.length} ${t('Positions')} · ${config.closePlan?.orderCount} ${t('orders')}` : `${config.perOrderQuantity} ${config.asset} · ${t('max')} ${strategyMaxAmount(config)}`}</span>
         <span>{config.executionMethod.replaceAll('_', '–')}</span>
         <span><button className="logs-button" onClick={() => void openLogs(strategy.id)}>{t('View logs')}</button></span>
         <span>{strategyRuntime(strategy, showingHistory)}</span>
@@ -364,10 +374,19 @@ function RunningStrategiesPanel({ strategies, authenticatedPortfolio, tradingSna
       </>}
     </section>
 
+    {closeTargets && <PositionCloseDialog
+      targets={closeTargets}
+      portfolio={authenticatedPortfolio}
+      instruments={instruments}
+      onDismiss={() => setCloseTargets(null)}
+      onCompleted={async () => { await Promise.all([onPositionsRefresh(), onStrategiesChanged()]); }}
+      notify={(kind, title, text) => setCloseNotice({ kind, title, text })}
+    />}
+    {closeNotice && <div className={closeNotice.kind === 'error' ? 'toast toast-error' : 'toast'} role={closeNotice.kind === 'error' ? 'alert' : 'status'}><span>{closeNotice.kind === 'error' ? '!' : '✓'}</span><div><strong>{closeNotice.title}</strong><p>{closeNotice.text}</p></div></div>}
     {selectedLogStrategy && <div className="execution-log-backdrop" role="presentation" onMouseDown={() => setSelectedLogStrategyId(null)}>
       <section ref={logDialogRef} tabIndex={-1} className="execution-log-modal" role="dialog" aria-modal="true" aria-labelledby="execution-log-title" onMouseDown={(event) => event.stopPropagation()}>
-        <header><div><p className="eyebrow">{t('Strategy execution log')}</p><h2 id="execution-log-title">{selectedLogStrategy.id}</h2><span>{strategyMarketLabel(selectedLogStrategy.config)} · {selectedLogStrategy.config.leftVenue === selectedLogStrategy.config.rightVenue ? selectedLogStrategy.config.leftVenue : `${selectedLogStrategy.config.leftVenue} ⇄ ${selectedLogStrategy.config.rightVenue}`}</span></div><button data-dialog-autofocus aria-label={t('Close execution log')} onClick={() => setSelectedLogStrategyId(null)}>×</button></header>
-        <div className="execution-log-summary"><div><span>{t('Strategy')}</span><strong>{t(selectedLogStrategy.kind === 'auto' ? 'Auto price difference' : selectedLogStrategy.kind === 'premium' ? 'SK hynix premium bot' : 'Cross-exchange hedge')}</strong></div><div><span>{t('Status')}</span><strong className="positive">● {selectedLogStrategy.status}</strong></div><div><span>{t('Execution method')}</span><strong>{selectedLogStrategy.config.executionMethod.replaceAll('_', '–')}</strong></div></div>
+        <header><div><p className="eyebrow">{t('Strategy execution log')}</p><h2 id="execution-log-title">{selectedLogStrategy.id}</h2><span>{strategyMarketLabel(selectedLogStrategy.config)} · {selectedLogStrategy.config.closePlan ? [...new Set(selectedLogStrategy.config.closePlan.targets.map((target) => symbolParts(target.symbol).venue))].join(' ⇄ ') : selectedLogStrategy.config.leftVenue === selectedLogStrategy.config.rightVenue ? selectedLogStrategy.config.leftVenue : `${selectedLogStrategy.config.leftVenue} ⇄ ${selectedLogStrategy.config.rightVenue}`}</span></div><button data-dialog-autofocus aria-label={t('Close execution log')} onClick={() => setSelectedLogStrategyId(null)}>×</button></header>
+        <div className="execution-log-summary"><div><span>{t('Strategy')}</span><strong>{t(selectedLogStrategy.config.closePlan ? 'Hedge position strategy' : selectedLogStrategy.kind === 'auto' ? 'Auto price difference' : selectedLogStrategy.kind === 'premium' ? 'SK hynix premium bot' : 'Cross-exchange hedge')}</strong></div><div><span>{t('Status')}</span><strong className="positive">● {selectedLogStrategy.status}</strong></div><div><span>{t('Execution method')}</span><strong>{selectedLogStrategy.config.executionMethod.replaceAll('_', '–')}</strong></div></div>
         <div className="execution-log-table">
           <div className="execution-log-head"><span>{t('Time')}</span><span>{t('Event')}</span><span>{t('Spread / trigger')}</span><span>{t('Quantity')}</span><span>{t('Execution result')}</span><span>{t('Result')}</span></div>
           {logLoadState.status === 'loading' && <div className="execution-log-state">{t('Loading execution log…')}</div>}
@@ -433,6 +452,8 @@ export function StrategyView({ mode, prefill, marketSnapshot, catalog, fees, str
   const [orderQuantity, setOrderQuantity] = useState('');
   const [leftLeverage, setLeftLeverage] = useState('1');
   const [rightLeverage, setRightLeverage] = useState('1');
+  const [leftRiskPositionValue, setLeftRiskPositionValue] = useState<number | null | undefined>(undefined);
+  const [rightRiskPositionValue, setRightRiskPositionValue] = useState<number | null | undefined>(undefined);
   const [launching, setLaunching] = useState(false);
   const [launchNotice, setLaunchNotice] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
   const [priceDifferenceRange, setPriceDifferenceRange] = useState<PairHistoryRange>('24H');
@@ -470,8 +491,8 @@ export function StrategyView({ mode, prefill, marketSnapshot, catalog, fees, str
   const makerExchange = makerLeg === 'left' ? leftExchange : rightExchange;
   const configuredExecutionMethod = executionMethod === 'Maker–Taker' ? `${t('Maker–Taker')} · ${makerExchange.name} ${t('maker')}` : t('Taker–Taker');
   const selectedFeeRows = [
-    { exchange: leftExchange, feeKind: executionMethod === 'Maker–Taker' && makerLeg === 'left' ? 'maker' : 'taker' },
-    { exchange: rightExchange, feeKind: executionMethod === 'Maker–Taker' && makerLeg === 'right' ? 'maker' : 'taker' },
+    { exchange: leftExchange, symbol: leftHistorySymbol, feeKind: executionMethod === 'Maker–Taker' && makerLeg === 'left' ? 'maker' : 'taker' },
+    { exchange: rightExchange, symbol: rightHistorySymbol, feeKind: executionMethod === 'Maker–Taker' && makerLeg === 'right' ? 'maker' : 'taker' },
   ] as const;
   const leftLive = liveMarketFor(marketSnapshot, leftExchange.id, asset);
   const rightLive = liveMarketFor(marketSnapshot, rightExchange.id, asset);
@@ -492,13 +513,14 @@ export function StrategyView({ mode, prefill, marketSnapshot, catalog, fees, str
     const fallbackNumber = Number(fallback);
     return Number.isFinite(fallbackNumber) && fallbackNumber > 0 ? fallbackNumber : 0;
   };
-  const liveFunding = (primary: string | undefined, fallback: string | null | undefined) => {
+  const liveFunding8h = (primary: string | undefined, intervalHours: number | null | undefined, fallback8h: string | null | undefined) => {
     if (primary !== undefined && primary.trim() !== '') {
       const primaryNumber = Number(primary);
-      if (Number.isFinite(primaryNumber)) return primaryNumber * 100;
+      const normalized = fundingPercentScaledTo8h(Number.isFinite(primaryNumber) ? primaryNumber * 100 : null, intervalHours ?? null);
+      if (normalized !== null) return normalized;
     }
-    if (fallback !== null && fallback !== undefined && fallback.trim() !== '') {
-      const fallbackNumber = Number(fallback);
+    if (fallback8h !== null && fallback8h !== undefined && fallback8h.trim() !== '') {
+      const fallbackNumber = Number(fallback8h);
       if (Number.isFinite(fallbackNumber)) return fallbackNumber * 100;
     }
     return null;
@@ -532,13 +554,15 @@ export function StrategyView({ mode, prefill, marketSnapshot, catalog, fees, str
     : priceDifferenceHistoryStatus === 'failed'
       ? t('Price-difference history unavailable')
       : t('No overlapping candles for this venue pair.');
-  const leftFunding = liveFunding(
+  const leftFunding = liveFunding8h(
     leftLive?.source === 'gate_crossex_websocket' ? leftLive.fundingRate : undefined,
-    leftOverview?.fundingRate,
+    leftOverview?.fundingIntervalHours,
+    leftOverview?.fundingRate8h,
   );
-  const rightFunding = liveFunding(
+  const rightFunding = liveFunding8h(
     rightLive?.source === 'gate_crossex_websocket' ? rightLive.fundingRate : undefined,
-    rightOverview?.fundingRate,
+    rightOverview?.fundingIntervalHours,
+    rightOverview?.fundingRate8h,
   );
   const fundingEdge = leftFunding !== null && rightFunding !== null
     ? Math.abs(leftFunding - rightFunding)
@@ -599,6 +623,22 @@ export function StrategyView({ mode, prefill, marketSnapshot, catalog, fees, str
   const rightLeverageNumber = mode === 'position' ? Number(rightLeverage) || 0 : 1;
   const plannedLeftQuantity = configuredTarget * (directionFlipped ? 1 : -1);
   const plannedRightQuantity = -plannedLeftQuantity;
+  const projectedLeftPositionValue = projectedPositionValue(
+    signedPortfolioQuantity(leftPortfolioPosition), plannedLeftQuantity, leftPrice,
+  );
+  const projectedRightPositionValue = projectedPositionValue(
+    signedPortfolioQuantity(rightPortfolioPosition), plannedRightQuantity, rightPrice,
+  );
+  const riskLimitsReady = leftRiskPositionValue !== undefined && rightRiskPositionValue !== undefined;
+  const positionRiskReviewUnavailable = !reduceOnly && configuredTarget > 0
+    && (!riskLimitsReady || projectedLeftPositionValue === null || projectedRightPositionValue === null);
+  const positionRiskLimitExceeded = !reduceOnly && configuredTarget > 0 && riskLimitsReady && (
+    leftRiskPositionValue === null || rightRiskPositionValue === null
+    || (projectedLeftPositionValue !== null && leftRiskPositionValue !== undefined
+      && projectedLeftPositionValue > leftRiskPositionValue)
+    || (projectedRightPositionValue !== null && rightRiskPositionValue !== undefined
+      && projectedRightPositionValue > rightRiskPositionValue)
+  );
   const estimatedLeftMargin = leftLeverageNumber > 0
     ? incrementalExposure(signedPortfolioQuantity(leftPortfolioPosition), plannedLeftQuantity) * leftPrice / leftLeverageNumber * 1.10
     : 0;
@@ -634,7 +674,8 @@ export function StrategyView({ mode, prefill, marketSnapshot, catalog, fees, str
     && (mode === 'position' || (isPositiveDecimal(takeProfitThreshold) && Number(takeProfitThreshold) < Number(threshold)))
     && instrumentsReady
     && sizeIssues.length === 0;
-  const strategyInputsValid = sizeInputsValid && !marginInsufficient;
+  const strategyInputsValid = sizeInputsValid && !marginInsufficient
+    && (mode !== 'position' || reduceOnly || (!positionRiskReviewUnavailable && !positionRiskLimitExceeded));
 
   useEffect(() => {
     // Strategy cards need quote/funding/OI updates for both legs, but not the high-volume book,
@@ -742,13 +783,13 @@ export function StrategyView({ mode, prefill, marketSnapshot, catalog, fees, str
         <label><span>{t('Per-order quantity')}</span><div><input placeholder="e.g. 0.10" value={positionOrderQuantity} onChange={(event) => setPositionOrderQuantity(event.target.value)} /><b>{asset}</b></div></label>
         <label><span>{t('Total amount')}</span><div><input placeholder="e.g. 1.00" value={amount} onChange={(event) => setAmount(event.target.value)} /><b>{asset}</b></div></label>
         <StrategyLeverageControl label="Exchange A leverage" symbol={leftHistorySymbol} exchangeName={leftExchange.name}
-          asset={asset} quote={quoteFor(leftExchange.id)} value={leftLeverage}
+          asset={asset} quote={quoteFor(leftExchange.id)} value={leftLeverage} referencePrice={leftPrice}
           fallbackCurrent={leftPortfolioPosition?.leverage} fallbackMax={leftPortfolioPosition?.maxLeverage}
-          tradingMode={tradingMode} disabled={reduceOnly} onOpenModeDialog={onOpenModeDialog} onLeverageChanged={onLeverageChanged} onValueChange={setLeftLeverage} />
+          tradingMode={tradingMode} disabled={reduceOnly} onOpenModeDialog={onOpenModeDialog} onLeverageChanged={onLeverageChanged} onValueChange={setLeftLeverage} onRiskLimitChange={setLeftRiskPositionValue} />
         <StrategyLeverageControl label="Exchange B leverage" symbol={rightHistorySymbol} exchangeName={rightExchange.name}
-          asset={asset} quote={quoteFor(rightExchange.id)} value={rightLeverage}
+          asset={asset} quote={quoteFor(rightExchange.id)} value={rightLeverage} referencePrice={rightPrice}
           fallbackCurrent={rightPortfolioPosition?.leverage} fallbackMax={rightPortfolioPosition?.maxLeverage}
-          tradingMode={tradingMode} disabled={reduceOnly} onOpenModeDialog={onOpenModeDialog} onLeverageChanged={onLeverageChanged} onValueChange={setRightLeverage} />
+          tradingMode={tradingMode} disabled={reduceOnly} onOpenModeDialog={onOpenModeDialog} onLeverageChanged={onLeverageChanged} onValueChange={setRightLeverage} onRiskLimitChange={setRightRiskPositionValue} />
         <label><span>{t('Entry threshold')}</span><div><input value={threshold} onChange={(event) => setThreshold(event.target.value)} /><b>bps</b></div></label>
         <label className="reduce-only-control"><span onClick={(event) => event.preventDefault()}>{t('Position handling')}</span><div><input type="checkbox" checked={reduceOnly} onChange={(event) => setReduceOnly(event.target.checked)} /><b>{t('Reduce only')}</b></div></label>
       </> : <><label><span>{t('Order quantity')}</span><div><input placeholder="e.g. 0.05" value={orderQuantity} onChange={(event) => setOrderQuantity(event.target.value)} /><b>{asset}</b></div></label><label><span>{t('Max position')}</span><div><input placeholder="e.g. 2.00" value={maxPosition} onChange={(event) => setMaxPosition(event.target.value)} /><b>{asset}</b></div></label><label><span>{t('Entry threshold')}</span><div><input value={threshold} onChange={(event) => setThreshold(event.target.value)} /><b>bps</b></div></label><label><span>{t('Take-profit threshold')}</span><div><input value={takeProfitThreshold} onChange={(event) => setTakeProfitThreshold(event.target.value)} /><b>bps</b></div></label></>}</div>
@@ -759,6 +800,9 @@ export function StrategyView({ mode, prefill, marketSnapshot, catalog, fees, str
         {t('Estimated margin')}: <strong>{formatAmount(estimatedStrategyMargin)} USDT</strong> · {t('Available margin')}: <strong>{useAggregateMargin ? `${formatAmount(aggregateAvailableMargin ?? 0)} USDT` : `${formatAmount(leftAvailableMargin ?? 0)} / ${formatAmount(rightAvailableMargin ?? 0)} USDT`}</strong>
         <small>{t('Preflight estimate includes a 10% reserve')}</small>
       </p></div>}
+      {!reduceOnly && configuredTarget > 0 && riskLimitsReady && <div className={`strategy-size-check strategy-risk-limit-check ${positionRiskLimitExceeded ? 'invalid' : 'valid'}`}><span>{positionRiskLimitExceeded ? '!' : '✓'}</span><p>{positionRiskLimitExceeded
+        ? t('Configured position exceeds the maximum at selected leverage')
+        : t('Configured position fits the leverage-tier limits')}</p></div>}
       <div className="strategy-setup-actions">{mode === 'position' && <div className="compact-trigger"><span className={priceDiffBps >= Number(threshold) ? 'ready' : ''}>{priceDiffBps >= Number(threshold) ? '✓' : '○'}</span><p>{t('Enter at')} <strong>≥ {threshold || '0'} bps</strong></p></div>}<div className="compact-method"><span>{t('Execution method')}</span><div className="method-options execution-method-options" role="group" aria-label={t('Execution method')}><button type="button" className={executionMethod === 'Taker–Taker' ? 'active' : ''} aria-pressed={executionMethod === 'Taker–Taker'} onClick={() => setExecutionMethod('Taker–Taker')}>⚡ {t('Taker–Taker')}</button><button type="button" className={executionMethod === 'Maker–Taker' ? 'active' : ''} aria-pressed={executionMethod === 'Maker–Taker'} onClick={() => setExecutionMethod('Maker–Taker')}>◫ {t('Maker–Taker')}</button></div>{executionMethod === 'Maker–Taker' && <div className="maker-leg-picker execution-maker-leg-options" role="group" aria-label={t('Choose maker leg')}><button type="button" className={makerLeg === 'left' ? 'active' : ''} aria-pressed={makerLeg === 'left'} onClick={() => setMakerLeg('left')}><small>{t('Maker')} · A</small><strong>{leftExchange.name}</strong></button><button type="button" className={makerLeg === 'right' ? 'active' : ''} aria-pressed={makerLeg === 'right'} onClick={() => setMakerLeg('right')}><small>{t('Maker')} · B</small><strong>{rightExchange.name}</strong></button></div>}</div></div>
       {mode === 'position' && <div className="compact-stop"><span>◎</span><p>{`${t('Stops after')} ${amount || '0'} ${asset} ${t('executes')}`}</p></div>}
     </article>
@@ -907,13 +951,13 @@ export function StrategyView({ mode, prefill, marketSnapshot, catalog, fees, str
         <article className={`strategy-launch terminal-panel ${mode === 'auto' ? 'auto-launch' : ''}`}>
           <div className="launch-status"><span><i />{t(mode === 'position' ? 'Review & execute' : 'Review & launch')}</span><small>{t(mode === 'position' ? 'Finite' : 'Continuous')}</small></div>
           <div className="launch-intent"><div><small>{t(mode === 'position' ? 'Total execution' : 'Strategy')}</small><strong>{mode === 'position' ? `${amount || '0'} ${asset}` : `${asset} ${t('spread bot')}`}</strong></div><p><span className={leftSide.toLowerCase()}>{t(leftSide)} {leftExchange.name}</span><i>⇄</i><span className={rightSide.toLowerCase()}>{t(rightSide)} {rightExchange.name}</span></p></div>
-          <dl className="launch-summary review-grid"><div><dt>{t('Entry')}</dt><dd>≥ {threshold || '0'} bps</dd></div>{mode === 'auto' && <div><dt>{t('Take profit')}</dt><dd>≤ {takeProfitThreshold || '0'} bps</dd></div>}{mode === 'position' && <><div><dt>{t('Per order')}</dt><dd>{positionOrderQuantity || '0'} {asset}</dd></div><div><dt>{t('Leverage')}</dt><dd>{leftLeverage || '—'}× / {rightLeverage || '—'}×</dd></div><div><dt>{t('Reduce only')}</dt><dd>{t(reduceOnly ? 'Yes' : 'No')}</dd></div></>}<div><dt>{t('Method')}{language === 'zh' ? '：' : ': '}</dt><dd>{configuredExecutionMethod.replaceAll('–', '-')}</dd></div>{mode === 'position' && selectedFeeRows.map(({ exchange, feeKind }) => {
-            const venueFee = fees.find((fee) => fee.venue === exchange.id.toUpperCase());
-            const rate = venueFee ? Number(feeKind === 'maker' ? venueFee.futureMakerFee : venueFee.futureTakerFee) : Number.NaN;
+          <dl className="launch-summary review-grid"><div><dt>{t('Entry')}</dt><dd>≥ {threshold || '0'} bps</dd></div>{mode === 'auto' && <div><dt>{t('Take profit')}</dt><dd>≤ {takeProfitThreshold || '0'} bps</dd></div>}{mode === 'position' && <><div><dt>{t('Per order')}</dt><dd>{positionOrderQuantity || '0'} {asset}</dd></div><div><dt>{t('Leverage')}</dt><dd>{leftLeverage || '—'}× / {rightLeverage || '—'}×</dd></div><div><dt>{t('Max position at selected leverage')}</dt><dd>{leftRiskPositionValue !== null && leftRiskPositionValue !== undefined ? formatAmount(leftRiskPositionValue) : '—'} {quoteFor(leftExchange.id)} / {rightRiskPositionValue !== null && rightRiskPositionValue !== undefined ? formatAmount(rightRiskPositionValue) : '—'} {quoteFor(rightExchange.id)}</dd></div><div><dt>{t('Projected position')}</dt><dd>{projectedLeftPositionValue !== null ? formatAmount(projectedLeftPositionValue) : '—'} {quoteFor(leftExchange.id)} / {projectedRightPositionValue !== null ? formatAmount(projectedRightPositionValue) : '—'} {quoteFor(rightExchange.id)}</dd></div><div><dt>{t('Reduce only')}</dt><dd>{t(reduceOnly ? 'Yes' : 'No')}</dd></div></>}<div><dt>{t('Method')}{language === 'zh' ? '：' : ': '}</dt><dd>{configuredExecutionMethod.replaceAll('–', '-')}</dd></div>{mode === 'position' && selectedFeeRows.map(({ exchange, symbol, feeKind }) => {
+            const rate = numericFutureFeeRate(fees, exchange.id, symbol, feeKind) ?? Number.NaN;
             return <div key={exchange.id}><dt>{exchange.name} · {t(feeKind === 'maker' ? 'Maker fee' : 'Taker fee')}</dt><dd>{Number.isFinite(rate) ? `${(rate * 100).toFixed(4)}%` : t('Exchange setting')}</dd></div>;
           })}</dl>
           {marginInsufficient && <div className="launch-warning"><span>!</span><p>{t('Configured maximum exposure exceeds the available margin.')}</p></div>}
-          <button className={tradingEnabled ? 'start-strategy' : 'start-strategy locked'} onClick={() => tradingEnabled ? void launchStrategy() : onOpenModeDialog()} disabled={launching || (tradingEnabled && !strategyInputsValid)}>{launching ? t('Launching…') : tradingEnabled ? marginInsufficient ? t('Insufficient margin') : !strategyInputsValid ? t('Enter valid strategy amounts') : t(mode === 'position' ? 'Execute strategy' : 'Launch strategy') : t('Live trading locked')}</button>
+          {positionRiskLimitExceeded && <div className="launch-warning"><span>!</span><p>{t('Configured position exceeds the maximum at selected leverage')}</p></div>}
+          <button className={tradingEnabled ? 'start-strategy' : 'start-strategy locked'} onClick={() => tradingEnabled ? void launchStrategy() : onOpenModeDialog()} disabled={launching || (tradingEnabled && !strategyInputsValid)}>{launching ? t('Launching…') : tradingEnabled ? marginInsufficient ? t('Insufficient margin') : positionRiskLimitExceeded ? t('Position exceeds leverage limit') : positionRiskReviewUnavailable ? t('Loading position limits…') : !strategyInputsValid ? t('Enter valid strategy amounts') : t(mode === 'position' ? 'Execute strategy' : 'Launch strategy') : t('Live trading locked')}</button>
           {launchNotice && <div className={`launch-notice ${launchNotice.kind}`}>{launchNotice.text}</div>}
           {mode === 'position' && <p className="background-strategy-note">{t('Runs in background; manage active strategies below.')}</p>}
           {mode === 'position' && <div className="launch-warning"><span>ⓘ</span><p>{tradingEnabled
@@ -923,7 +967,7 @@ export function StrategyView({ mode, prefill, marketSnapshot, catalog, fees, str
       </aside>
     </section>
 
-    <RunningStrategiesPanel strategies={strategies} authenticatedPortfolio={authenticatedPortfolio} tradingSnapshot={tradingSnapshot} marketSnapshot={marketSnapshot} onStrategiesChanged={onStrategiesChanged} onPositionsRefresh={onPositionsRefresh} />
+    <RunningStrategiesPanel strategies={strategies} authenticatedPortfolio={authenticatedPortfolio} tradingSnapshot={tradingSnapshot} instruments={instruments} tradingMode={tradingMode} onOpenModeDialog={onOpenModeDialog} onStrategiesChanged={onStrategiesChanged} onPositionsRefresh={onPositionsRefresh} />
   </div>;
 }
 
@@ -950,6 +994,7 @@ interface StrategyLeverageControlProps {
   quote: string;
   value: string;
   initialValue?: string;
+  referencePrice: number;
   fallbackCurrent?: string;
   fallbackMax?: string;
   tradingMode: TradingMode | null;
@@ -957,6 +1002,7 @@ interface StrategyLeverageControlProps {
   onOpenModeDialog: () => void;
   onLeverageChanged: () => Promise<void>;
   onValueChange: (value: string) => void;
+  onRiskLimitChange: (value: number | null | undefined) => void;
 }
 
 /**
@@ -971,6 +1017,7 @@ function StrategyLeverageControl({
   quote,
   value,
   initialValue,
+  referencePrice,
   fallbackCurrent,
   fallbackMax,
   tradingMode,
@@ -978,10 +1025,13 @@ function StrategyLeverageControl({
   onOpenModeDialog,
   onLeverageChanged,
   onValueChange,
+  onRiskLimitChange,
 }: StrategyLeverageControlProps) {
   const { t } = useLanguage();
   const [currentLeverage, setCurrentLeverage] = useState<string | null>(null);
   const [maxLeverage, setMaxLeverage] = useState<string | null>(null);
+  const [riskTiers, setRiskTiers] = useState<CrossExRiskLimitTier[] | null>(null);
+  const [riskTiersLoaded, setRiskTiersLoaded] = useState(false);
   const [draft, setDraft] = useState(value);
   const [open, setOpen] = useState(false);
   const [updating, setUpdating] = useState(false);
@@ -998,6 +1048,11 @@ function StrategyLeverageControl({
   const presets = [...new Set([1, 3, 5, 10, 20, leverageCeiling])]
     .filter((preset) => preset <= leverageCeiling)
     .sort((left, right) => left - right);
+  const draftLeverage = Math.min(leverageCeiling, Math.max(1, Math.round(Number(draft) || 1)));
+  const draftMaxPositionValue = maxPositionValueAtLeverage(riskTiers, draftLeverage);
+  const draftMaxPositionQuantity = draftMaxPositionValue !== null && referencePrice > 0
+    ? draftMaxPositionValue / referencePrice
+    : null;
 
   useEffect(() => {
     let cancelled = false;
@@ -1006,15 +1061,19 @@ function StrategyLeverageControl({
       ?? (fallbackCurrent && isPositiveDecimal(fallbackCurrent) ? fallbackCurrent : '1');
     setCurrentLeverage(fallbackCurrent && isPositiveDecimal(fallbackCurrent) ? fallbackCurrent : null);
     setMaxLeverage(fallbackMax && isPositiveDecimal(fallbackMax) ? fallbackMax : null);
+    setRiskTiers(null);
+    setRiskTiersLoaded(false);
     setDraft(initial);
     setOpen(false);
     setError(null);
     onValueChange(initial);
     void api.riskLimits(symbol).then((response) => {
       if (cancelled) return;
+      setRiskTiers(response.item.tiers);
+      setRiskTiersLoaded(true);
       const ceilings = response.item.tiers.map((tier) => Number(tier.leverageMax)).filter(Number.isFinite);
       if (ceilings.length > 0) setMaxLeverage(String(Math.max(...ceilings)));
-    }).catch(() => undefined);
+    }).catch(() => { if (!cancelled) setRiskTiersLoaded(true); });
     void api.leverage(symbol).then((response) => {
       if (cancelled || !response.leverage || !isPositiveDecimal(response.leverage)) return;
       setCurrentLeverage(response.leverage);
@@ -1024,6 +1083,12 @@ function StrategyLeverageControl({
     }).catch(() => undefined);
     return () => { cancelled = true; };
   }, [fallbackCurrent, fallbackMax, initialValue, onValueChange, symbol]);
+
+  useEffect(() => {
+    onRiskLimitChange(riskTiersLoaded
+      ? maxPositionValueAtLeverage(riskTiers, leverageValue)
+      : undefined);
+  }, [leverageValue, onRiskLimitChange, riskTiers, riskTiersLoaded]);
 
   useEffect(() => {
     if (!open) return;
@@ -1089,7 +1154,7 @@ function StrategyLeverageControl({
       </button>
       {open && <div className="leverage-popover" role="dialog" aria-label={t('Adjust leverage')}>
         <header><div><strong>{t('Adjust leverage')}</strong><span>{exchangeName} · {marketSymbol(asset, quote, 'perpetual')}</span></div><button onClick={() => setOpen(false)} aria-label={t('Close')}>✕</button></header>
-        <dl><div><dt>{t('Current leverage')}</dt><dd>{currentLeverageValue}×</dd></div><div><dt>{t('Max leverage')}</dt><dd>{leverageCeiling}×</dd></div></dl>
+        <dl><div><dt>{t('Current leverage')}</dt><dd>{currentLeverageValue}×</dd></div><div><dt>{t('Max leverage')}</dt><dd>{leverageCeiling}×</dd></div><div className="leverage-position-cap"><dt>{t('Max position at selected leverage')}</dt><dd>{draftMaxPositionValue !== null ? `${formatAmount(draftMaxPositionValue)} ${quote}` : '—'}{draftMaxPositionQuantity !== null && <small>≈ {formatAmount(draftMaxPositionQuantity, 6)} {asset}</small>}</dd></div></dl>
         <div className="leverage-stepper">
           <button onClick={() => adjust(-1)} aria-label="Decrease leverage">−</button>
           <label><input type="number" min="1" max={leverageCeiling} step="1" value={draft} onChange={(event) => setDraft(event.target.value)} aria-label={t('Leverage')} /><b>×</b></label>
@@ -1120,6 +1185,8 @@ export function PremiumStrategyView({ marketSnapshot, catalog, strategies, balan
   const [hedgeMode, setHedgeMode] = useState<'SHARE_RATIO' | 'EQUAL_NOTIONAL'>('EQUAL_NOTIONAL');
   const [adrLeverage, setAdrLeverage] = useState('1');
   const [hedgeLeverage, setHedgeLeverage] = useState('1');
+  const [adrRiskPositionValue, setAdrRiskPositionValue] = useState<number | null | undefined>(undefined);
+  const [hedgeRiskPositionValue, setHedgeRiskPositionValue] = useState<number | null | undefined>(undefined);
   const [launching, setLaunching] = useState(false);
   const [launchNotice, setLaunchNotice] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
   const [premiumTimeframe, setPremiumTimeframe] = useState<PremiumHistoryTimeframe>('5m');
@@ -1132,7 +1199,7 @@ export function PremiumStrategyView({ marketSnapshot, catalog, strategies, balan
     hedge: Candle[];
     adrHasMore: boolean;
     hedgeHasMore: boolean;
-    status: 'loading' | 'live' | 'failed';
+    status: 'loading' | 'live' | 'stale' | 'empty' | 'failed';
   }>({ key: '', adr: [], hedge: [], adrHasMore: true, hedgeHasMore: true, status: 'loading' });
   const [hoveredPremium, setHoveredPremium] = useState<PremiumHistoryPoint | null>(null);
   const [freshnessNow, setFreshnessNow] = useState(Date.now());
@@ -1179,37 +1246,35 @@ export function PremiumStrategyView({ marketSnapshot, catalog, strategies, balan
     const key = premiumHistoryKey;
     setHoveredPremium(null);
     setPremiumCandles((current) => current.key === key
-      ? { ...current, status: current.adr.length > 0 && current.hedge.length > 0 ? 'live' : 'loading' }
+      ? current
       : { key, adr: [], hedge: [], adrHasMore: true, hedgeHasMore: true, status: 'loading' });
 
     const load = async () => {
       if (inFlight) return;
       inFlight = true;
-      try {
-        const [adrResponse, hedgeResponse] = await Promise.all([
-          api.candles(adrSymbol, interval, { limit: premiumTimeframeConfig.requestLimit, fresh: true }),
-          api.candles(hedgeSymbol, interval, { limit: premiumTimeframeConfig.requestLimit, fresh: true }),
-        ]);
-        if (!cancelled) setPremiumCandles((current) => {
-          if (current.key !== key) return current;
-          const adr = mergeCandleHistory(current.adr, adrResponse.candles);
-          const hedge = mergeCandleHistory(current.hedge, hedgeResponse.candles);
-          return {
-            key,
-            adr,
-            hedge,
-            adrHasMore: adrResponse.hasMore,
-            hedgeHasMore: hedgeResponse.hasMore,
-            status: candleTailIsFresh(adr, interval) && candleTailIsFresh(hedge, interval) ? 'live' : 'loading',
-          };
-        });
-      } catch {
-        if (!cancelled) setPremiumCandles((current) => current.key === key
-          ? { ...current, adr: [], hedge: [], status: 'failed' }
-          : current);
-      } finally {
-        inFlight = false;
-      }
+      const [adrResult, hedgeResult] = await Promise.allSettled([
+        api.candles(adrSymbol, interval, { limit: premiumTimeframeConfig.requestLimit, fresh: true }),
+        api.candles(hedgeSymbol, interval, { limit: premiumTimeframeConfig.requestLimit, fresh: true }),
+      ]);
+      if (!cancelled) setPremiumCandles((current) => {
+        if (current.key !== key) return current;
+        const adrResponse = adrResult.status === 'fulfilled' ? adrResult.value : null;
+        const hedgeResponse = hedgeResult.status === 'fulfilled' ? hedgeResult.value : null;
+        const adr = adrResponse ? mergeCandleHistory(current.adr, adrResponse.candles) : current.adr;
+        const hedge = hedgeResponse ? mergeCandleHistory(current.hedge, hedgeResponse.candles) : current.hedge;
+        const hasPair = adr.length > 0 && hedge.length > 0;
+        return {
+          key,
+          adr,
+          hedge,
+          adrHasMore: adrResponse?.hasMore ?? current.adrHasMore,
+          hedgeHasMore: hedgeResponse?.hasMore ?? current.hedgeHasMore,
+          status: hasPair
+            ? candleTailIsFresh(adr, interval) && candleTailIsFresh(hedge, interval) ? 'live' : 'stale'
+            : adrResult.status === 'rejected' || hedgeResult.status === 'rejected' ? 'failed' : 'empty',
+        };
+      });
+      inFlight = false;
     };
 
     void load();
@@ -1234,10 +1299,12 @@ export function PremiumStrategyView({ marketSnapshot, catalog, strategies, balan
     premiumHistoryLoadingRef.current.add(key);
     premiumHistoryRequestedRef.current.add(requestKey);
 
-    void Promise.all([
+    void Promise.allSettled([
       loadAdr ? api.candles(adrSymbol, interval, { before: oldestAdr.startTime, limit: requestLimit }) : null,
       loadHedge ? api.candles(hedgeSymbol, interval, { before: oldestHedge.startTime, limit: requestLimit }) : null,
-    ]).then(([adrResponse, hedgeResponse]) => {
+    ]).then(([adrResult, hedgeResult]) => {
+      const adrResponse = adrResult.status === 'fulfilled' ? adrResult.value : null;
+      const hedgeResponse = hedgeResult.status === 'fulfilled' ? hedgeResult.value : null;
       setPremiumCandles((current) => current.key === key ? {
         ...current,
         adr: adrResponse ? mergeCandleHistory(current.adr, adrResponse.candles) : current.adr,
@@ -1245,9 +1312,10 @@ export function PremiumStrategyView({ marketSnapshot, catalog, strategies, balan
         adrHasMore: adrResponse ? adrResponse.candles.length > 0 && adrResponse.hasMore : current.adrHasMore,
         hedgeHasMore: hedgeResponse ? hedgeResponse.candles.length > 0 && hedgeResponse.hasMore : current.hedgeHasMore,
       } : current);
-    }).catch(() => {
-      // Transient venue failures stay retryable on the next visible-range change.
-      premiumHistoryRequestedRef.current.delete(requestKey);
+      if (adrResult.status === 'rejected' || hedgeResult.status === 'rejected') {
+        // Transient venue failures stay retryable on the next visible-range change.
+        premiumHistoryRequestedRef.current.delete(requestKey);
+      }
     }).finally(() => {
       premiumHistoryLoadingRef.current.delete(key);
     });
@@ -1255,6 +1323,7 @@ export function PremiumStrategyView({ marketSnapshot, catalog, strategies, balan
 
   const livePairFreshness = assessMarketPairFreshness(marketSnapshot, adrSymbol, hedgeSymbol, freshnessNow);
   const livePair = livePairFreshness.pair;
+  const displayPair = livePair ?? lastKnownLiveMarketPair(marketSnapshot, adrSymbol, hedgeSymbol);
   const livePairWaitMessage = t(livePairFreshness.reason === 'feed'
     ? 'Market feed is reconnecting.'
     : livePairFreshness.reason === 'missing'
@@ -1264,8 +1333,8 @@ export function PremiumStrategyView({ marketSnapshot, catalog, strategies, balan
         : livePairFreshness.reason === 'stale'
           ? 'A selected quote is stale; waiting for its next update.'
           : 'Fresh quotes arrived too far apart; synchronizing the pair…');
-  const adrLive = livePair?.left ?? null;
-  const hedgeLive = livePair?.right ?? null;
+  const adrLive = displayPair?.left ?? null;
+  const hedgeLive = displayPair?.right ?? null;
   const adrPrice = Number(adrLive?.lastPrice ?? 0);
   const hedgePrice = Number(hedgeLive?.lastPrice ?? 0);
   const ratioNumber = Number(adrRatio) || 0;
@@ -1292,16 +1361,17 @@ export function PremiumStrategyView({ marketSnapshot, catalog, strategies, balan
         freshnessNow,
       ));
   const premiumPoints = useMemo(
-    () => premiumHistoryTailIsFresh ? candidatePremiumPoints : [],
-    [candidatePremiumPoints, premiumHistoryTailIsFresh],
+    () => premiumHistoryIsCurrent ? candidatePremiumPoints : [],
+    [candidatePremiumPoints, premiumHistoryIsCurrent],
   );
+  const premiumHistoryHasData = premiumPoints.length > 0;
   const premiumMovingAverages = useMemo(() => buildPremiumMovingAverages(premiumPoints), [premiumPoints]);
   const visiblePremiumMovingAverages = useMemo(
     () => premiumMovingAverages.filter((series) => visibleMovingAveragePeriods.has(series.period)),
     [premiumMovingAverages, visibleMovingAveragePeriods],
   );
   const latestPremiumPoint = premiumPoints[premiumPoints.length - 1] ?? null;
-  const usableHoveredPremium = premiumHistoryTailIsFresh ? hoveredPremium : null;
+  const usableHoveredPremium = premiumHistoryHasData ? hoveredPremium : null;
   const displayedPremiumPoint = usableHoveredPremium ?? latestPremiumPoint;
   const displayedMovingAverages = useMemo(() => premiumMovingAverages.map((series) => ({
     period: series.period,
@@ -1323,12 +1393,18 @@ export function PremiumStrategyView({ marketSnapshot, catalog, strategies, balan
   const displayedFairValue = displayedHedgePrice !== null && ratioNumber > 0 ? displayedHedgePrice / ratioNumber : null;
   const displayedGap = displayedAdrPrice !== null && displayedFairValue !== null ? displayedAdrPrice - displayedFairValue : null;
   const historySeriesKey = premiumHistoryViewKey(premiumHistoryKey, premiumTimeframe, adrRatio);
-  // A failed or stale refresh intentionally remains "loading"; cached points are never painted
-  // as though they were live.
-  const historyStatus: 'loading' | 'live' = premiumHistoryTailIsFresh ? 'live' : 'loading';
+  const historyStatus: 'loading' | 'live' | 'stale' | 'empty' | 'failed' = !premiumHistoryIsCurrent
+    ? 'loading'
+    : premiumHistoryTailIsFresh
+      ? 'live'
+      : premiumHistoryHasData
+        ? 'stale'
+        : premiumCandles.status === 'failed' ? 'failed' : premiumCandles.status;
   const historyPlaceholder = historyStatus === 'loading'
     ? t('Loading premium history…')
-    : t('No overlapping candles for this venue pair.');
+    : historyStatus === 'failed'
+      ? t('Premium history unavailable')
+      : t('No overlapping candles for this venue pair.');
   const shortPremium = !directionFlipped;
   const adrSide = shortPremium ? 'Sell' : 'Buy';
   const hedgeSide = shortPremium ? 'Buy' : 'Sell';
@@ -1379,6 +1455,22 @@ export function PremiumStrategyView({ marketSnapshot, catalog, strategies, balan
     ? hedgePrice > 0 ? configuredMaxPosition * adrPrice / hedgePrice : 0
     : ratioNumber > 0 ? configuredMaxPosition / ratioNumber : 0;
   const plannedHedgeQuantity = configuredHedgeQuantity * (shortPremium ? 1 : -1);
+  const projectedAdrPositionValue = projectedPositionValue(
+    signedPortfolioQuantity(adrPortfolioPosition), plannedAdrQuantity, adrPrice,
+  );
+  const projectedHedgePositionValue = projectedPositionValue(
+    signedPortfolioQuantity(hedgePortfolioPosition), plannedHedgeQuantity, hedgePrice,
+  );
+  const premiumRiskLimitsReady = adrRiskPositionValue !== undefined && hedgeRiskPositionValue !== undefined;
+  const premiumRiskReviewUnavailable = !reduceOnly && configuredMaxPosition > 0
+    && (!premiumRiskLimitsReady || projectedAdrPositionValue === null || projectedHedgePositionValue === null);
+  const premiumRiskLimitExceeded = !reduceOnly && configuredMaxPosition > 0 && premiumRiskLimitsReady && (
+    adrRiskPositionValue === null || hedgeRiskPositionValue === null
+    || (projectedAdrPositionValue !== null && adrRiskPositionValue !== undefined
+      && projectedAdrPositionValue > adrRiskPositionValue)
+    || (projectedHedgePositionValue !== null && hedgeRiskPositionValue !== undefined
+      && projectedHedgePositionValue > hedgeRiskPositionValue)
+  );
   const estimatedAdrNotional = incrementalExposure(
     signedPortfolioQuantity(adrPortfolioPosition),
     plannedAdrQuantity,
@@ -1455,6 +1547,8 @@ export function PremiumStrategyView({ marketSnapshot, catalog, strategies, balan
     && reduceOnlyPositionsFit
     && premiumInstrumentsReady
     && premiumSizeIssues.length === 0;
+  const premiumReviewValid = premiumInputsValid
+    && (reduceOnly || (!premiumRiskReviewUnavailable && !premiumRiskLimitExceeded));
   const entryComparator = shortPremium ? '≥' : '≤';
   const exitComparator = shortPremium ? '≤' : '≥';
   const entryReady = livePair !== null && premiumNow !== null
@@ -1531,7 +1625,7 @@ export function PremiumStrategyView({ marketSnapshot, catalog, strategies, balan
               <small>{t('Selected venue pair')}</small>
             </div>
             <div className="premium-history-controls">
-              <span className={`premium-live-badge ${historyStatus === 'live' ? '' : 'loading'}`}><i /> {t(historyStatus === 'live' ? 'Live pair' : 'Loading')}</span>
+              <span className={`premium-live-badge ${historyStatus === 'live' ? '' : 'loading'}`}><i /> {t(historyStatus === 'live' ? 'Live pair' : historyStatus === 'stale' ? 'Stale history' : historyStatus === 'empty' ? 'No data' : historyStatus === 'failed' ? 'Unavailable' : 'Loading')}</span>
               <div className="premium-timeframe-picker" role="group" aria-label={t('K-line interval')}>
                 {PREMIUM_HISTORY_TIMEFRAMES.map((timeframe) =>
                   <button
@@ -1609,18 +1703,21 @@ export function PremiumStrategyView({ marketSnapshot, catalog, strategies, balan
               ? <label><span>{t('Hedge close amount')}</span><div><input placeholder="e.g. 1.12" value={hedgeCloseQuantity} onChange={(event) => setHedgeCloseQuantity(event.target.value)} /><b>{ADR_HEDGE_ASSET}</b></div></label>
               : <label><span>{t('Take-profit premium')}</span><div><input value={takeProfitPremium} onChange={(event) => setTakeProfitPremium(event.target.value)} /><b>%</b></div></label>}
             <StrategyLeverageControl label="SKHY leverage" symbol={adrSymbol} exchangeName={adrExchange.name}
-              asset={ADR_ASSET} quote={quoteFor(adrVenueId)} value={adrLeverage} initialValue="1"
+              asset={ADR_ASSET} quote={quoteFor(adrVenueId)} value={adrLeverage} initialValue="1" referencePrice={adrPrice}
               fallbackCurrent={adrPortfolioPosition?.leverage} fallbackMax={adrPortfolioPosition?.maxLeverage}
-              tradingMode={tradingMode} disabled={reduceOnly} onOpenModeDialog={onOpenModeDialog} onLeverageChanged={onLeverageChanged} onValueChange={setAdrLeverage} />
+              tradingMode={tradingMode} disabled={reduceOnly} onOpenModeDialog={onOpenModeDialog} onLeverageChanged={onLeverageChanged} onValueChange={setAdrLeverage} onRiskLimitChange={setAdrRiskPositionValue} />
             <StrategyLeverageControl label="SKHYNIX leverage" symbol={hedgeSymbol} exchangeName={hedgeExchange.name}
-              asset={ADR_HEDGE_ASSET} quote={quoteFor(hedgeVenueId)} value={hedgeLeverage} initialValue="1"
+              asset={ADR_HEDGE_ASSET} quote={quoteFor(hedgeVenueId)} value={hedgeLeverage} initialValue="1" referencePrice={hedgePrice}
               fallbackCurrent={hedgePortfolioPosition?.leverage} fallbackMax={hedgePortfolioPosition?.maxLeverage}
-              tradingMode={tradingMode} disabled={reduceOnly} onOpenModeDialog={onOpenModeDialog} onLeverageChanged={onLeverageChanged} onValueChange={setHedgeLeverage} />
+              tradingMode={tradingMode} disabled={reduceOnly} onOpenModeDialog={onOpenModeDialog} onLeverageChanged={onLeverageChanged} onValueChange={setHedgeLeverage} onRiskLimitChange={setHedgeRiskPositionValue} />
           </div>
           {premiumInstrumentsReady && <div className={`strategy-size-check ${premiumInputsValid ? 'valid' : 'invalid'}`}><span>{premiumInputsValid ? '✓' : '!'}</span><p>{premiumInputsValid
             ? t(reduceOnly ? 'Current position quantities are ready to close' : 'Per-order quantity meets both exchange minimums')
             : !reduceOnlyPositionsFit ? t('Close quantities must fit opposite open positions on both selected markets')
               : premiumSizeIssues.join(' · ') || t('Enter valid strategy amounts')}</p></div>}
+          {!reduceOnly && configuredMaxPosition > 0 && premiumRiskLimitsReady && <div className={`strategy-size-check strategy-risk-limit-check ${premiumRiskLimitExceeded ? 'invalid' : 'valid'}`}><span>{premiumRiskLimitExceeded ? '!' : '✓'}</span><p>{premiumRiskLimitExceeded
+            ? t('Configured position exceeds the maximum at selected leverage')
+            : t('Configured position fits the leverage-tier limits')}</p></div>}
           <div className="strategy-setup-actions">
             <div className="compact-trigger"><span className={entryReady ? 'ready' : ''}>{entryReady ? '✓' : '○'}</span><p>{reduceOnly
               ? <>{t('Reduce existing positions at')} <strong>{entryComparator} {entryPremium || '0'}%</strong></>
@@ -1648,16 +1745,19 @@ export function PremiumStrategyView({ marketSnapshot, catalog, strategies, balan
             <div><dt>{t(reduceOnly ? 'Max close amount' : 'Max position')}</dt><dd>{maxPosition || '0'} {ADR_ASSET}</dd></div>
             {reduceOnly && <div><dt>{t('Hedge close amount')}</dt><dd>{hedgeCloseQuantity || '0'} {ADR_HEDGE_ASSET}</dd></div>}
             {!reduceOnly && <div><dt>{t('Leverage')}</dt><dd>{adrLeverage || '—'}× / {hedgeLeverage || '—'}×</dd></div>}
+            {!reduceOnly && <div><dt>{t('Max position at selected leverage')}</dt><dd>{adrRiskPositionValue !== null && adrRiskPositionValue !== undefined ? formatAmount(adrRiskPositionValue) : '—'} {quoteFor(adrVenueId)} / {hedgeRiskPositionValue !== null && hedgeRiskPositionValue !== undefined ? formatAmount(hedgeRiskPositionValue) : '—'} {quoteFor(hedgeVenueId)}</dd></div>}
+            {!reduceOnly && <div><dt>{t('Projected position')}</dt><dd>{projectedAdrPositionValue !== null ? formatAmount(projectedAdrPositionValue) : '—'} {quoteFor(adrVenueId)} / {projectedHedgePositionValue !== null ? formatAmount(projectedHedgePositionValue) : '—'} {quoteFor(hedgeVenueId)}</dd></div>}
             {!reduceOnly && <div><dt>{t('Estimated margin')}</dt><dd>{marginEstimateAvailable ? `${formatAmount(estimatedTotalMargin)} USDT` : '—'}</dd></div>}
             <div><dt>{t('Hedge sizing')}</dt><dd>{t(reduceOnly ? 'Existing position quantities' : hedgeMode === 'EQUAL_NOTIONAL' ? 'Equal notional' : 'Share ratio')}</dd></div>
           </dl>
           {!reduceOnly && foreignOppositePositions.length > 0 && <div className="launch-warning"><span>ⓘ</span><p>{t('Positions on another venue do not reduce this strategy’s margin requirement. Only positions on the selected exchange are offset.')}</p></div>}
-          <button className={tradingEnabled ? 'start-strategy' : 'start-strategy locked'} onClick={() => tradingEnabled ? void launchStrategy() : onOpenModeDialog()} disabled={launching || (tradingEnabled && (!livePair || marginInsufficient || leverageInvalid || !premiumInputsValid))}>{launching ? t('Launching…') : !tradingEnabled ? t('Live trading locked') : !livePair ? t('Loading live data…') : !premiumInputsValid ? t('Enter valid strategy amounts') : leverageInvalid ? t('Invalid leverage') : marginInsufficient ? t('Insufficient margin') : t(reduceOnly ? 'Launch reduce-only strategy' : 'Launch strategy')}</button>
+          {premiumRiskLimitExceeded && <div className="launch-warning"><span>!</span><p>{t('Configured position exceeds the maximum at selected leverage')}</p></div>}
+          <button className={tradingEnabled ? 'start-strategy' : 'start-strategy locked'} onClick={() => tradingEnabled ? void launchStrategy() : onOpenModeDialog()} disabled={launching || (tradingEnabled && (!livePair || marginInsufficient || leverageInvalid || !premiumReviewValid))}>{launching ? t('Launching…') : !tradingEnabled ? t('Live trading locked') : !livePair ? t('Loading live data…') : premiumRiskLimitExceeded ? t('Position exceeds leverage limit') : premiumRiskReviewUnavailable ? t('Loading position limits…') : !premiumInputsValid ? t('Enter valid strategy amounts') : leverageInvalid ? t('Invalid leverage') : marginInsufficient ? t('Insufficient margin') : t(reduceOnly ? 'Launch reduce-only strategy' : 'Launch strategy')}</button>
           {launchNotice && <div className={`launch-notice ${launchNotice.kind}`}>{launchNotice.text}</div>}
         </article>
       </aside>
     </section>
 
-    <RunningStrategiesPanel strategies={strategies} authenticatedPortfolio={authenticatedPortfolio} tradingSnapshot={tradingSnapshot} marketSnapshot={marketSnapshot} onStrategiesChanged={onStrategiesChanged} onPositionsRefresh={onPositionsRefresh} />
+    <RunningStrategiesPanel strategies={strategies} authenticatedPortfolio={authenticatedPortfolio} tradingSnapshot={tradingSnapshot} instruments={instruments} tradingMode={tradingMode} onOpenModeDialog={onOpenModeDialog} onStrategiesChanged={onStrategiesChanged} onPositionsRefresh={onPositionsRefresh} />
   </div>;
 }

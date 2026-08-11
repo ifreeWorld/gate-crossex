@@ -41,6 +41,8 @@ function okxEnvelope<T extends z.ZodType>(item: T) {
 const GateContractListSchema = z.array(z.object({
   name: z.string(),
   quanto_multiplier: z.string(),
+  funding_interval: z.union([z.string(), z.number()]).optional(),
+  funding_next_apply: z.union([z.string(), z.number()]).optional(),
 })).min(1);
 const OkxInstrumentListSchema = okxEnvelope(z.object({
   instId: z.string(), ctVal: z.string(), ctValCcy: z.string(),
@@ -59,6 +61,9 @@ const BinanceFundingRowSchema = z.object({
 });
 const BinanceTicker24hRowSchema = z.object({
   symbol: z.string(), lastPrice: numeric, priceChangePercent: numeric,
+});
+const BinanceFundingInfoRowSchema = z.object({
+  symbol: z.string(), fundingIntervalHours: numeric,
 });
 const OkxFundingRowSchema = z.object({
   instId: z.string(), fundingRate: numeric, fundingTime: numeric, nextFundingTime: numeric,
@@ -178,6 +183,11 @@ function rateScaledTo8h(rate: number, intervalHours: number): string {
   return String(rate * (8 / hours));
 }
 
+function fundingIntervalHours(value: unknown, fallback = 8): number {
+  const parsed = finiteNumber(value);
+  return parsed !== null && parsed > 0 && parsed <= 24 ? parsed : fallback;
+}
+
 /** Multiply to a USD amount, rounded to whole dollars; null when any factor is missing or the result is not positive. */
 function positiveProduct(...factors: Array<number | null>): string | null {
   let product = 1;
@@ -252,7 +262,11 @@ export interface VenueFundingStat {
   /** Asset code in CrossEx form (Kraken XBT/XDG already renamed to BTC/DOGE). */
   base: string;
   quote: string;
-  /** 8h-equivalent funding fraction; venues on hourly or 4h cycles are scaled to 8h. */
+  /** Native fraction charged or paid at one venue funding interval. */
+  fundingRate: string | null;
+  /** Native funding interval in hours. */
+  fundingIntervalHours: number;
+  /** 8h-equivalent funding fraction for cross-venue comparisons. */
   fundingRate8h: string | null;
   nextFundingAt: string | null;
   /** Open interest in USD; null where the venue publishes none in bulk (BINANCE). */
@@ -482,6 +496,14 @@ function parsePayload<T>(schema: z.ZodType<T>, payload: unknown): T {
   const parsed = schema.safeParse(payload);
   if (!parsed.success) throw new PublicMarketDataError('INVALID_RESPONSE_SCHEMA');
   return parsed.data;
+}
+
+async function optionalPayload<T>(request: Promise<unknown>, schema: z.ZodType<T>, fallback: T): Promise<T> {
+  try {
+    return parsePayload(schema, await request);
+  } catch {
+    return fallback;
+  }
 }
 
 export class VenuePublicMarketDataClient implements PublicMarketDataGateway {
@@ -1012,7 +1034,15 @@ export class VenuePublicMarketDataClient implements PublicMarketDataGateway {
   }
 
   private async queryGateFundingStats(): Promise<VenueFundingStat[]> {
-    const payload = await fetchJson(this.fetchImplementation, 'https://api.gateio.ws/api/v4/futures/usdt/tickers', 8_000_000);
+    const [payload, contractRows] = await Promise.all([
+      fetchJson(this.fetchImplementation, 'https://api.gateio.ws/api/v4/futures/usdt/tickers', 8_000_000),
+      optionalPayload(
+        fetchJson(this.fetchImplementation, 'https://api.gateio.ws/api/v4/futures/usdt/contracts', 8_000_000),
+        GateContractListSchema,
+        [],
+      ),
+    ]);
+    const contracts = new Map(contractRows.map((contract) => [contract.name, contract]));
     const rows = parsePayload(z.array(z.unknown()), payload);
     const stats: VenueFundingStat[] = [];
     for (const rawRow of rows) {
@@ -1021,11 +1051,17 @@ export class VenuePublicMarketDataClient implements PublicMarketDataGateway {
       const match = /^([A-Z0-9]+)_(USDT|USDC|USD)$/.exec(row.data.contract);
       if (!match?.[1] || !match[2]) continue;
       const rate = finiteNumber(row.data.funding_rate);
+      const contract = contracts.get(row.data.contract);
+      const intervalHours = fundingIntervalHours(
+        contract?.funding_interval === undefined ? undefined : Number(contract.funding_interval) / 3_600,
+      );
+      const nextFunding = finiteNumber(contract?.funding_next_apply);
       stats.push({
         venue: 'GATE', base: match[1], quote: match[2],
-        // Gate settles most perpetuals every 8h; the ticker feed does not expose the interval.
-        fundingRate8h: rate === null ? null : String(rate),
-        nextFundingAt: null,
+        fundingRate: rate === null ? null : String(rate),
+        fundingIntervalHours: intervalHours,
+        fundingRate8h: rate === null ? null : rateScaledTo8h(rate, intervalHours),
+        nextFundingAt: nextFunding !== null && nextFunding > 0 ? new Date(nextFunding * 1_000).toISOString() : null,
         openInterestValue: positiveProduct(
           finiteNumber(row.data.total_size),
           finiteNumber(row.data.quanto_multiplier),
@@ -1039,15 +1075,30 @@ export class VenuePublicMarketDataClient implements PublicMarketDataGateway {
   }
 
   private async queryBinanceFundingStats(): Promise<VenueFundingStat[]> {
-    const [fundingPayload, tickerPayload] = await Promise.all([
+    const optionalRowsSchema = z.array(z.unknown());
+    const [fundingPayload, tickerRows, fundingInfoRows] = await Promise.all([
       fetchJson(this.fetchImplementation, 'https://fapi.binance.com/fapi/v1/premiumIndex', 4_000_000),
-      fetchJson(this.fetchImplementation, 'https://fapi.binance.com/fapi/v1/ticker/24hr', 8_000_000),
+      optionalPayload(
+        fetchJson(this.fetchImplementation, 'https://fapi.binance.com/fapi/v1/ticker/24hr', 8_000_000),
+        optionalRowsSchema,
+        [],
+      ),
+      optionalPayload(
+        fetchJson(this.fetchImplementation, 'https://fapi.binance.com/fapi/v1/fundingInfo', 4_000_000),
+        optionalRowsSchema,
+        [],
+      ),
     ]);
     const rows = parsePayload(z.array(z.unknown()), fundingPayload);
     const tickers = new Map<string, z.infer<typeof BinanceTicker24hRowSchema>>();
-    for (const rawRow of parsePayload(z.array(z.unknown()), tickerPayload)) {
+    for (const rawRow of tickerRows) {
       const row = BinanceTicker24hRowSchema.safeParse(rawRow);
       if (row.success) tickers.set(row.data.symbol, row.data);
+    }
+    const fundingIntervals = new Map<string, number>();
+    for (const rawRow of fundingInfoRows) {
+      const row = BinanceFundingInfoRowSchema.safeParse(rawRow);
+      if (row.success) fundingIntervals.set(row.data.symbol, fundingIntervalHours(row.data.fundingIntervalHours));
     }
     const stats: VenueFundingStat[] = [];
     for (const rawRow of rows) {
@@ -1060,10 +1111,13 @@ export class VenuePublicMarketDataClient implements PublicMarketDataGateway {
       const base = row.data.symbol.slice(0, -quote.length);
       if (!base) continue;
       const rate = finiteNumber(row.data.lastFundingRate);
+      const intervalHours = fundingIntervals.get(row.data.symbol) ?? 8;
       const ticker = tickers.get(row.data.symbol);
       stats.push({
         venue: 'BINANCE', base, quote,
-        fundingRate8h: rate === null ? null : String(rate),
+        fundingRate: rate === null ? null : String(rate),
+        fundingIntervalHours: intervalHours,
+        fundingRate8h: rate === null ? null : rateScaledTo8h(rate, intervalHours),
         nextFundingAt: row.data.nextFundingTime > 0 ? new Date(row.data.nextFundingTime).toISOString() : null,
         // Binance publishes no bulk open-interest endpoint; the per-symbol one is unusable at catalog scale.
         openInterestValue: null,
@@ -1106,10 +1160,13 @@ export class VenuePublicMarketDataClient implements PublicMarketDataGateway {
       const currentSettle = finiteNumber(row.data.fundingTime);
       const nextSettle = finiteNumber(row.data.nextFundingTime);
       const intervalHours = currentSettle !== null && nextSettle !== null ? (nextSettle - currentSettle) / 3_600_000 : 8;
+      const normalizedIntervalHours = fundingIntervalHours(intervalHours);
       const ticker = tickerBySwap.get(row.data.instId);
       stats.push({
         venue: 'OKX', base: match[1], quote: match[2],
-        fundingRate8h: rate === null ? null : rateScaledTo8h(rate, intervalHours),
+        fundingRate: rate === null ? null : String(rate),
+        fundingIntervalHours: normalizedIntervalHours,
+        fundingRate8h: rate === null ? null : rateScaledTo8h(rate, normalizedIntervalHours),
         nextFundingAt: currentSettle !== null && currentSettle > 0 ? new Date(currentSettle).toISOString() : null,
         openInterestValue: openInterestBySwap.get(row.data.instId) ?? null,
         lastPrice: positiveNumberText(ticker?.last),
@@ -1138,9 +1195,12 @@ export class VenuePublicMarketDataClient implements PublicMarketDataGateway {
       const nextFunding = finiteNumber(row.data.nextFundingTime);
       const oiValue = finiteNumber(row.data.openInterestValue);
       const change24h = finiteNumber(row.data.price24hPcnt);
+      const intervalHours = fundingIntervalHours(row.data.fundingIntervalHour);
       stats.push({
         venue: 'BYBIT', base, quote,
-        fundingRate8h: rate === null ? null : rateScaledTo8h(rate, finiteNumber(row.data.fundingIntervalHour) ?? 8),
+        fundingRate: rate === null ? null : String(rate),
+        fundingIntervalHours: intervalHours,
+        fundingRate8h: rate === null ? null : rateScaledTo8h(rate, intervalHours),
         nextFundingAt: nextFunding !== null && nextFunding > 0 ? new Date(nextFunding).toISOString() : null,
         openInterestValue: oiValue !== null && oiValue > 0 ? String(oiValue) : null,
         lastPrice: positiveNumberText(row.data.lastPrice),
@@ -1169,6 +1229,8 @@ export class VenuePublicMarketDataClient implements PublicMarketDataGateway {
       const rate8h = mark !== null && mark > 0 && fundingAbsolute !== null ? rateScaledTo8h(fundingAbsolute / mark, 1) : null;
       stats.push({
         venue: 'KRAKEN', base, quote: pairQuote,
+        fundingRate: mark !== null && mark > 0 && fundingAbsolute !== null ? String(fundingAbsolute / mark) : null,
+        fundingIntervalHours: 1,
         fundingRate8h: rate8h,
         nextFundingAt: null,
         openInterestValue: positiveProduct(finiteNumber(row.data.openInterest), mark),
@@ -1219,6 +1281,8 @@ export class VenuePublicMarketDataClient implements PublicMarketDataGateway {
           nativeName: entry.name,
           stat: {
             venue: 'HYPERLIQUID', base, quote: 'USDC',
+            fundingRate: rate === null ? null : String(rate),
+            fundingIntervalHours: 1,
             fundingRate8h: rate === null ? null : rateScaledTo8h(rate, 1),
             nextFundingAt: nextHour,
             openInterestValue: positiveProduct(finiteNumber(context.openInterest), finiteNumber(context.markPx)),
@@ -1250,6 +1314,8 @@ export class VenuePublicMarketDataClient implements PublicMarketDataGateway {
       stats.push({
         venue: 'DERIBIT', base: match[1], quote: 'USDC',
         // funding_8h is already the 8h rate; Deribit perpetuals accrue funding continuously.
+        fundingRate: row.data.funding_8h !== undefined && Number.isFinite(row.data.funding_8h) ? String(row.data.funding_8h) : null,
+        fundingIntervalHours: 8,
         fundingRate8h: row.data.funding_8h !== undefined && Number.isFinite(row.data.funding_8h) ? String(row.data.funding_8h) : null,
         nextFundingAt: null,
         openInterestValue: positiveProduct(finiteNumber(row.data.open_interest), finiteNumber(row.data.mark_price)),

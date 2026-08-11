@@ -28,7 +28,7 @@ import {
 } from './route-shared.js';
 import { useLanguage } from './i18n.js';
 import { maximumTransferAmount } from './transfer-amount.js';
-import { transferAccountsFor } from './transfer-rules.js';
+import { transferAccountsFor, transferFeeForRoute } from './transfer-rules.js';
 
 function VenueFromCode({ code }: { code: string }) {
   const exchange = exchanges.find((item) => item.id === code.toLowerCase());
@@ -406,6 +406,9 @@ export function PortfolioView({ tradingSnapshot, balances, portfolio, accountStr
   }, [coinOptions, transferCoin]);
 
   const selectedTransferCoin = coinOptions.find((coin) => coin.coin === transferCoin) ?? null;
+  const selectedTransferFee = selectedTransferCoin
+    ? transferFeeForRoute(transferCoin, transferFrom, transferTo, selectedTransferCoin.estimatedFee)
+    : null;
   const transferAccountOptions = useMemo<CrossExTransferAccount[]>(
     () => transferAccountsFor(transferCoin, account?.accountMode),
     [account?.accountMode, transferCoin],
@@ -754,7 +757,7 @@ export function PortfolioView({ tradingSnapshot, balances, portfolio, accountStr
           </label>
           <div className="transfer-specs">
             <span>{t('Minimum transfer')}<strong>{selectedTransferCoin ? `${selectedTransferCoin.minimumAmount} ${transferCoin}` : '—'}</strong></span>
-            <span>{t('Estimated fee')}<strong>{selectedTransferCoin ? `${selectedTransferCoin.estimatedFee} ${transferCoin}` : '—'}</strong></span>
+            <span>{t('Estimated fee')}<strong>{selectedTransferFee !== null ? `${selectedTransferFee} ${transferCoin}` : '—'}</strong></span>
             <span>{t('Precision')}<strong>{selectedTransferCoin ? selectedTransferCoin.precision : '—'}</strong></span>
           </div>
           {transferCoinError && <p className="transfer-note warn">{t('Transfers are disabled until Gate limits are available.')}</p>}
@@ -897,7 +900,7 @@ export function PortfolioView({ tradingSnapshot, balances, portfolio, accountStr
           <span><small>{t('To account')}</small><strong>{transferAccountLabel(pendingTransfer.to)}</strong></span>
         </div>
         <dl className="transfer-confirm-details">
-          <div><dt>{t('Estimated fee')}</dt><dd>{selectedTransferCoin?.estimatedFee ?? '—'} {pendingTransfer.coin}</dd></div>
+          <div><dt>{t('Estimated fee')}</dt><dd>{selectedTransferCoin ? transferFeeForRoute(pendingTransfer.coin, pendingTransfer.from, pendingTransfer.to, selectedTransferCoin.estimatedFee) : '—'} {pendingTransfer.coin}</dd></div>
           <div><dt>{t('Client reference')}</dt><dd>{pendingTransfer.text}</dd></div>
         </dl>
         <p className="transfer-confirm-warning">{t('This submits a real fund transfer through Gate CrossEx. Confirm the asset, amount, and destination before continuing.')}</p>

@@ -3,6 +3,32 @@ export interface AverageFundingRate {
   venueCount: number;
 }
 
+export type CurrentFundingMetric = 'Per interval' | 'APR';
+
+/** Scale a native percentage to a comparable 8h percentage. */
+export function fundingPercentScaledTo8h(rate: number | null, intervalHours: number | null): number | null {
+  if (rate === null || !Number.isFinite(rate) || intervalHours === null || !Number.isFinite(intervalHours) || intervalHours <= 0) {
+    return null;
+  }
+  return rate * (8 / intervalHours);
+}
+
+/** The venue cell shows an actual payment; APR is derived from the comparable 8h rate. */
+export function currentFundingMetricRate(
+  nativeRate: number | null,
+  rate8h: number | null,
+  metric: CurrentFundingMetric,
+): number | null {
+  if (metric === 'Per interval') return nativeRate;
+  return rate8h === null ? null : rate8h * 1095;
+}
+
+/** Average/spread calculations must use the same time basis across venues. */
+export function currentFundingComparisonRate(rate8h: number | null, metric: CurrentFundingMetric): number | null {
+  if (rate8h === null) return null;
+  return metric === 'APR' ? rate8h * 1095 : rate8h;
+}
+
 /**
  * Build an identity for a set of funding-history symbols. Sorting prevents
  * live market reordering from restarting the same page-wide history load.

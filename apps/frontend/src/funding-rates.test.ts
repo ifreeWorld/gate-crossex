@@ -3,8 +3,28 @@ import {
   applyFundingAssetOrder,
   averageAvailableFundingRate,
   cumulativeFundingPercent,
+  currentFundingComparisonRate,
+  currentFundingMetricRate,
+  fundingPercentScaledTo8h,
   fundingHistoryRequestKey,
 } from './funding-rates.js';
+
+describe('interval-aware current funding', () => {
+  it('keeps the venue cell native while comparisons and APR use an 8h basis', () => {
+    const nativeHourlyPercent = 0.001;
+    const rate8hPercent = fundingPercentScaledTo8h(nativeHourlyPercent, 1);
+
+    expect(rate8hPercent).toBe(0.008);
+    expect(currentFundingMetricRate(nativeHourlyPercent, rate8hPercent, 'Per interval')).toBe(0.001);
+    expect(currentFundingComparisonRate(rate8hPercent, 'Per interval')).toBe(0.008);
+    expect(currentFundingMetricRate(nativeHourlyPercent, rate8hPercent, 'APR')).toBeCloseTo(8.76);
+  });
+
+  it('refuses to normalize a streamed fallback without interval metadata', () => {
+    expect(fundingPercentScaledTo8h(0.001, null)).toBeNull();
+    expect(fundingPercentScaledTo8h(0.001, 0)).toBeNull();
+  });
+});
 
 describe('stable funding table order', () => {
   it('keeps refreshed rows in the explicitly applied order and appends new assets deterministically', () => {

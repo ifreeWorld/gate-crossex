@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
+  BorosStrategiesResponseSchema,
+  BorosUpstreamMarketFeesResponseSchema,
   CrossExInstrumentCatalogSchema,
   CrossExPortfolioActivityResponseSchema,
   CrossExTransferRequestSchema,
@@ -34,6 +36,62 @@ describe('strategy config schema', () => {
       executionMethod: 'TAKER_TAKER',
     });
     expect(config.hedgeCloseQuantity).toBe('1.12');
+  });
+});
+
+describe('Boros strategy schema', () => {
+  it('accepts the documented fixed-rate opportunity and rejects malformed contracts', () => {
+    const market = {
+      marketId: 185,
+      address: '0x6bb121533f78d8d0c8a847b0ab399e0399966563',
+      tokenId: 2,
+      name: 'ETHUSDT',
+      assetSymbol: 'ETH',
+      maturity: 1790294400,
+      state: 'Normal',
+      impliedApr: 0.0225,
+      maxLeverage: 2.1,
+      maxPerpLeverage: 100,
+      ammId: 0,
+      platformName: 'OKX',
+    };
+    const response = BorosStrategiesResponseSchema.parse({
+      strategies: [{
+        id: 'ETH-2-1790294400-OKX-Hyperliquid',
+        longMarket: market,
+        shortMarket: { ...market, marketId: 102, name: 'ETHUSDC', platformName: 'Hyperliquid' },
+        daysToMaturity: 50,
+        impliedAprSpread: 0.0403,
+        maxPerpLeverage: 10,
+        aprTimesMaxLeverage: 0.1487,
+      }],
+      totalCount: 1,
+      fetchedAt: '2026-08-06T10:00:00.000Z',
+      cacheStatus: 'fresh',
+      source: 'boros_open_api',
+    });
+    expect(response.strategies[0]?.longMarket.platformName).toBe('OKX');
+    expect(BorosStrategiesResponseSchema.safeParse({
+      ...response,
+      strategies: [{ ...response.strategies[0], longMarket: { ...market, address: 'not-a-contract' } }],
+    }).success).toBe(false);
+  });
+
+  it('validates the Boros market fee fields used to enrich return estimates', () => {
+    const response = BorosUpstreamMarketFeesResponseSchema.parse({
+      results: [{
+        marketId: 185,
+        imData: { marginFloor: 0.06 },
+        config: { takerFee: '500000000000000', kIM: '476190476190476190', tThresh: 864000 },
+        extConfig: { settleFeeRate: '1000000000000000' },
+        data: { timeToMaturity: 4_204_800 },
+      }],
+      resumeToken: null,
+    });
+    expect(response.results[0]?.config.takerFee).toBe('500000000000000');
+    expect(() => BorosUpstreamMarketFeesResponseSchema.parse({
+      results: [{ marketId: 185, imData: { marginFloor: -1 }, config: { takerFee: '-1', kIM: 'x', tThresh: -1 }, extConfig: { settleFeeRate: '1' }, data: { timeToMaturity: -1 } }],
+    })).toThrow();
   });
 });
 

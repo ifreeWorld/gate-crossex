@@ -481,6 +481,9 @@ describe('realized funding history', () => {
 describe('bulk venue funding stats', () => {
   it('values Gate open interest through the inline quanto multiplier', async () => {
     const fetchMock = vi.fn((url: string | URL | Request) => {
+      if (String(url).endsWith('/contracts')) return response([
+        { name: 'BTC_USDT', quanto_multiplier: '0.0001', funding_interval: 3600, funding_next_apply: 1_784_793_600 },
+      ]);
       expect(String(url)).toBe('https://api.gateio.ws/api/v4/futures/usdt/tickers');
       return response([
         { contract: 'BTC_USDT', funding_rate: '0.000015', mark_price: '50000', last: '50025', change_percentage: '1.25', total_size: '1000000', quanto_multiplier: '0.0001' },
@@ -492,30 +495,68 @@ describe('bulk venue funding stats', () => {
     const stats = await client.queryVenueFundingStats('GATE');
 
     expect(stats).toEqual([{
-      venue: 'GATE', base: 'BTC', quote: 'USDT', fundingRate8h: '0.000015',
+      venue: 'GATE', base: 'BTC', quote: 'USDT', fundingRate: '0.000015', fundingIntervalHours: 1, fundingRate8h: '0.00012',
+      nextFundingAt: '2026-07-23T08:00:00.000Z', openInterestValue: '5000000', lastPrice: '50025', change24h: '0.0125',
+    }]);
+  });
+
+  it('keeps Gate funding available when contract metadata is unavailable', async () => {
+    const fetchMock = vi.fn((url: string | URL | Request) => {
+      if (String(url).endsWith('/contracts')) return Promise.reject(new Error('contract metadata unavailable'));
+      return response([
+        { contract: 'BTC_USDT', funding_rate: '0.000015', mark_price: '50000', last: '50025', change_percentage: '1.25', total_size: '1000000', quanto_multiplier: '0.0001' },
+      ]);
+    });
+    const client = new VenuePublicMarketDataClient(fetchMock as typeof fetch);
+
+    const stats = await client.queryVenueFundingStats('GATE');
+
+    expect(stats).toEqual([{
+      venue: 'GATE', base: 'BTC', quote: 'USDT', fundingRate: '0.000015', fundingIntervalHours: 8, fundingRate8h: '0.000015',
       nextFundingAt: null, openInterestValue: '5000000', lastPrice: '50025', change24h: '0.0125',
     }]);
   });
 
   it('joins Binance funding with bulk 24h tickers and skips dated futures', async () => {
-    const fetchMock = vi.fn((url: string | URL | Request) => String(url).endsWith('/ticker/24hr')
-      ? response([
+    const fetchMock = vi.fn((url: string | URL | Request) => {
+      const value = String(url);
+      if (value.endsWith('/ticker/24hr')) return response([
         { symbol: 'BTCUSDT', lastPrice: '50010', priceChangePercent: '-1.5' },
         { symbol: 'ETHUSDC', lastPrice: '2500', priceChangePercent: '2' },
-      ])
-      : response([
+      ]);
+      if (value.endsWith('/fundingInfo')) return response([
+        { symbol: 'BTCUSDT', fundingIntervalHours: 1 },
+        { symbol: 'ETHUSDC', fundingIntervalHours: 4 },
+      ]);
+      return response([
         { symbol: 'BTCUSDT', lastFundingRate: '0.00000219', nextFundingTime: 1_784_793_600_000, time: 1 },
         { symbol: 'BTCUSDT_260327', lastFundingRate: '0', nextFundingTime: 0, time: 1 },
         { symbol: 'ETHUSDC', lastFundingRate: '0.0001', nextFundingTime: 0, time: 1 },
-      ]));
+      ]);
+    });
     const client = new VenuePublicMarketDataClient(fetchMock as typeof fetch);
 
     const stats = await client.queryVenueFundingStats('BINANCE');
 
     expect(stats).toEqual([
-      { venue: 'BINANCE', base: 'BTC', quote: 'USDT', fundingRate8h: '0.00000219', nextFundingAt: '2026-07-23T08:00:00.000Z', openInterestValue: null, lastPrice: '50010', change24h: '-0.015' },
-      { venue: 'BINANCE', base: 'ETH', quote: 'USDC', fundingRate8h: '0.0001', nextFundingAt: null, openInterestValue: null, lastPrice: '2500', change24h: '0.02' },
+      { venue: 'BINANCE', base: 'BTC', quote: 'USDT', fundingRate: '0.00000219', fundingIntervalHours: 1, fundingRate8h: '0.00001752', nextFundingAt: '2026-07-23T08:00:00.000Z', openInterestValue: null, lastPrice: '50010', change24h: '-0.015' },
+      { venue: 'BINANCE', base: 'ETH', quote: 'USDC', fundingRate: '0.0001', fundingIntervalHours: 4, fundingRate8h: '0.0002', nextFundingAt: null, openInterestValue: null, lastPrice: '2500', change24h: '0.02' },
     ]);
+  });
+
+  it('keeps Binance funding available when ticker and interval metadata are unavailable', async () => {
+    const fetchMock = vi.fn((url: string | URL | Request) => String(url).endsWith('/premiumIndex')
+      ? response([{ symbol: 'BTCUSDT', lastFundingRate: '0.00000219', nextFundingTime: 1_784_793_600_000, time: 1 }])
+      : Promise.reject(new Error('optional metadata unavailable')));
+    const client = new VenuePublicMarketDataClient(fetchMock as typeof fetch);
+
+    const stats = await client.queryVenueFundingStats('BINANCE');
+
+    expect(stats).toEqual([{
+      venue: 'BINANCE', base: 'BTC', quote: 'USDT', fundingRate: '0.00000219', fundingIntervalHours: 8,
+      fundingRate8h: '0.00000219', nextFundingAt: '2026-07-23T08:00:00.000Z', openInterestValue: null,
+      lastPrice: null, change24h: null,
+    }]);
   });
 
   it('joins OKX funding with bulk open interest and scales 4h cycles to 8h', async () => {
@@ -539,8 +580,8 @@ describe('bulk venue funding stats', () => {
 
     // LAYER settles every 4h: its per-interval rate doubles to stay 8h-comparable.
     expect(stats).toEqual([
-      { venue: 'OKX', base: 'LAYER', quote: 'USDT', fundingRate8h: '0.0002', nextFundingAt: '2026-07-23T08:00:00.000Z', openInterestValue: null, lastPrice: '0.4', change24h: '-0.19999999999999996' },
-      { venue: 'OKX', base: 'BTC', quote: 'USDT', fundingRate8h: '0.00005', nextFundingAt: '2026-07-23T08:00:00.000Z', openInterestValue: '123456789', lastPrice: '50000', change24h: '0.020408163265306145' },
+      { venue: 'OKX', base: 'LAYER', quote: 'USDT', fundingRate: '0.0001', fundingIntervalHours: 4, fundingRate8h: '0.0002', nextFundingAt: '2026-07-23T08:00:00.000Z', openInterestValue: null, lastPrice: '0.4', change24h: '-0.19999999999999996' },
+      { venue: 'OKX', base: 'BTC', quote: 'USDT', fundingRate: '0.00005', fundingIntervalHours: 8, fundingRate8h: '0.00005', nextFundingAt: '2026-07-23T08:00:00.000Z', openInterestValue: '123456789', lastPrice: '50000', change24h: '0.020408163265306145' },
     ]);
   });
 
@@ -555,8 +596,8 @@ describe('bulk venue funding stats', () => {
     const stats = await client.queryVenueFundingStats('BYBIT');
 
     expect(stats).toEqual([
-      { venue: 'BYBIT', base: 'BTC', quote: 'USDT', fundingRate8h: '-0.0000323', nextFundingAt: '2026-07-23T08:00:00.000Z', openInterestValue: '3517548021.69', lastPrice: '50000', change24h: '-0.01' },
-      { venue: 'BYBIT', base: 'ETH', quote: 'USDC', fundingRate8h: '0.00008', nextFundingAt: null, openInterestValue: '1000000', lastPrice: '2500', change24h: '0.02' },
+      { venue: 'BYBIT', base: 'BTC', quote: 'USDT', fundingRate: '-0.0000323', fundingIntervalHours: 8, fundingRate8h: '-0.0000323', nextFundingAt: '2026-07-23T08:00:00.000Z', openInterestValue: '3517548021.69', lastPrice: '50000', change24h: '-0.01' },
+      { venue: 'BYBIT', base: 'ETH', quote: 'USDC', fundingRate: '0.00001', fundingIntervalHours: 1, fundingRate8h: '0.00008', nextFundingAt: null, openInterestValue: '1000000', lastPrice: '2500', change24h: '0.02' },
     ]);
   });
 
@@ -574,8 +615,8 @@ describe('bulk venue funding stats', () => {
 
     // 0.5 USD per hour on a 50000 mark = 0.00001/h relative = 0.00008 per 8h.
     expect(stats).toEqual([
-      { venue: 'KRAKEN', base: 'BTC', quote: 'USD', fundingRate8h: '0.00008', nextFundingAt: null, openInterestValue: '100000000', lastPrice: '50010', change24h: '-0.012' },
-      { venue: 'KRAKEN', base: 'DOGE', quote: 'USD', fundingRate8h: '0.000016', nextFundingAt: null, openInterestValue: '1000000', lastPrice: '0.26', change24h: '0.04' },
+      { venue: 'KRAKEN', base: 'BTC', quote: 'USD', fundingRate: '0.00001', fundingIntervalHours: 1, fundingRate8h: '0.00008', nextFundingAt: null, openInterestValue: '100000000', lastPrice: '50010', change24h: '-0.012' },
+      { venue: 'KRAKEN', base: 'DOGE', quote: 'USD', fundingRate: '0.000002', fundingIntervalHours: 1, fundingRate8h: '0.000016', nextFundingAt: null, openInterestValue: '1000000', lastPrice: '0.26', change24h: '0.04' },
     ]);
   });
 
@@ -607,12 +648,12 @@ describe('bulk venue funding stats', () => {
 
     expect(stats).toEqual([
       {
-        venue: 'HYPERLIQUID', base: 'BTC', quote: 'USDC', fundingRate8h: '0.0001',
+        venue: 'HYPERLIQUID', base: 'BTC', quote: 'USDC', fundingRate: '0.0000125', fundingIntervalHours: 1, fundingRate8h: '0.0001',
         nextFundingAt: '2026-07-23T08:00:00.000Z', openInterestValue: '5000000',
         lastPrice: '50000', change24h: '0.020408163265306145',
       },
       {
-        venue: 'HYPERLIQUID', base: 'SNDK', quote: 'USDC', fundingRate8h: '-0.00008',
+        venue: 'HYPERLIQUID', base: 'SNDK', quote: 'USDC', fundingRate: '-0.00001', fundingIntervalHours: 1, fundingRate8h: '-0.00008',
         nextFundingAt: '2026-07-23T08:00:00.000Z', openInterestValue: '10000',
         lastPrice: '50', change24h: '0.25',
       },
@@ -629,7 +670,7 @@ describe('bulk venue funding stats', () => {
     const stats = await client.queryVenueFundingStats('DERIBIT');
 
     expect(stats).toEqual([{
-      venue: 'DERIBIT', base: 'SOL', quote: 'USDC', fundingRate8h: '0.000012',
+      venue: 'DERIBIT', base: 'SOL', quote: 'USDC', fundingRate: '0.000012', fundingIntervalHours: 8, fundingRate8h: '0.000012',
       nextFundingAt: null, openInterestValue: '16000000', lastPrice: '81', change24h: '0.025',
     }]);
   });

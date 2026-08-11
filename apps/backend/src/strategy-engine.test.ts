@@ -21,6 +21,7 @@ class ScriptedGateway implements TradingCrossExGateway {
   readonly accountQueries: Array<string | null> = [];
   positions: GateCrossExPortfolio['positions'] = [];
   leverages: Record<string, string> = {};
+  riskLimits: Record<string, GateCrossExRiskLimit['tiers']> = {};
   availableMargin = '1000000';
   accountAssets: GateCrossExAccount['assets'] = [];
   accountMode: 'CROSS_EXCHANGE' | 'ISOLATED_EXCHANGE' = 'CROSS_EXCHANGE';
@@ -53,7 +54,15 @@ class ScriptedGateway implements TradingCrossExGateway {
   async queryPositions(): Promise<GateCrossExPortfolio['positions']> { return this.positions; }
   async queryPortfolio(): Promise<GateCrossExPortfolio> { throw new GateApiError(0, 'NOT_SCRIPTED'); }
   async querySymbols(): Promise<GateCrossExSymbol[]> { return []; }
-  async queryRiskLimits(): Promise<GateCrossExRiskLimit[]> { return []; }
+  async queryRiskLimits(symbols: string[]): Promise<GateCrossExRiskLimit[]> {
+    return symbols.map((symbol) => ({
+      symbol,
+      tiers: this.riskLimits[symbol] ?? [{
+        tier: '1', min_risk_limit_value: '0', max_risk_limit_value: '1000000000',
+        quick_cal_amount: '0', leverage_max: '200', maintenance_rate: '0.001',
+      }],
+    }));
+  }
   async queryLeverages(_credentials: GateCredentials, symbols: string[]): Promise<Record<string, string>> {
     this.leverageQueries.push([...symbols]);
     return Object.fromEntries(symbols.flatMap((symbol) => (
@@ -243,6 +252,24 @@ function ingestFill(runtime: TradingRuntime, remoteId: string, symbol: string, s
   } });
 }
 
+function seedFilledStrategyOrder(
+  database: Database.Database,
+  strategyId: string,
+  id: string,
+  symbol: string,
+  side: 'BUY' | 'SELL',
+  quantity: string,
+  leg: 'left' | 'right',
+): void {
+  const now = new Date().toISOString();
+  database.prepare(`INSERT INTO execution_orders (
+    id, client_order_id, environment, symbol, venue, side, order_type, time_in_force,
+    quantity, price, reduce_only, state, executed_quantity, executed_average_price,
+    created_at, updated_at, strategy_id, strategy_leg
+  ) VALUES (?, ?, 'live', ?, ?, ?, 'MARKET', 'IOC', ?, NULL, 0, 'FILLED', ?, '54', ?, ?, ?, ?)`)
+    .run(id, `${id}-client`, symbol, symbol.split('_')[0], side, quantity, quantity, now, now, strategyId, leg);
+}
+
 afterEach(async () => {
   for (const harness of harnesses.splice(0)) {
     await harness.engine.stop();
@@ -257,6 +284,101 @@ const takerTakerConfig = {
 } as const;
 
 describe('strategy engine', () => {
+  it('closes a position in the requested number of timed reduce-only slices', async () => {
+    let now = Date.now();
+    const { engine, runtime, gateway, markets } = await createHarness({ now: () => now });
+    const symbol = 'BINANCE_FUTURE_BTC_USDT';
+    markets.set(symbol, '100000', '100001', new Date(now).toISOString());
+    gateway.positions = [futuresPosition(symbol, 'LONG', '0.1')];
+
+    const record = await engine.startStrategy({
+      kind: 'position', asset: 'BTC', leftVenue: 'BINANCE', rightVenue: 'BINANCE',
+      leftSide: 'SELL', rightSide: 'BUY', totalAmount: '0.1', perOrderQuantity: '0.03',
+      reduceOnly: true, executionMethod: 'TAKER_TAKER',
+      closePlan: {
+        orderCount: 3,
+        intervalSeconds: 5,
+        targets: [{ symbol, side: 'SELL', quantity: '0.1', positionSide: 'NONE' }],
+      },
+    });
+    expect(record).toMatchObject({ status: 'RUNNING', kind: 'position', config: { closePlan: { orderCount: 3, intervalSeconds: 5 } } });
+
+    // Strategy timestamps use the wall clock. Anchor the injected clock after creation so slower
+    // runners cannot leave the first close slice scheduled in the future.
+    now = Date.parse(record.createdAt) + 100;
+    const firstTick = engine.tick();
+    await waitFor(() => gateway.createdOrders.length === 1);
+    expect(gateway.createdOrders[0]).toMatchObject({ symbol, side: 'SELL', qty: '0.03333333', reduce_only: 'true' });
+    ackOrder(runtime, 'remote-1', 'FILLED', '0.03333333', '100000');
+    await firstTick;
+
+    now += 4_999;
+    await engine.tick();
+    expect(gateway.createdOrders).toHaveLength(1);
+
+    now += 1;
+    const secondTick = engine.tick();
+    await waitFor(() => gateway.createdOrders.length === 2);
+    expect(gateway.createdOrders[1]?.qty).toBe('0.03333333');
+    ackOrder(runtime, 'remote-2', 'FILLED', '0.03333333', '100000');
+    await secondTick;
+
+    now += 5_000;
+    const finalTick = engine.tick();
+    await waitFor(() => gateway.createdOrders.length === 3);
+    expect(gateway.createdOrders[2]?.qty).toBe('0.03333334');
+    ackOrder(runtime, 'remote-3', 'FILLED', '0.03333334', '100000');
+    await finalTick;
+
+    expect(runtime.getStrategy(record.id)).toMatchObject({ status: 'COMPLETED', progress: 100, filledQuantity: '3' });
+    expect(runtime.listOrders().filter((order) => order.strategyId === record.id).every((order) => order.reduceOnly)).toBe(true);
+  });
+
+  it('submits every Close all target together in each timed slice', async () => {
+    let now = Date.now();
+    const { engine, runtime, gateway, markets } = await createHarness({ now: () => now });
+    const longSymbol = 'BINANCE_FUTURE_BTC_USDT';
+    const shortSymbol = 'OKX_FUTURE_BTC_USDT';
+    markets.set(longSymbol, '100000', '100001', new Date(now).toISOString());
+    markets.set(shortSymbol, '99999', '100000', new Date(now).toISOString());
+    gateway.positions = [futuresPosition(longSymbol, 'LONG', '0.1'), futuresPosition(shortSymbol, 'SHORT', '0.2')];
+    const record = await engine.startStrategy({
+      kind: 'position', asset: 'BTC', leftVenue: 'BINANCE', rightVenue: 'OKX',
+      leftSide: 'SELL', rightSide: 'BUY', totalAmount: '0.1', perOrderQuantity: '0.1',
+      reduceOnly: true, executionMethod: 'TAKER_TAKER',
+      closePlan: {
+        orderCount: 2,
+        intervalSeconds: 3,
+        targets: [
+          { symbol: longSymbol, side: 'SELL', quantity: '0.1', positionSide: 'NONE' },
+          { symbol: shortSymbol, side: 'BUY', quantity: '0.2', positionSide: 'NONE' },
+        ],
+      },
+    });
+
+    now = Date.parse(record.createdAt) + 100;
+    const firstTick = engine.tick();
+    await waitFor(() => gateway.createdOrders.length === 2);
+    expect(gateway.createdOrders).toEqual(expect.arrayContaining([
+      expect.objectContaining({ symbol: longSymbol, side: 'SELL', qty: '0.05', reduce_only: 'true' }),
+      expect.objectContaining({ symbol: shortSymbol, side: 'BUY', qty: '0.1', reduce_only: 'true' }),
+    ]));
+    ackOrder(runtime, 'remote-1', 'FILLED', '0.05', '100000');
+    ackOrder(runtime, 'remote-2', 'FILLED', '0.1', '100000');
+    await firstTick;
+
+    now += 3_000;
+    const secondTick = engine.tick();
+    await waitFor(() => gateway.createdOrders.length === 4);
+    ackOrder(runtime, 'remote-3', 'FILLED', '0.05', '100000');
+    ackOrder(runtime, 'remote-4', 'FILLED', '0.1', '100000');
+    await secondTick;
+
+    expect(runtime.getStrategy(record.id)).toMatchObject({ status: 'COMPLETED', progress: 100 });
+    expect(new Set(runtime.listOrders().filter((order) => order.strategyId === record.id).map((order) => order.strategyClip)))
+      .toEqual(new Set(['close-0', 'close-1']));
+  });
+
   it('routes the canonical SKHYNIX asset through Hyperliquid native SKHX', async () => {
     const { engine, gateway, markets } = await createHarness();
     markets.set('GATE_FUTURE_SKHYNIX_USDT', '1081', '1082');
@@ -323,6 +445,19 @@ describe('strategy engine', () => {
 
     await expect(engine.startStrategy({ ...takerTakerConfig, totalAmount: '0.15' })).rejects.toMatchObject({
       code: 'strategy_order_below_minimum_size',
+    });
+  });
+
+  it('rejects a configured clip below the instrument minimum notional', async () => {
+    const { engine, database, markets } = await createHarness();
+    markets.set('BINANCE_FUTURE_BTC_USDT', '54.2', '54.3');
+    markets.set('OKX_FUTURE_BTC_USDT', '54', '54.1');
+    database.prepare("UPDATE crossex_instruments SET min_size = '0.01', min_notional = '5', lot_size = '0.01' WHERE symbol LIKE '%_FUTURE_BTC_USDT'").run();
+
+    await expect(engine.startStrategy({
+      ...takerTakerConfig, totalAmount: '0.09', perOrderQuantity: '0.09',
+    })).rejects.toMatchObject({
+      code: 'strategy_order_below_minimum_notional', statusCode: 400,
     });
   });
 
@@ -569,6 +704,228 @@ describe('strategy engine', () => {
     ackOrder(runtime, 'remote-3', 'FILLED', '0.12', '100008');
     await waitFor(() => runtime.getStrategy(record.id).status === 'COMPLETED');
     expect(runtime.getStrategy(record.id).filledQuantity).toBe('0.2');
+  });
+
+  it('joins the maker best bid when it is within the configured buy-price boundary', async () => {
+    const { engine, gateway, markets } = await createHarness();
+    markets.set('BINANCE_FUTURE_BTC_USDT', '100', '100.01');
+    markets.set('OKX_FUTURE_BTC_USDT', '100.01', '100.02');
+    await engine.startStrategy({
+      ...takerTakerConfig, entryBps: '-3', totalAmount: '0.1', perOrderQuantity: '0.1',
+      executionMethod: 'MAKER_TAKER', makerLeg: 'right',
+    });
+
+    await engine.tick();
+    await waitFor(() => gateway.createdOrders.length === 1);
+
+    // Spread ceiling = 100 × 1.0003 = 100.03. The 100.01 best bid is cheaper and can be joined.
+    expect(gateway.createdOrders[0]).toMatchObject({
+      symbol: 'OKX_FUTURE_BTC_USDT', side: 'BUY', type: 'LIMIT', time_in_force: 'POC', price: '100.01',
+    });
+  });
+
+  it('joins the maker best ask when it is within the configured sell-price boundary', async () => {
+    const { engine, gateway, markets } = await createHarness();
+    markets.set('BINANCE_FUTURE_BTC_USDT', '99.98', '99.99');
+    markets.set('OKX_FUTURE_BTC_USDT', '99.99', '100');
+    await engine.startStrategy({
+      ...takerTakerConfig, entryBps: '-3', totalAmount: '0.1', perOrderQuantity: '0.1',
+      executionMethod: 'MAKER_TAKER', makerLeg: 'left',
+    });
+
+    await engine.tick();
+    await waitFor(() => gateway.createdOrders.length === 1);
+
+    // Spread floor = 100 × 0.9997 = 99.97. The 99.99 best ask is better and can be joined.
+    expect(gateway.createdOrders[0]).toMatchObject({
+      symbol: 'BINANCE_FUTURE_BTC_USDT', side: 'SELL', type: 'LIMIT', time_in_force: 'POC', price: '99.99',
+    });
+  });
+
+  it('carries an untradeable maker residual into the next clip before the target is complete', async () => {
+    const { engine, runtime, database, gateway, markets } = await createHarness();
+    markets.set('BINANCE_FUTURE_BTC_USDT', '100000', '100001');
+    markets.set('OKX_FUTURE_BTC_USDT', '99999', '100000');
+    database.prepare("UPDATE crossex_instruments SET min_size = '0.1', lot_size = '0.1' WHERE symbol = 'BINANCE_FUTURE_BTC_USDT'").run();
+    database.prepare("UPDATE crossex_instruments SET min_size = '0.01', lot_size = '0.01' WHERE symbol = 'OKX_FUTURE_BTC_USDT'").run();
+    const record = await engine.startStrategy({
+      ...takerTakerConfig, totalAmount: '0.2', perOrderQuantity: '0.2',
+      executionMethod: 'MAKER_TAKER', makerLeg: 'right',
+    });
+
+    await engine.tick();
+    await waitFor(() => gateway.createdOrders.length === 1);
+    expect(gateway.createdOrders[0]).toMatchObject({ symbol: 'OKX_FUTURE_BTC_USDT', side: 'BUY', qty: '0.2' });
+
+    // The fine-step maker fills 0.13, while the coarse taker venue can hedge only 0.1.
+    ackOrder(runtime, 'remote-1', 'PARTIALLY_FILLED', '0.13', '99900');
+    ingestFill(runtime, 'remote-1', 'OKX_FUTURE_BTC_USDT', 'BUY', '0.13', '99900');
+    await waitFor(() => gateway.createdOrders.length === 2);
+    expect(gateway.createdOrders[1]).toMatchObject({
+      symbol: 'BINANCE_FUTURE_BTC_USDT', side: 'SELL', qty: '0.1', reduce_only: 'false',
+    });
+    ackOrder(runtime, 'remote-2', 'FILLED', '0.1', '100000');
+    await waitFor(() => runtime.getStrategy(record.id).filledQuantity === '0.1');
+
+    // Once the partial maker quote closes, keep the 0.03 residual for the next normal clip. The
+    // excess maker leg quotes only 0.07, after which the coarse taker leg can execute a full 0.1.
+    ackOrder(runtime, 'remote-1', 'CANCELLED', '0.13', '99900');
+    await new Promise((resolvePromise) => setTimeout(resolvePromise, 15));
+    const carryTick = engine.tick();
+    await waitFor(() => gateway.createdOrders.length === 3);
+    expect(gateway.createdOrders[2]).toMatchObject({
+      symbol: 'OKX_FUTURE_BTC_USDT', side: 'BUY', type: 'LIMIT', time_in_force: 'POC', qty: '0.07', reduce_only: 'false',
+    });
+    ackOrder(runtime, 'remote-3', 'FILLED', '0.07', '99900');
+    await waitFor(() => gateway.createdOrders.length === 4);
+    expect(gateway.createdOrders[3]).toMatchObject({
+      symbol: 'BINANCE_FUTURE_BTC_USDT', side: 'SELL', type: 'MARKET', qty: '0.1', reduce_only: 'false',
+    });
+    ackOrder(runtime, 'remote-4', 'FILLED', '0.1', '100000');
+    await carryTick;
+    await waitFor(() => runtime.getStrategy(record.id).status === 'COMPLETED');
+
+    expect(runtime.getStrategy(record.id)).toMatchObject({
+      status: 'COMPLETED', filledLeft: '0.2', filledRight: '0.2', filledQuantity: '0.2', progress: 100,
+    });
+    expect(runtime.strategyLogs(record.id).some((log) => log.event === 'Trimming residual imbalance')).toBe(false);
+  });
+
+  it('absorbs a sub-min-notional residual in the next maker-taker clip before 100%', async () => {
+    const { engine, runtime, database, gateway, markets } = await createHarness();
+    markets.set('BINANCE_FUTURE_BTC_USDT', '54.2', '54.3');
+    markets.set('OKX_FUTURE_BTC_USDT', '54', '54.1');
+    database.prepare("UPDATE crossex_instruments SET min_size = '0.01', min_notional = '5', lot_size = '0.01' WHERE symbol LIKE '%_FUTURE_BTC_USDT'").run();
+    const record = await engine.startStrategy({
+      ...takerTakerConfig, totalAmount: '2', perOrderQuantity: '1',
+      executionMethod: 'MAKER_TAKER', makerLeg: 'right',
+    });
+    seedFilledStrategyOrder(database, record.id, 'carry-left', 'BINANCE_FUTURE_BTC_USDT', 'SELL', '1', 'left');
+    seedFilledStrategyOrder(database, record.id, 'carry-right', 'OKX_FUTURE_BTC_USDT', 'BUY', '1.03', 'right');
+
+    // Progress is below 100%, so do not top up or submit the invalid 0.03 repair. The excess
+    // maker leg absorbs it by quoting 0.97 in the next configured 1.00 clip.
+    await engine.tick();
+    await waitFor(() => gateway.createdOrders.length === 1);
+    expect(gateway.createdOrders[0]).toMatchObject({
+      symbol: 'OKX_FUTURE_BTC_USDT', side: 'BUY', type: 'LIMIT', time_in_force: 'POC',
+      qty: '0.97', reduce_only: 'false',
+    });
+
+    ackOrder(runtime, 'remote-1', 'FILLED', '0.97', '54.05');
+    await waitFor(() => gateway.createdOrders.length === 2);
+    expect(gateway.createdOrders[1]).toMatchObject({
+      symbol: 'BINANCE_FUTURE_BTC_USDT', side: 'SELL', type: 'MARKET', qty: '1', reduce_only: 'false',
+    });
+    ackOrder(runtime, 'remote-2', 'FILLED', '1', '54.2');
+    await waitFor(() => runtime.getStrategy(record.id).status === 'COMPLETED');
+
+    expect(runtime.getStrategy(record.id)).toMatchObject({
+      progress: 100, filledLeft: '2', filledRight: '2', filledQuantity: '2',
+    });
+    expect(gateway.createdOrders.some((order) => order.qty === '0.03')).toBe(false);
+  });
+
+  it('tops up and exactly trims a sub-min-notional residual only after reaching 100%', async () => {
+    const { engine, runtime, database, gateway, markets } = await createHarness();
+    markets.set('BINANCE_FUTURE_BTC_USDT', '54.2', '54.3');
+    markets.set('OKX_FUTURE_BTC_USDT', '54', '54.1');
+    database.prepare("UPDATE crossex_instruments SET min_size = '0.01', min_notional = '5', lot_size = '0.01' WHERE symbol LIKE '%_FUTURE_BTC_USDT'").run();
+    const record = await engine.startStrategy({
+      ...takerTakerConfig, totalAmount: '1', perOrderQuantity: '1',
+      executionMethod: 'MAKER_TAKER', makerLeg: 'right',
+    });
+    seedFilledStrategyOrder(database, record.id, 'terminal-left', 'BINANCE_FUTURE_BTC_USDT', 'SELL', '1', 'left');
+    seedFilledStrategyOrder(database, record.id, 'terminal-right', 'OKX_FUTURE_BTC_USDT', 'BUY', '1.03', 'right');
+
+    const repairTick = engine.tick();
+    await waitFor(() => gateway.createdOrders.length === 1);
+    expect(gateway.createdOrders[0]).toMatchObject({
+      symbol: 'OKX_FUTURE_BTC_USDT', side: 'BUY', type: 'MARKET', qty: '0.11', reduce_only: 'false',
+    });
+    ackOrder(runtime, 'remote-1', 'FILLED', '0.11', '54.1');
+
+    await waitFor(() => gateway.createdOrders.length === 2);
+    expect(gateway.createdOrders[1]).toMatchObject({
+      symbol: 'OKX_FUTURE_BTC_USDT', side: 'SELL', type: 'MARKET', qty: '0.14', reduce_only: 'true',
+    });
+    ackOrder(runtime, 'remote-2', 'FILLED', '0.14', '54');
+    await repairTick;
+    await waitFor(() => runtime.getStrategy(record.id).status === 'COMPLETED');
+
+    expect(runtime.getStrategy(record.id)).toMatchObject({
+      progress: 100, filledLeft: '1', filledRight: '1', filledQuantity: '1',
+    });
+    expect(runtime.strategyLogs(record.id)).toEqual(expect.arrayContaining([
+      expect.objectContaining({ event: 'Padding terminal residual', quantity: '0.11 BTC' }),
+      expect.objectContaining({ event: 'Trimming padded residual', quantity: '0.14 BTC' }),
+      expect.objectContaining({ event: 'Padded residual trim settled' }),
+    ]));
+  });
+
+  it('retries the enlarged reduce-only trim without padding twice after a close failure', async () => {
+    const { engine, runtime, database, gateway, markets } = await createHarness();
+    markets.set('BINANCE_FUTURE_BTC_USDT', '54.2', '54.3');
+    markets.set('OKX_FUTURE_BTC_USDT', '54', '54.1');
+    database.prepare("UPDATE crossex_instruments SET min_size = '0.01', min_notional = '5', lot_size = '0.01' WHERE symbol LIKE '%_FUTURE_BTC_USDT'").run();
+    const record = await engine.startStrategy({
+      ...takerTakerConfig, totalAmount: '1', perOrderQuantity: '1',
+      executionMethod: 'MAKER_TAKER', makerLeg: 'right',
+    });
+    seedFilledStrategyOrder(database, record.id, 'retry-left', 'BINANCE_FUTURE_BTC_USDT', 'SELL', '1', 'left');
+    seedFilledStrategyOrder(database, record.id, 'retry-right', 'OKX_FUTURE_BTC_USDT', 'BUY', '1.03', 'right');
+
+    const firstRepair = engine.tick();
+    await waitFor(() => gateway.createdOrders.length === 1);
+    ackOrder(runtime, 'remote-1', 'FILLED', '0.11', '54.1');
+    await waitFor(() => gateway.createdOrders.length === 2);
+    ackOrder(runtime, 'remote-2', 'FAIL', '0', '0', 'TEMPORARY_CLOSE_REJECTION');
+    await firstRepair;
+
+    const retry = engine.tick();
+    await waitFor(() => gateway.createdOrders.length === 3);
+    expect(gateway.createdOrders[2]).toMatchObject({
+      symbol: 'OKX_FUTURE_BTC_USDT', side: 'SELL', type: 'MARKET', qty: '0.14', reduce_only: 'true',
+    });
+    expect(gateway.createdOrders.filter((order) => order.side === 'BUY')).toHaveLength(1);
+    ackOrder(runtime, 'remote-3', 'FILLED', '0.14', '54');
+    await retry;
+    await waitFor(() => runtime.getStrategy(record.id).status === 'COMPLETED');
+  });
+
+  it('completes a full position after trimming a persisted terminal-fill residual', async () => {
+    const { engine, runtime, database, gateway, markets } = await createHarness();
+    markets.set('BINANCE_FUTURE_BTC_USDT', '100000', '100001');
+    markets.set('OKX_FUTURE_BTC_USDT', '99999', '100000');
+    database.prepare("UPDATE crossex_instruments SET min_size = '0.1', lot_size = '0.1' WHERE symbol = 'BINANCE_FUTURE_BTC_USDT'").run();
+    database.prepare("UPDATE crossex_instruments SET min_size = '0.01', lot_size = '0.01' WHERE symbol = 'OKX_FUTURE_BTC_USDT'").run();
+    const record = await engine.startStrategy({
+      ...takerTakerConfig, totalAmount: '0.1', perOrderQuantity: '0.1',
+      executionMethod: 'MAKER_TAKER', makerLeg: 'right',
+    });
+    const now = new Date().toISOString();
+    const insertFill = database.prepare(`INSERT INTO execution_orders (
+      id, client_order_id, environment, symbol, venue, side, order_type, time_in_force,
+      quantity, price, reduce_only, state, executed_quantity, executed_average_price,
+      created_at, updated_at, strategy_id, strategy_leg
+    ) VALUES (?, ?, 'live', ?, ?, ?, 'MARKET', 'IOC', ?, NULL, 0, 'FILLED', ?, '100000', ?, ?, ?, ?)`);
+    insertFill.run('seed-left', 'seed-left-client', 'BINANCE_FUTURE_BTC_USDT', 'BINANCE', 'SELL',
+      '0.1', '0.1', now, now, record.id, 'left');
+    insertFill.run('seed-right', 'seed-right-client', 'OKX_FUTURE_BTC_USDT', 'OKX', 'BUY',
+      '0.13', '0.13', now, now, record.id, 'right');
+
+    const repairTick = engine.tick();
+    await waitFor(() => gateway.createdOrders.length === 1);
+    expect(gateway.createdOrders[0]).toMatchObject({
+      symbol: 'OKX_FUTURE_BTC_USDT', side: 'SELL', qty: '0.03', reduce_only: 'true',
+    });
+    ackOrder(runtime, 'remote-1', 'FILLED', '0.03', '100000');
+    await repairTick;
+    await waitFor(() => runtime.getStrategy(record.id).status === 'COMPLETED');
+
+    expect(runtime.getStrategy(record.id)).toMatchObject({
+      status: 'COMPLETED', filledLeft: '0.1', filledRight: '0.1', filledQuantity: '0.1', progress: 100,
+    });
   });
 
   it('requotes the maker order when the taker leg moves beyond tolerance', async () => {
@@ -1101,6 +1458,28 @@ describe('strategy engine', () => {
       entryPremiumPct: '35', takeProfitPremiumPct: '24', maxPosition: '0.5', perOrderQuantity: '0.1',
       reduceOnly: false, executionMethod: 'TAKER_TAKER',
     })).rejects.toMatchObject({ code: 'insufficient_strategy_margin', statusCode: 409 });
+
+    expect(runtime.listStrategies()).toHaveLength(0);
+    expect(gateway.leverageUpdates).toHaveLength(0);
+    expect(gateway.createdOrders).toHaveLength(0);
+  });
+
+  it('rejects a strategy whose projected position exceeds the tier allowed by selected leverage', async () => {
+    const { engine, runtime, gateway, markets } = await createHarness();
+    gateway.riskLimits.GATE_FUTURE_SKHY_USDT = [
+      { tier: '1', min_risk_limit_value: '0', max_risk_limit_value: '100', quick_cal_amount: '0', leverage_max: '20', maintenance_rate: '0.01' },
+      { tier: '2', min_risk_limit_value: '100', max_risk_limit_value: '500', quick_cal_amount: '0', leverage_max: '10', maintenance_rate: '0.02' },
+    ];
+    markets.set('GATE_FUTURE_SKHY_USDT', '229.9', '230');
+    markets.set('BINANCE_FUTURE_SKHYNIX_USDT', '1699', '1700');
+
+    await expect(engine.startStrategy({
+      kind: 'premium', asset: 'SKHY', hedgeAsset: 'SKHYNIX', adrRatio: '10',
+      leftVenue: 'GATE', rightVenue: 'BINANCE', leftSide: 'SELL', rightSide: 'BUY',
+      leftLeverage: '20', rightLeverage: '10',
+      entryPremiumPct: '35', takeProfitPremiumPct: '24', maxPosition: '0.5', perOrderQuantity: '0.1',
+      reduceOnly: false, executionMethod: 'TAKER_TAKER',
+    })).rejects.toMatchObject({ code: 'strategy_position_exceeds_leverage_limit', statusCode: 409 });
 
     expect(runtime.listStrategies()).toHaveLength(0);
     expect(gateway.leverageUpdates).toHaveLength(0);

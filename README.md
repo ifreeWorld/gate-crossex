@@ -20,8 +20,14 @@ CrossEx connects Gate.io, Binance, OKX, Bybit, Kraken, Hyperliquid, and Deribit 
   Live charts, order books, trades, funding rates, and open interest.
 - 跨平台资产、余额、持仓、订单、成交和账户流水。<br>
   Cross-venue portfolio, balances, positions, orders, fills, and account activity.
-- 直接下单、资金划转、配对对冲、价差机器人和 ADR 溢价策略。<br>
-  Direct orders, fund transfers, paired hedges, spread bots, and ADR premium strategies.
+- 直接下单、资金划转、配对对冲、价差机器人、ADR 溢价策略和 Boros 固定资金费率工作流。<br>
+  Direct orders, fund transfers, paired hedges, spread bots, ADR premium strategies, and a Boros fixed-rate workflow.
+- 按资产分组持仓，支持即时或定时分批只减仓平仓。<br>
+  Asset-grouped positions with immediate or timed reduce-only closing.
+- 按交易对比较账户手续费，并按各交易所原生结算周期显示和标准化资金费率。<br>
+  Account fee comparison by market, plus funding rates displayed and normalized using each venue's native settlement interval.
+- 策略启动和直接下单前验证保证金及杠杆风险档位上限。<br>
+  Margin and leverage-tier position-limit checks before strategy launches and direct orders.
 - 仅在你的电脑上运行，只绑定 `127.0.0.1`，不包含遥测或云端后端。<br>
   Runs on your computer, binds only to `127.0.0.1`, and has no telemetry or hosted backend.
 
@@ -116,6 +122,10 @@ Credentials remain in the OS keychain or an explicitly selected local `.env` fil
 
 Run these commands from `~/gate-crossex`, or from the custom folder selected during bootstrap.
 
+在交互式终端中启动时，Gate CrossEx 会快速检查 GitHub 上最新发布的版本。如果有新版本，它会在执行任何更新前询问你。拒绝更新或网络不可用不会阻止启动；设置 `GCT_SKIP_UPDATE_CHECK=1` 可禁用检查。开发分支、固定源码版本和非交互式启动不会检查更新。
+
+When started in an interactive terminal, Gate CrossEx briefly checks the latest published GitHub release. If a newer version exists, it asks before updating. Declining or being offline does not block startup; set `GCT_SKIP_UPDATE_CHECK=1` to disable the check. Development branches, pinned source refs, and non-interactive launches skip it.
+
 | 操作<br>Action | macOS 或 Linux<br>macOS or Linux | Windows PowerShell |
 | --- | --- | --- |
 | 更新<br>Update | `cd ~/gate-crossex && ./run update` | `Set-Location "$HOME\gate-crossex"; .\run.ps1 update` |
@@ -148,6 +158,8 @@ Report vulnerabilities through [GitHub private vulnerability reporting](SECURITY
   [Architecture](docs/architecture.md)
 - [发布流程](docs/RELEASING.md)<br>
   [Release process](docs/RELEASING.md)
+- [更新日志](CHANGELOG.md)<br>
+  [Changelog](CHANGELOG.md)
 - [第三方声明](THIRD_PARTY_NOTICES.md)<br>
   [Third-party notices](THIRD_PARTY_NOTICES.md)
 - [GNU AGPL-3.0-only 开源许可证](LICENSE)<br>
