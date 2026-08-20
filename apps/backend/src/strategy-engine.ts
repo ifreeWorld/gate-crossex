@@ -191,6 +191,22 @@ function clipRatio(group: ClipGroup, fixedRatio: Decimal): Decimal {
   return rightQuantity.div(leftQuantity);
 }
 
+/**
+ * Convert an executed right-leg quantity into left-leg units using the clip's requested sizes.
+ * Multiplying before dividing preserves an exact full fill (for example 12.3 × 89 ÷ 12.3 = 89),
+ * whereas dividing twice through the repeating ratio 12.3 ÷ 89 produces 88.999… at finite
+ * Decimal precision and can make an otherwise valid reduce-only exit fail its lot-size check.
+ */
+function rightSharesInLeftUnits(group: ClipGroup, fixedRatio: Decimal, rightShares: Decimal): Decimal {
+  const firstLeft = group.rows.find((row) => row.leg === 'left');
+  const firstRight = group.rows.find((row) => row.leg === 'right');
+  if (!firstLeft || !firstRight) return rightShares.mul(fixedRatio);
+  const leftQuantity = new Decimal(firstLeft.quantity);
+  const rightQuantity = new Decimal(firstRight.quantity);
+  if (!leftQuantity.gt(0) || !rightQuantity.gt(0)) return rightShares.mul(fixedRatio);
+  return rightShares.mul(leftQuantity).div(rightQuantity);
+}
+
 function roundToStep(value: Decimal, step: string | null, direction: 'up' | 'down'): Decimal {
   if (!step) return value;
   const stepDecimal = new Decimal(step);
@@ -762,13 +778,12 @@ export class StrategyEngine {
       return exposure;
     }
     for (const group of clipGroups(rows)) {
-      const clipConversion = clipRatio(group, fixedRatio);
       for (const row of group.rows) {
         const signed = signedExecuted(row);
         if (row.leg === 'left') left = left.plus(signed);
         else if (row.leg === 'right') {
           rightShares = rightShares.plus(signed);
-          right = right.plus(signed.div(clipConversion));
+          right = right.plus(rightSharesInLeftUnits(group, fixedRatio, signed));
         }
       }
     }
@@ -792,7 +807,9 @@ export class StrategyEngine {
       for (const row of group.rows) {
         const signed = signedExecuted(row);
         if (row.leg === 'left') left = left.plus(signed);
-        else if (row.leg === 'right') rightConverted = rightConverted.plus(signed.div(k));
+        else if (row.leg === 'right') {
+          rightConverted = rightConverted.plus(rightSharesInLeftUnits(group, fixedRatio, signed));
+        }
       }
       if (left.plus(rightConverted).abs().lte(QUANTITY_EPSILON)) continue;
       const lagging = left.abs().lt(rightConverted.abs()) ? 'left' : 'right';

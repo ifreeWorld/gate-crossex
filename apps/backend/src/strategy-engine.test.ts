@@ -1083,6 +1083,47 @@ describe('strategy engine', () => {
     expect(exitLogs.some((log) => log.event === 'Left leg filled' || log.event === 'Right leg filled')).toBe(false);
   });
 
+  it('preserves an exact lot-aligned left quantity through an equal-notional take-profit cycle', async () => {
+    const { engine, runtime, gateway, markets, database } = await createHarness();
+    markets.set('BINANCE_FUTURE_SKHY_USDT', '152.02', '152.03');
+    markets.set('BINANCE_FUTURE_SKHYNIX_USDT', '1099.34', '1099.35');
+    database.prepare("UPDATE crossex_instruments SET min_size = '0.01', lot_size = '0.01' WHERE symbol IN (?, ?)")
+      .run('BINANCE_FUTURE_SKHY_USDT', 'BINANCE_FUTURE_SKHYNIX_USDT');
+    const record = await engine.startStrategy({
+      kind: 'premium', asset: 'SKHY', hedgeAsset: 'SKHYNIX', adrRatio: '10', hedgeMode: 'EQUAL_NOTIONAL',
+      leftVenue: 'BINANCE', rightVenue: 'BINANCE', leftSide: 'SELL', rightSide: 'BUY',
+      entryPremiumPct: '38.2', takeProfitPremiumPct: '35.5', maxPosition: '89', perOrderQuantity: '89',
+      reduceOnly: false, executionMethod: 'TAKER_TAKER',
+    });
+
+    const entryTick = engine.tick();
+    await waitFor(() => gateway.createdOrders.length === 2);
+    expect(gateway.createdOrders).toEqual(expect.arrayContaining([
+      expect.objectContaining({ symbol: 'BINANCE_FUTURE_SKHY_USDT', side: 'SELL', qty: '89' }),
+      expect.objectContaining({ symbol: 'BINANCE_FUTURE_SKHYNIX_USDT', side: 'BUY', qty: '12.3' }),
+    ]));
+    ackOrder(runtime, 'remote-1', 'FILLED', '89', '152.02');
+    ackOrder(runtime, 'remote-2', 'FILLED', '12.3', '1099.35');
+    await entryTick;
+    expect(runtime.getStrategy(record.id)).toMatchObject({ openPosition: '89', filledQuantity: '89' });
+
+    markets.set('BINANCE_FUTURE_SKHY_USDT', '148.8', '148.9');
+    const exitTick = engine.tick();
+    await waitFor(() => gateway.createdOrders.length === 4 || runtime.getStrategy(record.id).status === 'PAUSED');
+    expect(runtime.strategyLogs(record.id).map((log) => log.result)).not.toContain(
+      'Order-size compliance check failed: BINANCE_FUTURE_SKHY_USDT: 88.999999999999999997 must be a multiple of 0.01',
+    );
+    expect(gateway.createdOrders.slice(2)).toEqual(expect.arrayContaining([
+      expect.objectContaining({ symbol: 'BINANCE_FUTURE_SKHY_USDT', side: 'BUY', qty: '89', reduce_only: 'true' }),
+      expect.objectContaining({ symbol: 'BINANCE_FUTURE_SKHYNIX_USDT', side: 'SELL', qty: '12.3', reduce_only: 'true' }),
+    ]));
+    ackOrder(runtime, 'remote-3', 'FILLED', '89', '148.9');
+    ackOrder(runtime, 'remote-4', 'FILLED', '12.3', '1099.34');
+    await exitTick;
+    await waitFor(() => runtime.getStrategy(record.id).status === 'COMPLETED');
+    expect(runtime.getStrategy(record.id)).toMatchObject({ openPosition: '0', filledQuantity: '0' });
+  });
+
   it('reduces existing premium positions in per-order clips and stops without a take-profit cycle', async () => {
     const { engine, runtime, gateway, markets } = await createHarness();
     gateway.positions = [
