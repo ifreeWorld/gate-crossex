@@ -53,7 +53,7 @@ interface PortfolioViewProps {
 type PortfolioTab = 'positions' | 'orders' | 'fills' | 'margin';
 type ActivityTab = 'transfers' | 'funding-fees' | 'account-book';
 
-const PORTFOLIO_POLL_INTERVAL_MS = 5_000;
+const PORTFOLIO_POLL_INTERVAL_MS = 3_000;
 
 interface PortfolioPositionRow {
   id: string;
