@@ -1183,8 +1183,8 @@ export function PremiumStrategyView({ marketSnapshot, catalog, strategies, balan
   const [hedgeCloseQuantity, setHedgeCloseQuantity] = useState('');
   const reduceOnlyAutoFillKey = useRef('');
   const [hedgeMode, setHedgeMode] = useState<'SHARE_RATIO' | 'EQUAL_NOTIONAL'>('EQUAL_NOTIONAL');
-  const [adrLeverage, setAdrLeverage] = useState('1');
-  const [hedgeLeverage, setHedgeLeverage] = useState('1');
+  const [adrLeverage, setAdrLeverage] = useState('5');
+  const [hedgeLeverage, setHedgeLeverage] = useState('5');
   const [adrRiskPositionValue, setAdrRiskPositionValue] = useState<number | null | undefined>(undefined);
   const [hedgeRiskPositionValue, setHedgeRiskPositionValue] = useState<number | null | undefined>(undefined);
   const [launching, setLaunching] = useState(false);
@@ -1703,11 +1703,11 @@ export function PremiumStrategyView({ marketSnapshot, catalog, strategies, balan
               ? <label><span>{t('Hedge close amount')}</span><div><input placeholder="e.g. 1.12" value={hedgeCloseQuantity} onChange={(event) => setHedgeCloseQuantity(event.target.value)} /><b>{ADR_HEDGE_ASSET}</b></div></label>
               : <label><span>{t('Take-profit premium')}</span><div><input value={takeProfitPremium} onChange={(event) => setTakeProfitPremium(event.target.value)} /><b>%</b></div></label>}
             <StrategyLeverageControl label="SKHY leverage" symbol={adrSymbol} exchangeName={adrExchange.name}
-              asset={ADR_ASSET} quote={quoteFor(adrVenueId)} value={adrLeverage} initialValue="1" referencePrice={adrPrice}
+              asset={ADR_ASSET} quote={quoteFor(adrVenueId)} value={adrLeverage} initialValue="5" referencePrice={adrPrice}
               fallbackCurrent={adrPortfolioPosition?.leverage} fallbackMax={adrPortfolioPosition?.maxLeverage}
               tradingMode={tradingMode} disabled={reduceOnly} onOpenModeDialog={onOpenModeDialog} onLeverageChanged={onLeverageChanged} onValueChange={setAdrLeverage} onRiskLimitChange={setAdrRiskPositionValue} />
             <StrategyLeverageControl label="SKHYNIX leverage" symbol={hedgeSymbol} exchangeName={hedgeExchange.name}
-              asset={ADR_HEDGE_ASSET} quote={quoteFor(hedgeVenueId)} value={hedgeLeverage} initialValue="1" referencePrice={hedgePrice}
+              asset={ADR_HEDGE_ASSET} quote={quoteFor(hedgeVenueId)} value={hedgeLeverage} initialValue="5" referencePrice={hedgePrice}
               fallbackCurrent={hedgePortfolioPosition?.leverage} fallbackMax={hedgePortfolioPosition?.maxLeverage}
               tradingMode={tradingMode} disabled={reduceOnly} onOpenModeDialog={onOpenModeDialog} onLeverageChanged={onLeverageChanged} onValueChange={setHedgeLeverage} onRiskLimitChange={setHedgeRiskPositionValue} />
           </div>
