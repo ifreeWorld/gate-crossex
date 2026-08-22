@@ -35,8 +35,9 @@ case "${1:-ssh}" in
     gcloud compute ssh "$INSTANCE" --zone="$ZONE"
     ;;
   tunnel)
+    # Compress the JSON-heavy web traffic carried over the higher-latency SSH link.
     gcloud compute ssh "$INSTANCE" --zone="$ZONE" -- \
-      -L 27840:127.0.0.1:17840
+      -C -L 27840:127.0.0.1:17840
     ;;
   *)
     echo "Usage: bash gcloud.sh [ssh|tunnel]" >&2

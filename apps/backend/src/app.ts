@@ -1,4 +1,5 @@
 import cors from '@fastify/cors';
+import compress from '@fastify/compress';
 import formbody from '@fastify/formbody';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
@@ -749,6 +750,7 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
   }
 
   await app.register(helmet, { contentSecurityPolicy: false });
+  await app.register(compress, { global: true });
   await app.register(rateLimit, { max: options.rateLimitMax ?? 120, timeWindow: '1 minute' });
   await app.register(cors, { origin: [...config.allowedOrigins], credentials: false });
   await app.register(formbody, { bodyLimit: 16 * 1024 });
@@ -1918,6 +1920,18 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
   });
 
   app.get('/api/crossex/instruments', async (request, reply) => {
+    const query = z.object({ symbols: z.string().max(4_096).optional() }).safeParse(request.query);
+    if (!query.success) return reply.code(400).send({ error: 'invalid_instrument_catalog_request' });
+    const requestedSymbols = query.data.symbols
+      ? [...new Set(query.data.symbols.split(',').filter(Boolean))]
+      : [];
+    if (requestedSymbols.length > 20 || requestedSymbols.some((symbol) => !/^[A-Z0-9_]{3,120}$/.test(symbol))) {
+      return reply.code(400).send({ error: 'invalid_instrument_catalog_request' });
+    }
+    const requestedSet = requestedSymbols.length > 0 ? new Set(requestedSymbols) : null;
+    const selectRequested = (catalog: CrossExInstrumentCatalog): CrossExInstrumentCatalog => requestedSet
+      ? { ...catalog, items: catalog.items.filter((instrument) => requestedSet.has(instrument.symbol)) }
+      : catalog;
     const now = Date.now();
     const cached = readInstrumentCatalog(database);
     if (cached && isFresh(cached.fetchedAt, now)) {
@@ -1927,29 +1941,29 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
         cacheStatus: 'fresh',
         upstreamStatus: 'healthy',
       };
-      return value;
+      return selectRequested(value);
     }
 
     try {
       const { items, fetchedAt } = await fetchInstrumentCatalog();
-      return {
+      return selectRequested({
         items,
         fetchedAt,
         source: 'gate_crossex_public_rest',
         cacheStatus: 'fresh',
         upstreamStatus: 'healthy',
-      } satisfies CrossExInstrumentCatalog;
+      } satisfies CrossExInstrumentCatalog);
     } catch (error) {
       const errorCode = error instanceof GateApiError ? error.label : 'PUBLIC_DATA_ERROR';
       recordMarketDataFailure(database, 'gate_crossex_instruments', new Date().toISOString(), errorCode);
       request.log.warn({ reason: errorCode }, 'CrossEx instrument discovery failed');
       if (cached) {
-        return {
+        return selectRequested({
           ...cached,
           source: 'gate_crossex_public_rest',
           cacheStatus: 'stale',
           upstreamStatus: 'unavailable',
-        } satisfies CrossExInstrumentCatalog;
+        } satisfies CrossExInstrumentCatalog);
       }
       return reply.code(502).send({ error: 'instrument_catalog_unavailable' });
     }

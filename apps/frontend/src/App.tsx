@@ -318,6 +318,8 @@ function App() {
   const [tradingMode, setTradingMode] = useState<TradingMode | null>(null);
   const [modeDialogOpen, setModeDialogOpen] = useState(false);
   const [connection, setConnection] = useState<CredentialConnectionStatus | null>(null);
+  const [connectionLoading, setConnectionLoading] = useState(true);
+  const [connectionError, setConnectionError] = useState(false);
   const [orderBook, setOrderBook] = useState<OrderBookSnapshot | null>(null);
   const [publicTrades, setPublicTrades] = useState<{ symbol: string; trades: PublicTrade[] }>({ symbol: '', trades: [] });
   const [candleSeries, setCandleSeries] = useState<Record<string, Candle[]>>({});
@@ -346,6 +348,18 @@ function App() {
       markBackendUnavailable();
     }
   }, [markBackendUnavailable]);
+  const refreshConnection = useCallback(async () => {
+    setConnectionLoading(true);
+    setConnectionError(false);
+    try {
+      setConnection(await api.connection());
+    } catch (error) {
+      setConnectionError(true);
+      reportBackendConnectivityError(error);
+    } finally {
+      setConnectionLoading(false);
+    }
+  }, [reportBackendConnectivityError]);
 
   useEffect(() => {
     if (backendUnavailableSince === null) {
@@ -674,9 +688,7 @@ function App() {
     void refreshMarketSnapshot().catch(reportBackendConnectivityError);
   }, [workspace, refreshMarketSnapshot, reportBackendConnectivityError]);
 
-  useEffect(() => {
-    if (settingsOpen) void api.connection().then(setConnection).catch(() => undefined);
-  }, [settingsOpen]);
+  useEffect(() => { void refreshConnection(); }, [refreshConnection]);
 
   useEffect(() => {
     if (!settingsOpen && !notificationsOpen) return;
@@ -956,11 +968,15 @@ function App() {
             </div>
             <p className="settings-section">{t('Account settings')}</p>
             <div className="settings-account">
-              <strong>{connection?.label ?? (connection?.configured ? t('Live account') : t('Credentials not configured'))}</strong>
-              <small>{connection?.configured
-                ? `${storageLabel} · ${connection.lastVerifiedAt ? `${t('Verified')} ${new Date(connection.lastVerifiedAt).toLocaleString(language === 'zh' ? 'zh-CN' : 'en-US')}` : t('Never verified')}`
-                : t('Credentials not configured')}</small>
-              {connection?.readOnly && <small className="readonly-flag">{t('Read-only until enabled')}</small>}
+              {connectionLoading && connection === null
+                ? <><strong>{t('Checking credentials…')}</strong><small>{t('Waiting for the backend response')}</small></>
+                : connectionError && connection === null
+                  ? <><strong>{t('Credential status unavailable')}</strong><small>{t('Check the backend connection and try again.')}</small><button className="settings-inline-retry" onClick={() => void refreshConnection()}>{t('Retry')}</button></>
+                  : <><strong>{connection?.label ?? (connection?.configured ? t('Live account') : t('Credentials not configured'))}</strong>
+                    <small>{connection?.configured
+                      ? `${storageLabel} · ${connection.lastVerifiedAt ? `${t('Verified')} ${new Date(connection.lastVerifiedAt).toLocaleString(language === 'zh' ? 'zh-CN' : 'en-US')}` : t('Never verified')}`
+                      : t('Credentials not configured')}</small>
+                    {connection?.readOnly && <small className="readonly-flag">{t('Read-only until enabled')}</small>}</>}
             </div>
             <button className="settings-link" onClick={() => window.open(`/secure/credentials?lang=${language}`, '_blank', 'noopener')}>{t('Open secure credential setup')}<span>›</span></button>
             <button className="settings-link" onClick={() => window.open('/api/system/discovery', '_blank', 'noopener')}>API<span>›</span></button>

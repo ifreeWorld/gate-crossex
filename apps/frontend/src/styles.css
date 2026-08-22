@@ -217,6 +217,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .premium-ma-legend b { color: #89958f; font-family: var(--font-sans); font-size: 9px; font-weight: 600; }
 .premium-ma-legend strong { font-family: var(--font-sans); font-size: 10px; font-variant-numeric: tabular-nums; }
 .premium-history-chart { position: relative; z-index: 1; height: 330px; }
+.chart-module-error { display: grid; place-items: center; align-content: center; gap: 10px; color: #ef91a0; }
+.chart-module-error button { padding: 7px 11px; border: 1px solid #58313d; border-radius: 4px; color: #ffc0ca; background: #211218; cursor: pointer; }
 .premium-history-chart .chart-host { position: absolute; inset: 0; }
 .compact-method > .hedge-sizing-label { margin-top: 11px; }
 .running-strategies .panel-notice { margin: 10px 18px; }
@@ -337,6 +339,8 @@ html[data-theme='light'] .strategy-position-row small { color: #71808e; }
 .settings-options button:hover { color: #cbd3dd; }
 .settings-options button.active { color: #06110e; background: var(--green); }
 .settings-account { padding: 10px 4px 12px; }
+.settings-inline-retry { width: fit-content; margin-top: 5px; padding: 5px 9px; border: 1px solid #37675f; border-radius: 4px; color: var(--green); background: #11332c; font-size: 9px; cursor: pointer; }
+.settings-inline-retry:hover { border-color: #4b8b80; background: #17443a; }
 .settings-link { width: 100%; min-height: 39px; display: flex; align-items: center; justify-content: space-between; padding: 0 4px; border: 0; border-top: 1px solid #1d2733; color: #a8b2c0; background: transparent; text-align: left; cursor: pointer; }
 .settings-link:hover { color: white; }
 .settings-link span { color: #667386; font-size: 20px; font-weight: 300; }

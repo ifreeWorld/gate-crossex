@@ -29,6 +29,50 @@ test.describe.serial('local trading terminal', () => {
       .toEqual(expect.not.arrayContaining([expect.stringMatching(/^https?:\/\//)]));
   });
 
+  test('shows credential loading instead of reporting missing credentials', async ({ page }) => {
+    let releaseConnection!: () => void;
+    const connectionReady = new Promise<void>((resolve) => { releaseConnection = resolve; });
+    await page.route('**/api/onboarding/connection', async (route) => {
+      await connectionReady;
+      await route.fulfill({ json: {
+        configured: true,
+        storage: 'env_file',
+        label: 'Gate CrossEx',
+        lastVerifiedAt: '2030-01-01T00:00:00.000Z',
+        secureEntryPath: '/secure/credentials',
+        readOnly: false,
+      } });
+    });
+    await page.goto('/');
+    const riskDialog = page.getByRole('dialog', { name: 'Risk disclaimer' });
+    if (await riskDialog.isVisible()) {
+      await riskDialog.getByRole('checkbox', { name: 'I have read and understand the risks above.' }).check();
+      await riskDialog.getByRole('button', { name: /Continue in read-only mode/ }).click();
+    }
+
+    await page.getByRole('button', { name: 'Settings' }).click();
+    const account = page.locator('.settings-account').first();
+    await expect(account).toContainText('Checking credentials');
+    await expect(account).not.toContainText('Credentials not configured');
+
+    releaseConnection();
+    await expect(account).toContainText('Gate CrossEx');
+    await expect(account).toContainText('Local .env file');
+  });
+
+  test('offers recovery when the premium chart module fails to load', async ({ page }) => {
+    await page.route('**/assets/charts-*.js', async (route) => route.abort('failed'));
+    await page.goto('/strategies/sk-hynix-premium');
+    const riskDialog = page.getByRole('dialog', { name: 'Risk disclaimer' });
+    if (await riskDialog.isVisible()) {
+      await riskDialog.getByRole('checkbox', { name: 'I have read and understand the risks above.' }).check();
+      await riskDialog.getByRole('button', { name: /Continue in read-only mode/ }).click();
+    }
+
+    await expect(page.getByText('Chart failed to load', { exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Reload page' })).toBeVisible();
+  });
+
   test('guides live-mode users through missing Gate credential setup', async ({ page }) => {
     await page.goto('/');
     // The accessible dialog name changes with the selected language, so keep a stable container.
@@ -394,7 +438,7 @@ test.describe.serial('local trading terminal', () => {
       }
 
       const groupedPosition = page.locator('.aggregate-row').filter({ hasText: 'HYPE PERP' });
-      await expect(page.getByRole('columnheader', { name: 'Funding fee' })).toBeVisible();
+      await expect(page.getByRole('columnheader', { name: 'Settled funding' })).toBeVisible();
       await expect(groupedPosition).toContainText('+1 USDT');
 
       await groupedPosition.locator('.expand-position').click();

@@ -39,6 +39,26 @@ describe('local API request coordination', () => {
     expect(fetchMock.mock.calls[0]?.[0]).toBe('/api/markets/funding-overview?fresh=1');
   });
 
+  it('requests only the instrument symbols needed by the current strategy', async () => {
+    const fetchMock = vi.fn(async (path: string) => {
+      void path;
+      return new Response(JSON.stringify({
+        items: [],
+        fetchedAt: '2026-08-22T00:00:00.000Z',
+        source: 'gate_crossex_public_rest',
+        cacheStatus: 'fresh',
+        upstreamStatus: 'healthy',
+      }));
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await api.instruments(['BINANCE_FUTURE_SKHY_USDT', 'BINANCE_FUTURE_SKHYNIX_USDT']);
+
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+      '/api/crossex/instruments?symbols=BINANCE_FUTURE_SKHY_USDT%2CBINANCE_FUTURE_SKHYNIX_USDT',
+    );
+  });
+
   it('preserves the upstream Gate label when a leverage update is rejected', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({
       error: 'strategy_leverage_rejected',

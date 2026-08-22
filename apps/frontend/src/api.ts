@@ -362,7 +362,13 @@ export const api = {
       headers: { 'x-gct-trading-intent': 'set-trading-mode' },
       body: JSON.stringify({ mode, acceptDisclaimer }),
     }),
-  instruments: () => request(InstrumentsResponseSchema, '/api/crossex/instruments'),
+  instruments: (symbols: string[] = []) => {
+    const requested = [...new Set(symbols)];
+    const query = requested.length > 0
+      ? `?${new URLSearchParams({ symbols: requested.join(',') })}`
+      : '';
+    return request(InstrumentsResponseSchema, `/api/crossex/instruments${query}`);
+  },
   riskLimits: (symbol: string) =>
     request(CrossExRiskLimitResponseSchema, `/api/crossex/instruments/${encodeURIComponent(symbol)}/risk-limits`),
   preferences: () => request(UserPreferencesResponseSchema, '/api/preferences'),

@@ -1341,6 +1341,43 @@ describe('local backend', () => {
     expect(gateway.symbolQueryCount).toBe(1);
   });
 
+  it('filters the instrument catalog to requested symbols', async () => {
+    const { app, gateway } = await createTestApp();
+    gateway.extraSymbols = [
+      catalogSymbol('GATE_FUTURE_SKHY_USDT', 'GATE'),
+      catalogSymbol('OKX_FUTURE_SKHYNIX_USDT', 'OKX'),
+    ];
+    const headers = { host: '127.0.0.1:17840' };
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/api/crossex/instruments?symbols=OKX_FUTURE_SKHYNIX_USDT,GATE_FUTURE_SKHY_USDT',
+      headers,
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json().items.map((item: { symbol: string }) => item.symbol)).toEqual([
+      'GATE_FUTURE_SKHY_USDT',
+      'OKX_FUTURE_SKHYNIX_USDT',
+    ]);
+  });
+
+  it('compresses sizeable JSON responses accepted by the client', async () => {
+    const { app, gateway } = await createTestApp();
+    gateway.extraSymbols = Array.from({ length: 80 }, (_, index) =>
+      catalogSymbol(`GATE_FUTURE_TEST${index}_USDT`, 'GATE'));
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/api/crossex/instruments',
+      headers: { host: '127.0.0.1:17840', 'accept-encoding': 'gzip' },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.headers['content-encoding']).toBe('gzip');
+    expect(Number(response.headers['content-length'] ?? 0)).toBeLessThan(10_000);
+  });
+
   it('falls back to a persisted stale catalog when Gate is unavailable', async () => {
     const { app, database, gateway } = await createTestApp();
     const headers = { host: '127.0.0.1:17840' };

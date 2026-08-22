@@ -1,4 +1,4 @@
-import { Fragment, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Component, Fragment, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { CrossExRiskLimitTier } from '@gate-crossex/shared-types';
 import {
   api,
@@ -85,18 +85,38 @@ const POSITION_FUNDING_RANGES = [
 ] as const;
 type PositionFundingDuration = typeof POSITION_FUNDING_RANGES[number]['days'];
 
-function useInstrumentCatalog(): CrossExInstrument[] | null {
+function useInstrumentCatalog(symbols: string[]): CrossExInstrument[] | null {
   const [instruments, setInstruments] = useState<CrossExInstrument[] | null>(null);
+  const symbolsKey = symbols.join(',');
 
   useEffect(() => {
     let cancelled = false;
-    void api.instruments()
+    setInstruments(null);
+    void api.instruments(symbolsKey ? symbolsKey.split(',') : [])
       .then((response) => { if (!cancelled) setInstruments(response.items); })
       .catch(() => undefined);
     return () => { cancelled = true; };
-  }, []);
+  }, [symbolsKey]);
 
   return instruments;
+}
+
+class ChartModuleBoundary extends Component<{ children: ReactNode; message: string; reloadLabel: string }, { failed: boolean }> {
+  state = { failed: false };
+
+  static getDerivedStateFromError(): { failed: boolean } {
+    return { failed: true };
+  }
+
+  render() {
+    if (this.state.failed) {
+      return <div className="premium-history-chart chart-module-error" role="alert">
+        <strong>{this.props.message}</strong>
+        <button type="button" onClick={() => window.location.reload()}>{this.props.reloadLabel}</button>
+      </div>;
+    }
+    return this.props.children;
+  }
 }
 
 function minimumSizeIssue(
@@ -466,8 +486,6 @@ export function StrategyView({ mode, prefill, marketSnapshot, catalog, fees, str
     rangeFrom: number | null;
   }>({ key: '', status: 'idle', entries: {}, rangeFrom: null });
   const [fundingOverview, setFundingOverview] = useState<FundingOverviewResponse | null>(null);
-  const instruments = useInstrumentCatalog();
-
   const leftExchange = exchanges.find((venue) => venue.id === leftExchangeId) ?? exchanges[1];
   const rightExchange = exchanges.find((venue) => venue.id === rightExchangeId) ?? exchanges[2];
   const availableStrategyAssets = useMemo(
@@ -476,6 +494,7 @@ export function StrategyView({ mode, prefill, marketSnapshot, catalog, fees, str
   );
   const leftHistorySymbol = strategyVenueSymbol(catalog, leftExchange.id, asset);
   const rightHistorySymbol = strategyVenueSymbol(catalog, rightExchange.id, asset);
+  const instruments = useInstrumentCatalog([leftHistorySymbol, rightHistorySymbol]);
   const leftInstrument = instruments?.find((instrument) => instrument.symbol === leftHistorySymbol);
   const rightInstrument = instruments?.find((instrument) => instrument.symbol === rightHistorySymbol);
   const positionFundingRangeLabel = POSITION_FUNDING_RANGES.find((range) => range.days === positionFundingDuration)?.label ?? '30D';
@@ -1205,8 +1224,6 @@ export function PremiumStrategyView({ marketSnapshot, catalog, strategies, balan
   const [freshnessNow, setFreshnessNow] = useState(Date.now());
   const premiumHistoryLoadingRef = useRef<Set<string>>(new Set());
   const premiumHistoryRequestedRef = useRef<Set<string>>(new Set());
-  const instruments = useInstrumentCatalog();
-
   // Venue pickers offer only venues that actually list each ticker; before the catalog knows
   // either ticker, every venue stays selectable and prices simply read as absent.
   const venuesFor = (asset: string) => {
@@ -1219,6 +1236,7 @@ export function PremiumStrategyView({ marketSnapshot, catalog, strategies, balan
   const hedgeExchange = exchanges.find((item) => item.id === hedgeVenueId) ?? exchanges[0];
   const adrSymbol = strategyVenueSymbol(catalog, adrVenueId, ADR_ASSET);
   const hedgeSymbol = strategyVenueSymbol(catalog, hedgeVenueId, ADR_HEDGE_ASSET);
+  const instruments = useInstrumentCatalog([adrSymbol, hedgeSymbol]);
   const adrInstrument = instruments?.find((instrument) => instrument.symbol === adrSymbol);
   const hedgeInstrument = instruments?.find((instrument) => instrument.symbol === hedgeSymbol);
   const premiumTimeframeConfig = PREMIUM_HISTORY_TIMEFRAMES.find((item) => item.label === premiumTimeframe)
@@ -1674,20 +1692,22 @@ export function PremiumStrategyView({ marketSnapshot, catalog, strategies, balan
                   : t('Hidden')}</strong>
               </button>)}
             </div>
-            <Suspense fallback={<div className="premium-history-chart chart-module-loading" role="status">{t('Loading premium history…')}</div>}>
-              <PremiumHistoryChart
-                key={historySeriesKey}
-                points={premiumPoints}
-                movingAverages={visiblePremiumMovingAverages}
-                seriesKey={historySeriesKey}
-                visibleDurationMs={premiumTimeframeConfig.visibleDurationMs}
-                theme={theme}
-                locale={language === 'zh' ? 'zh-CN' : 'en-US'}
-                placeholder={historyPlaceholder}
-                onHover={setHoveredPremium}
-                onLoadMore={loadOlderPremiumHistory}
-              />
-            </Suspense>
+            <ChartModuleBoundary message={t('Chart failed to load')} reloadLabel={t('Reload page')}>
+              <Suspense fallback={<div className="premium-history-chart chart-module-loading" role="status">{t('Loading premium history…')}</div>}>
+                <PremiumHistoryChart
+                  key={historySeriesKey}
+                  points={premiumPoints}
+                  movingAverages={visiblePremiumMovingAverages}
+                  seriesKey={historySeriesKey}
+                  visibleDurationMs={premiumTimeframeConfig.visibleDurationMs}
+                  theme={theme}
+                  locale={language === 'zh' ? 'zh-CN' : 'en-US'}
+                  placeholder={historyPlaceholder}
+                  onHover={setHoveredPremium}
+                  onLoadMore={loadOlderPremiumHistory}
+                />
+              </Suspense>
+            </ChartModuleBoundary>
           </div>
         </article>
       </div>
