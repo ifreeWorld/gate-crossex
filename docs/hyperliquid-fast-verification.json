@@ -1,0 +1,1357 @@
+{
+  "startedAt": "2026-09-20T15:34:18.416Z",
+  "samples": [
+    {
+      "at": 1789918458438,
+      "rows": [
+        {
+          "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918451407,
+          "acknowledgedAt": 1789918451733,
+          "receivedAt": 1789918458306,
+          "appliedAt": 1789918458306,
+          "sourceAt": 1789918457726,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918452409,
+          "acknowledgedAt": 1789918452766,
+          "receivedAt": 1789918458339,
+          "appliedAt": 1789918458339,
+          "sourceAt": 1789918457726,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+          "channel": "hyperliquid_book",
+          "state": "queued",
+          "requestedAt": null,
+          "acknowledgedAt": null,
+          "receivedAt": null,
+          "appliedAt": null,
+          "sourceAt": null,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_PENDLE_USDC",
+          "channel": "hyperliquid_book",
+          "state": "queued",
+          "requestedAt": null,
+          "acknowledgedAt": null,
+          "receivedAt": null,
+          "appliedAt": null,
+          "sourceAt": null,
+          "error": null
+        }
+      ]
+    },
+    {
+      "at": 1789918459451,
+      "rows": [
+        {
+          "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918451407,
+          "acknowledgedAt": 1789918451733,
+          "receivedAt": 1789918459177,
+          "appliedAt": 1789918459309,
+          "sourceAt": 1789918458806,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918452409,
+          "acknowledgedAt": 1789918452766,
+          "receivedAt": 1789918459214,
+          "appliedAt": 1789918459342,
+          "sourceAt": 1789918458806,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+          "channel": "hyperliquid_book",
+          "state": "queued",
+          "requestedAt": null,
+          "acknowledgedAt": null,
+          "receivedAt": null,
+          "appliedAt": null,
+          "sourceAt": null,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_PENDLE_USDC",
+          "channel": "hyperliquid_book",
+          "state": "queued",
+          "requestedAt": null,
+          "acknowledgedAt": null,
+          "receivedAt": null,
+          "appliedAt": null,
+          "sourceAt": null,
+          "error": null
+        }
+      ]
+    },
+    {
+      "at": 1789918460460,
+      "rows": [
+        {
+          "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918451407,
+          "acknowledgedAt": 1789918451733,
+          "receivedAt": 1789918460230,
+          "appliedAt": 1789918460312,
+          "sourceAt": 1789918459854,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918452409,
+          "acknowledgedAt": 1789918452766,
+          "receivedAt": 1789918460276,
+          "appliedAt": 1789918460344,
+          "sourceAt": 1789918459854,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+          "channel": "hyperliquid_book",
+          "state": "queued",
+          "requestedAt": null,
+          "acknowledgedAt": null,
+          "receivedAt": null,
+          "appliedAt": null,
+          "sourceAt": null,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_PENDLE_USDC",
+          "channel": "hyperliquid_book",
+          "state": "queued",
+          "requestedAt": null,
+          "acknowledgedAt": null,
+          "receivedAt": null,
+          "appliedAt": null,
+          "sourceAt": null,
+          "error": null
+        }
+      ]
+    },
+    {
+      "at": 1789918461466,
+      "rows": [
+        {
+          "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918451407,
+          "acknowledgedAt": 1789918451733,
+          "receivedAt": 1789918461423,
+          "appliedAt": 1789918461423,
+          "sourceAt": 1789918461084,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918452409,
+          "acknowledgedAt": 1789918452766,
+          "receivedAt": 1789918460816,
+          "appliedAt": 1789918460844,
+          "sourceAt": 1789918460394,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+          "channel": "hyperliquid_book",
+          "state": "queued",
+          "requestedAt": null,
+          "acknowledgedAt": null,
+          "receivedAt": null,
+          "appliedAt": null,
+          "sourceAt": null,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_PENDLE_USDC",
+          "channel": "hyperliquid_book",
+          "state": "queued",
+          "requestedAt": null,
+          "acknowledgedAt": null,
+          "receivedAt": null,
+          "appliedAt": null,
+          "sourceAt": null,
+          "error": null
+        }
+      ]
+    },
+    {
+      "at": 1789918462480,
+      "rows": [
+        {
+          "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918451407,
+          "acknowledgedAt": 1789918451733,
+          "receivedAt": 1789918462006,
+          "appliedAt": 1789918462006,
+          "sourceAt": 1789918461608,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918452409,
+          "acknowledgedAt": 1789918452766,
+          "receivedAt": 1789918462036,
+          "appliedAt": 1789918462036,
+          "sourceAt": 1789918461608,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+          "channel": "hyperliquid_book",
+          "state": "waiting_snapshot",
+          "requestedAt": 1789918462426,
+          "acknowledgedAt": null,
+          "receivedAt": null,
+          "appliedAt": null,
+          "sourceAt": null,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_PENDLE_USDC",
+          "channel": "hyperliquid_book",
+          "state": "queued",
+          "requestedAt": null,
+          "acknowledgedAt": null,
+          "receivedAt": null,
+          "appliedAt": null,
+          "sourceAt": null,
+          "error": null
+        }
+      ]
+    },
+    {
+      "at": 1789918463484,
+      "rows": [
+        {
+          "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918451407,
+          "acknowledgedAt": 1789918451733,
+          "receivedAt": 1789918463434,
+          "appliedAt": 1789918463435,
+          "sourceAt": 1789918462823,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918452409,
+          "acknowledgedAt": 1789918452766,
+          "receivedAt": 1789918463457,
+          "appliedAt": 1789918463457,
+          "sourceAt": 1789918462823,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918462426,
+          "acknowledgedAt": 1789918462742,
+          "receivedAt": 1789918463463,
+          "appliedAt": 1789918463463,
+          "sourceAt": 1789918462823,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_PENDLE_USDC",
+          "channel": "hyperliquid_book",
+          "state": "waiting_snapshot",
+          "requestedAt": 1789918463450,
+          "acknowledgedAt": null,
+          "receivedAt": null,
+          "appliedAt": null,
+          "sourceAt": null,
+          "error": null
+        }
+      ]
+    },
+    {
+      "at": 1789918464490,
+      "rows": [
+        {
+          "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918451407,
+          "acknowledgedAt": 1789918451733,
+          "receivedAt": 1789918464364,
+          "appliedAt": 1789918464454,
+          "sourceAt": 1789918463900,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918452409,
+          "acknowledgedAt": 1789918452766,
+          "receivedAt": 1789918464385,
+          "appliedAt": 1789918464478,
+          "sourceAt": 1789918463900,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918462426,
+          "acknowledgedAt": 1789918462742,
+          "receivedAt": 1789918464390,
+          "appliedAt": 1789918464483,
+          "sourceAt": 1789918463900,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_PENDLE_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918463450,
+          "acknowledgedAt": 1789918463780,
+          "receivedAt": 1789918464385,
+          "appliedAt": 1789918464385,
+          "sourceAt": 1789918463900,
+          "error": null
+        }
+      ]
+    },
+    {
+      "at": 1789918465496,
+      "rows": [
+        {
+          "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918451407,
+          "acknowledgedAt": 1789918451733,
+          "receivedAt": 1789918465355,
+          "appliedAt": 1789918465455,
+          "sourceAt": 1789918464978,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918452409,
+          "acknowledgedAt": 1789918452766,
+          "receivedAt": 1789918465364,
+          "appliedAt": 1789918465481,
+          "sourceAt": 1789918464978,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918462426,
+          "acknowledgedAt": 1789918462742,
+          "receivedAt": 1789918465377,
+          "appliedAt": 1789918465489,
+          "sourceAt": 1789918464978,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_PENDLE_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918463450,
+          "acknowledgedAt": 1789918463780,
+          "receivedAt": 1789918465361,
+          "appliedAt": 1789918465386,
+          "sourceAt": 1789918464978,
+          "error": null
+        }
+      ]
+    },
+    {
+      "at": 1789918466505,
+      "rows": [
+        {
+          "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918451407,
+          "acknowledgedAt": 1789918451733,
+          "receivedAt": 1789918466479,
+          "appliedAt": 1789918466479,
+          "sourceAt": 1789918466056,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918452409,
+          "acknowledgedAt": 1789918452766,
+          "receivedAt": 1789918466501,
+          "appliedAt": 1789918466502,
+          "sourceAt": 1789918466056,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918462426,
+          "acknowledgedAt": 1789918462742,
+          "receivedAt": 1789918465971,
+          "appliedAt": 1789918465990,
+          "sourceAt": 1789918465533,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_PENDLE_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918463450,
+          "acknowledgedAt": 1789918463780,
+          "receivedAt": 1789918466483,
+          "appliedAt": 1789918466484,
+          "sourceAt": 1789918466056,
+          "error": null
+        }
+      ]
+    },
+    {
+      "at": 1789918467520,
+      "rows": [
+        {
+          "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918451407,
+          "acknowledgedAt": 1789918451733,
+          "receivedAt": 1789918466963,
+          "appliedAt": 1789918466999,
+          "sourceAt": 1789918466596,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918452409,
+          "acknowledgedAt": 1789918452766,
+          "receivedAt": 1789918467247,
+          "appliedAt": 1789918467248,
+          "sourceAt": 1789918466596,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918462426,
+          "acknowledgedAt": 1789918462742,
+          "receivedAt": 1789918467256,
+          "appliedAt": 1789918467257,
+          "sourceAt": 1789918466596,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_PENDLE_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918463450,
+          "acknowledgedAt": 1789918463780,
+          "receivedAt": 1789918467240,
+          "appliedAt": 1789918467240,
+          "sourceAt": 1789918466596,
+          "error": null
+        }
+      ]
+    },
+    {
+      "at": 1789918468619,
+      "rows": [
+        {
+          "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918451407,
+          "acknowledgedAt": 1789918451733,
+          "receivedAt": 1789918468042,
+          "appliedAt": 1789918468042,
+          "sourceAt": 1789918467679,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918452409,
+          "acknowledgedAt": 1789918452766,
+          "receivedAt": 1789918468087,
+          "appliedAt": 1789918468253,
+          "sourceAt": 1789918467679,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918462426,
+          "acknowledgedAt": 1789918462742,
+          "receivedAt": 1789918468091,
+          "appliedAt": 1789918468260,
+          "sourceAt": 1789918467679,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_PENDLE_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918463450,
+          "acknowledgedAt": 1789918463780,
+          "receivedAt": 1789918468087,
+          "appliedAt": 1789918468240,
+          "sourceAt": 1789918467679,
+          "error": null
+        }
+      ]
+    },
+    {
+      "at": 1789918469628,
+      "rows": [
+        {
+          "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918451407,
+          "acknowledgedAt": 1789918451733,
+          "receivedAt": 1789918469118,
+          "appliedAt": 1789918469158,
+          "sourceAt": 1789918468753,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918452409,
+          "acknowledgedAt": 1789918452766,
+          "receivedAt": 1789918469147,
+          "appliedAt": 1789918469258,
+          "sourceAt": 1789918468753,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918462426,
+          "acknowledgedAt": 1789918462742,
+          "receivedAt": 1789918469154,
+          "appliedAt": 1789918469264,
+          "sourceAt": 1789918468753,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_PENDLE_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918463450,
+          "acknowledgedAt": 1789918463780,
+          "receivedAt": 1789918469136,
+          "appliedAt": 1789918469254,
+          "sourceAt": 1789918468753,
+          "error": null
+        }
+      ]
+    },
+    {
+      "at": 1789918470634,
+      "rows": [
+        {
+          "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918451407,
+          "acknowledgedAt": 1789918451733,
+          "receivedAt": 1789918470151,
+          "appliedAt": 1789918470188,
+          "sourceAt": 1789918469806,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918452409,
+          "acknowledgedAt": 1789918452766,
+          "receivedAt": 1789918470183,
+          "appliedAt": 1789918470261,
+          "sourceAt": 1789918469806,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918462426,
+          "acknowledgedAt": 1789918462742,
+          "receivedAt": 1789918470196,
+          "appliedAt": 1789918470271,
+          "sourceAt": 1789918469806,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_PENDLE_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918463450,
+          "acknowledgedAt": 1789918463780,
+          "receivedAt": 1789918470172,
+          "appliedAt": 1789918470257,
+          "sourceAt": 1789918469806,
+          "error": null
+        }
+      ]
+    },
+    {
+      "at": 1789918471646,
+      "rows": [
+        {
+          "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918451407,
+          "acknowledgedAt": 1789918451733,
+          "receivedAt": 1789918471317,
+          "appliedAt": 1789918471317,
+          "sourceAt": 1789918470898,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918452409,
+          "acknowledgedAt": 1789918452766,
+          "receivedAt": 1789918471338,
+          "appliedAt": 1789918471338,
+          "sourceAt": 1789918470898,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918462426,
+          "acknowledgedAt": 1789918462742,
+          "receivedAt": 1789918471346,
+          "appliedAt": 1789918471346,
+          "sourceAt": 1789918470898,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_PENDLE_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918463450,
+          "acknowledgedAt": 1789918463780,
+          "receivedAt": 1789918471327,
+          "appliedAt": 1789918471327,
+          "sourceAt": 1789918470898,
+          "error": null
+        }
+      ]
+    },
+    {
+      "at": 1789918472657,
+      "rows": [
+        {
+          "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918451407,
+          "acknowledgedAt": 1789918451733,
+          "receivedAt": 1789918472500,
+          "appliedAt": 1789918472500,
+          "sourceAt": 1789918472088,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918452409,
+          "acknowledgedAt": 1789918452766,
+          "receivedAt": 1789918472533,
+          "appliedAt": 1789918472533,
+          "sourceAt": 1789918472088,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918462426,
+          "acknowledgedAt": 1789918462742,
+          "receivedAt": 1789918472539,
+          "appliedAt": 1789918472539,
+          "sourceAt": 1789918472088,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_PENDLE_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918463450,
+          "acknowledgedAt": 1789918463780,
+          "receivedAt": 1789918472521,
+          "appliedAt": 1789918472521,
+          "sourceAt": 1789918472088,
+          "error": null
+        }
+      ]
+    },
+    {
+      "at": 1789918473663,
+      "rows": [
+        {
+          "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918451407,
+          "acknowledgedAt": 1789918451733,
+          "receivedAt": 1789918473597,
+          "appliedAt": 1789918473597,
+          "sourceAt": 1789918473039,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918452409,
+          "acknowledgedAt": 1789918452766,
+          "receivedAt": 1789918473634,
+          "appliedAt": 1789918473634,
+          "sourceAt": 1789918473039,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918462426,
+          "acknowledgedAt": 1789918462742,
+          "receivedAt": 1789918473641,
+          "appliedAt": 1789918473641,
+          "sourceAt": 1789918473039,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_PENDLE_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918463450,
+          "acknowledgedAt": 1789918463780,
+          "receivedAt": 1789918473616,
+          "appliedAt": 1789918473617,
+          "sourceAt": 1789918473039,
+          "error": null
+        }
+      ]
+    },
+    {
+      "at": 1789918474668,
+      "rows": [
+        {
+          "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918451407,
+          "acknowledgedAt": 1789918451733,
+          "receivedAt": 1789918474490,
+          "appliedAt": 1789918474604,
+          "sourceAt": 1789918474135,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918452409,
+          "acknowledgedAt": 1789918452766,
+          "receivedAt": 1789918474512,
+          "appliedAt": 1789918474637,
+          "sourceAt": 1789918474135,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918462426,
+          "acknowledgedAt": 1789918462742,
+          "receivedAt": 1789918474523,
+          "appliedAt": 1789918474644,
+          "sourceAt": 1789918474135,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_PENDLE_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918463450,
+          "acknowledgedAt": 1789918463780,
+          "receivedAt": 1789918474490,
+          "appliedAt": 1789918474618,
+          "sourceAt": 1789918474135,
+          "error": null
+        }
+      ]
+    },
+    {
+      "at": 1789918475672,
+      "rows": [
+        {
+          "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918451407,
+          "acknowledgedAt": 1789918451733,
+          "receivedAt": 1789918475542,
+          "appliedAt": 1789918475611,
+          "sourceAt": 1789918475207,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918452409,
+          "acknowledgedAt": 1789918452766,
+          "receivedAt": 1789918475575,
+          "appliedAt": 1789918475639,
+          "sourceAt": 1789918475207,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918462426,
+          "acknowledgedAt": 1789918462742,
+          "receivedAt": 1789918475587,
+          "appliedAt": 1789918475646,
+          "sourceAt": 1789918475207,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_PENDLE_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918463450,
+          "acknowledgedAt": 1789918463780,
+          "receivedAt": 1789918475564,
+          "appliedAt": 1789918475623,
+          "sourceAt": 1789918475207,
+          "error": null
+        }
+      ]
+    },
+    {
+      "at": 1789918476681,
+      "rows": [
+        {
+          "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918451407,
+          "acknowledgedAt": 1789918451733,
+          "receivedAt": 1789918476638,
+          "appliedAt": 1789918476638,
+          "sourceAt": 1789918476288,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918452409,
+          "acknowledgedAt": 1789918452766,
+          "receivedAt": 1789918476678,
+          "appliedAt": 1789918476678,
+          "sourceAt": 1789918476288,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918462426,
+          "acknowledgedAt": 1789918462742,
+          "receivedAt": 1789918476160,
+          "appliedAt": 1789918476160,
+          "sourceAt": 1789918475751,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_PENDLE_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918463450,
+          "acknowledgedAt": 1789918463780,
+          "receivedAt": 1789918476665,
+          "appliedAt": 1789918476665,
+          "sourceAt": 1789918476288,
+          "error": null
+        }
+      ]
+    },
+    {
+      "at": 1789918477689,
+      "rows": [
+        {
+          "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918451407,
+          "acknowledgedAt": 1789918451733,
+          "receivedAt": 1789918477243,
+          "appliedAt": 1789918477243,
+          "sourceAt": 1789918476828,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918452409,
+          "acknowledgedAt": 1789918452766,
+          "receivedAt": 1789918477276,
+          "appliedAt": 1789918477276,
+          "sourceAt": 1789918476828,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918462426,
+          "acknowledgedAt": 1789918462742,
+          "receivedAt": 1789918477279,
+          "appliedAt": 1789918477279,
+          "sourceAt": 1789918476828,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_PENDLE_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918463450,
+          "acknowledgedAt": 1789918463780,
+          "receivedAt": 1789918477249,
+          "appliedAt": 1789918477249,
+          "sourceAt": 1789918476828,
+          "error": null
+        }
+      ]
+    },
+    {
+      "at": 1789918478701,
+      "rows": [
+        {
+          "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918451407,
+          "acknowledgedAt": 1789918451733,
+          "receivedAt": 1789918478266,
+          "appliedAt": 1789918478266,
+          "sourceAt": 1789918477895,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918452409,
+          "acknowledgedAt": 1789918452766,
+          "receivedAt": 1789918478292,
+          "appliedAt": 1789918478292,
+          "sourceAt": 1789918477895,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918462426,
+          "acknowledgedAt": 1789918462742,
+          "receivedAt": 1789918478299,
+          "appliedAt": 1789918478299,
+          "sourceAt": 1789918477895,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_PENDLE_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918463450,
+          "acknowledgedAt": 1789918463780,
+          "receivedAt": 1789918478280,
+          "appliedAt": 1789918478281,
+          "sourceAt": 1789918477895,
+          "error": null
+        }
+      ]
+    },
+    {
+      "at": 1789918479767,
+      "rows": [
+        {
+          "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918451407,
+          "acknowledgedAt": 1789918451733,
+          "receivedAt": 1789918479332,
+          "appliedAt": 1789918479390,
+          "sourceAt": 1789918478981,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918452409,
+          "acknowledgedAt": 1789918452766,
+          "receivedAt": 1789918479507,
+          "appliedAt": 1789918479507,
+          "sourceAt": 1789918478981,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918462426,
+          "acknowledgedAt": 1789918462742,
+          "receivedAt": 1789918479511,
+          "appliedAt": 1789918479512,
+          "sourceAt": 1789918478981,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_PENDLE_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918463450,
+          "acknowledgedAt": 1789918463780,
+          "receivedAt": 1789918479354,
+          "appliedAt": 1789918479402,
+          "sourceAt": 1789918478981,
+          "error": null
+        }
+      ]
+    },
+    {
+      "at": 1789918480774,
+      "rows": [
+        {
+          "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918451407,
+          "acknowledgedAt": 1789918451733,
+          "receivedAt": 1789918480568,
+          "appliedAt": 1789918480568,
+          "sourceAt": 1789918480058,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918452409,
+          "acknowledgedAt": 1789918452766,
+          "receivedAt": 1789918480590,
+          "appliedAt": 1789918480590,
+          "sourceAt": 1789918480058,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918462426,
+          "acknowledgedAt": 1789918462742,
+          "receivedAt": 1789918480593,
+          "appliedAt": 1789918480594,
+          "sourceAt": 1789918480058,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_PENDLE_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918463450,
+          "acknowledgedAt": 1789918463780,
+          "receivedAt": 1789918480581,
+          "appliedAt": 1789918480581,
+          "sourceAt": 1789918480058,
+          "error": null
+        }
+      ]
+    },
+    {
+      "at": 1789918481777,
+      "rows": [
+        {
+          "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918451407,
+          "acknowledgedAt": 1789918451733,
+          "receivedAt": 1789918481487,
+          "appliedAt": 1789918481572,
+          "sourceAt": 1789918481134,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918452409,
+          "acknowledgedAt": 1789918452766,
+          "receivedAt": 1789918481609,
+          "appliedAt": 1789918481609,
+          "sourceAt": 1789918481134,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918462426,
+          "acknowledgedAt": 1789918462742,
+          "receivedAt": 1789918481614,
+          "appliedAt": 1789918481614,
+          "sourceAt": 1789918481134,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_PENDLE_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918463450,
+          "acknowledgedAt": 1789918463780,
+          "receivedAt": 1789918481508,
+          "appliedAt": 1789918481585,
+          "sourceAt": 1789918481134,
+          "error": null
+        }
+      ]
+    },
+    {
+      "at": 1789918482781,
+      "rows": [
+        {
+          "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918451407,
+          "acknowledgedAt": 1789918451733,
+          "receivedAt": 1789918482658,
+          "appliedAt": 1789918482659,
+          "sourceAt": 1789918482221,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918452409,
+          "acknowledgedAt": 1789918452766,
+          "receivedAt": 1789918482682,
+          "appliedAt": 1789918482683,
+          "sourceAt": 1789918482221,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918462426,
+          "acknowledgedAt": 1789918462742,
+          "receivedAt": 1789918482686,
+          "appliedAt": 1789918482686,
+          "sourceAt": 1789918482221,
+          "error": null
+        },
+        {
+          "symbol": "HYPERLIQUID_FUTURE_PENDLE_USDC",
+          "channel": "hyperliquid_book",
+          "state": "ready",
+          "requestedAt": 1789918463450,
+          "acknowledgedAt": 1789918463780,
+          "receivedAt": 1789918482672,
+          "appliedAt": 1789918482672,
+          "sourceAt": 1789918482221,
+          "error": null
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "HYPERLIQUID_FUTURE_BTC_USDC": {
+      "samples": 25,
+      "missing": 0,
+      "maxAgeMs": 940,
+      "expiredSamples": 0,
+      "maxProcessingMs": 132,
+      "sourceTimes": [
+        1789918457726,
+        1789918458806,
+        1789918459854,
+        1789918461084,
+        1789918461608,
+        1789918462823,
+        1789918463900,
+        1789918464978,
+        1789918466056,
+        1789918466596,
+        1789918467679,
+        1789918468753,
+        1789918469806,
+        1789918470898,
+        1789918472088,
+        1789918473039,
+        1789918474135,
+        1789918475207,
+        1789918476288,
+        1789918476828,
+        1789918477895,
+        1789918478981,
+        1789918480058,
+        1789918481134,
+        1789918482221
+      ]
+    },
+    "HYPERLIQUID_FUTURE_CL_USDC": {
+      "samples": 25,
+      "missing": 0,
+      "maxAgeMs": 1072,
+      "expiredSamples": 0,
+      "maxProcessingMs": 166,
+      "sourceTimes": [
+        1789918457726,
+        1789918458806,
+        1789918459854,
+        1789918460394,
+        1789918461608,
+        1789918462823,
+        1789918463900,
+        1789918464978,
+        1789918466056,
+        1789918466596,
+        1789918467679,
+        1789918468753,
+        1789918469806,
+        1789918470898,
+        1789918472088,
+        1789918473039,
+        1789918474135,
+        1789918475207,
+        1789918476288,
+        1789918476828,
+        1789918477895,
+        1789918478981,
+        1789918480058,
+        1789918481134,
+        1789918482221
+      ]
+    },
+    "HYPERLIQUID_FUTURE_NVDA_USDC": {
+      "samples": 25,
+      "missing": 5,
+      "maxAgeMs": 972,
+      "expiredSamples": 0,
+      "maxProcessingMs": 169,
+      "sourceTimes": [
+        1789918462823,
+        1789918463900,
+        1789918464978,
+        1789918465533,
+        1789918466596,
+        1789918467679,
+        1789918468753,
+        1789918469806,
+        1789918470898,
+        1789918472088,
+        1789918473039,
+        1789918474135,
+        1789918475207,
+        1789918475751,
+        1789918476828,
+        1789918477895,
+        1789918478981,
+        1789918480058,
+        1789918481134,
+        1789918482221
+      ]
+    },
+    "HYPERLIQUID_FUTURE_PENDLE_USDC": {
+      "samples": 25,
+      "missing": 6,
+      "maxAgeMs": 940,
+      "expiredSamples": 0,
+      "maxProcessingMs": 153,
+      "sourceTimes": [
+        1789918463900,
+        1789918464978,
+        1789918466056,
+        1789918466596,
+        1789918467679,
+        1789918468753,
+        1789918469806,
+        1789918470898,
+        1789918472088,
+        1789918473039,
+        1789918474135,
+        1789918475207,
+        1789918476288,
+        1789918476828,
+        1789918477895,
+        1789918478981,
+        1789918480058,
+        1789918481134,
+        1789918482221
+      ]
+    }
+  }
+}

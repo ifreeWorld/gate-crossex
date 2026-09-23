@@ -285,6 +285,7 @@ export interface FundingRatePoint {
 }
 
 export interface PublicMarketDataGateway {
+  queryHyperliquidMarkets?(): Promise<Record<string, string>>;
   querySnapshot(crossExSymbol: string): Promise<PublicMarketSnapshot>;
   /** Optional candle backfill for supported perpetual venues. */
   queryCandles?(crossExSymbol: string, interval: CandleInterval, limit: number, before?: number): Promise<Candle[]>;
@@ -588,6 +589,17 @@ export class VenuePublicMarketDataClient implements PublicMarketDataGateway {
     });
     this.hyperliquidMetadataInFlight = pending;
     return pending;
+  }
+
+  /** 与 K 线/资金费率共用元数据及消歧规则，不猜测 HIP-3 前缀。 */
+  async queryHyperliquidMarkets(): Promise<Record<string, string>> {
+    const { nativeNames } = await this.loadHyperliquidMetadata();
+    const markets: Record<string, string> = {};
+    for (const base of new Set(nativeNames.map(hyperliquidBase))) {
+      const name = selectHyperliquidNativeName(base, nativeNames);
+      if (name) markets[`HYPERLIQUID_FUTURE_${base}_USDC`] = name;
+    }
+    return markets;
   }
 
   private async resolveHyperliquidNativeName(base: string): Promise<string> {

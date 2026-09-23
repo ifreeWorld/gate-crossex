@@ -1,3 +1,4 @@
+import { splitHistorySegments } from './history-segments.js';
 import { useEffect, useMemo, useRef } from 'react';
 import { AreaSeries, CandlestickSeries, ColorType, createChart, CrosshairMode, HistogramSeries, LineSeries, LineStyle, TickMarkType, type AreaData, type CandlestickData, type IChartApi, type ISeriesApi, type LogicalRange, type Time, type UTCTimestamp } from 'lightweight-charts';
 import type { Candle, CandleInterval } from './api.js';
@@ -138,6 +139,8 @@ interface HistoryChartPoint {
 }
 
 interface HistoryChartProps<T extends HistoryChartPoint> {
+  /** 可选：真实采样超过此间隔时分段绘制，默认保持既有连续图表行为。 */
+  gapAfterMs?: number;
   points: T[];
   seriesKey: string;
   visibleDurationMs: number;
@@ -189,6 +192,7 @@ function SpreadHistoryChart<T extends HistoryChartPoint>({
   onHover,
   onLoadMore,
   overlays = [],
+  gapAfterMs,
   unit,
   ariaLabel,
 }: HistoryChartProps<T> & { overlays?: HistoryOverlaySeries[]; unit: '%' | ' bps'; ariaLabel: string }) {
@@ -196,6 +200,7 @@ function SpreadHistoryChart<T extends HistoryChartPoint>({
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<'Area'> | null>(null);
   const overlaySeriesRef = useRef<Map<string, ISeriesApi<'Line'>>>(new Map());
+  const segmentSeriesRef = useRef<Map<number, ISeriesApi<'Area'>>>(new Map());
   const pointByTimeRef = useRef<Map<number, T>>(new Map());
   const onHoverRef = useRef(onHover);
   const onLoadMoreRef = useRef(onLoadMore);
@@ -238,6 +243,7 @@ function SpreadHistoryChart<T extends HistoryChartPoint>({
       chartRef.current = null;
       seriesRef.current = null;
       overlaySeriesRef.current = new Map();
+      segmentSeriesRef.current = new Map();
       chart.timeScale().unsubscribeVisibleLogicalRangeChange(handleVisibleRange);
       chart.remove();
     };
@@ -294,13 +300,14 @@ function SpreadHistoryChart<T extends HistoryChartPoint>({
   useEffect(() => {
     const chart = chartRef.current;
     if (!chart) return;
-    const wanted = new Set(overlays.map((overlay) => overlay.id));
+    const segmentedOverlays = overlays.flatMap(overlay => splitHistorySegments(overlay.points, gapAfterMs).map((points, index) => ({ ...overlay, id: `${overlay.id}:${index}`, points })));
+    const wanted = new Set(segmentedOverlays.map((overlay) => overlay.id));
     for (const [id, series] of overlaySeriesRef.current) {
       if (wanted.has(id)) continue;
       chart.removeSeries(series);
       overlaySeriesRef.current.delete(id);
     }
-    for (const overlay of overlays) {
+    for (const overlay of segmentedOverlays) {
       let series = overlaySeriesRef.current.get(overlay.id);
       if (!series) {
         series = chart.addSeries(LineSeries, {
@@ -319,7 +326,7 @@ function SpreadHistoryChart<T extends HistoryChartPoint>({
         value: point.value,
       })));
     }
-  }, [overlays]);
+  }, [overlays, gapAfterMs]);
 
   useEffect(() => {
     const chart = chartRef.current;
@@ -331,22 +338,54 @@ function SpreadHistoryChart<T extends HistoryChartPoint>({
       && nextOldestTime < oldestTimeRef.current;
     const visibleRange = prepending ? chart.timeScale().getVisibleRange() : null;
     pointByTimeRef.current = new Map(points.map((point) => [Math.floor(point.time / 1000), point]));
-    series.setData(points.map((point) => ({
-      time: Math.floor(point.time / 1000) as UTCTimestamp,
-      value: point.value,
-    })));
+    // 主序列承载完整时间轴和十字光标；有缺口时用独立面积序列显示各连续段。
+    // 仅插入空白时间点，不插入伪造价格；避免 lightweight-charts 将缺口两侧连接。
+    const segments = splitHistorySegments(points, gapAfterMs);
+    const separated = gapAfterMs !== undefined && segments.length > 1;
+    const palette = PREMIUM_PALETTES[theme];
+    series.applyOptions({
+      lineVisible: !separated,
+      topColor: separated ? 'transparent' : palette.fillTop,
+      bottomColor: separated ? 'transparent' : palette.fillBottom,
+    });
+    const activeSegments = separated ? segments : [];
+    for (const [index, segment] of segmentSeriesRef.current) {
+      if (index < activeSegments.length) continue;
+      chart.removeSeries(segment);
+      segmentSeriesRef.current.delete(index);
+    }
+    activeSegments.forEach((part, index) => {
+      let segment = segmentSeriesRef.current.get(index);
+      if (!segment) {
+        segment = chart.addSeries(AreaSeries, { lineWidth: 2, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+        segmentSeriesRef.current.set(index, segment);
+      }
+      segment.applyOptions({ lineColor: palette.line, topColor: palette.fillTop, bottomColor: palette.fillBottom, pointMarkersVisible: part.length === 1 });
+      segment.setData(part.map(point => ({ time: Math.floor(point.time / 1000) as UTCTimestamp, value: point.value })));
+    });
+    const data: Array<{time: UTCTimestamp; value?: number}> = [];
+    points.forEach((point, index) => {
+      const previous = points[index - 1];
+      if (gapAfterMs !== undefined && previous && point.time - previous.time > gapAfterMs) {
+        data.push({ time: Math.floor((point.time + previous.time) / 2000) as UTCTimestamp });
+      }
+      data.push({ time: Math.floor(point.time / 1000) as UTCTimestamp, value: point.value });
+    });
+    series.setData(data);
     if (shownKeyRef.current !== seriesKey && points.length > 1) {
       shownKeyRef.current = seriesKey;
       const latestTime = points[points.length - 1].time;
       const firstVisibleIndex = Math.max(0, points.findIndex((point) => point.time >= latestTime - visibleDurationMs));
-      chart.timeScale().setVisibleLogicalRange({ from: firstVisibleIndex, to: points.length });
+      if (gapAfterMs !== undefined) {
+        chart.timeScale().setVisibleRange({ from: Math.floor(points[firstVisibleIndex].time / 1000) as UTCTimestamp, to: Math.floor(latestTime / 1000) as UTCTimestamp });
+      } else chart.timeScale().setVisibleLogicalRange({ from: firstVisibleIndex, to: points.length });
     } else if (visibleRange) {
       // Prepending changes logical indexes. Restore the timestamp range so the chart does not
       // jump while an older page is inserted to the left.
       chart.timeScale().setVisibleRange(visibleRange);
     }
     oldestTimeRef.current = nextOldestTime;
-  }, [points, seriesKey, visibleDurationMs]);
+  }, [points, seriesKey, visibleDurationMs, gapAfterMs, theme]);
 
   const latest = points[points.length - 1];
   const summary = latest
@@ -358,16 +397,15 @@ function SpreadHistoryChart<T extends HistoryChartPoint>({
   </div>;
 }
 
-export function PremiumHistoryChart({ movingAverages, ...props }: HistoryChartProps<PremiumHistoryPoint> & { movingAverages: PremiumMovingAverageSeries[] }) {
-  const overlays = useMemo(() => movingAverages.map((series) => ({
-    id: `ma-${series.period}`,
-    color: series.color,
-    points: series.points,
-  })), [movingAverages]);
-  return <SpreadHistoryChart {...props} overlays={overlays} unit="%" ariaLabel="Historical ADR premium" />;
+export function PremiumHistoryChart({ movingAverages, unit = "%", referenceValue = null, ariaLabel = "Historical ADR premium", ...props }: HistoryChartProps<PremiumHistoryPoint> & { movingAverages: PremiumMovingAverageSeries[]; unit?: "%" | " bps"; referenceValue?: number | null; ariaLabel?: string }) {
+  const overlays = useMemo(() => [
+    ...movingAverages.map((series) => ({ id: `ma-${series.period}`, color: series.color, points: series.points })),
+    ...(referenceValue === null ? [] : [{ id: 'reference-mean', color: '#9aabba', points: props.points.map(p => ({ time: p.time, value: referenceValue })) }]),
+  ], [movingAverages, referenceValue, props.points]);
+  return <SpreadHistoryChart {...props} overlays={overlays} unit={unit} ariaLabel={ariaLabel} />;
 }
 
-export function PriceDifferenceHistoryChart(props: HistoryChartProps<PriceDifferenceHistoryPoint>) {
+export function PriceDifferenceHistoryChart(props: HistoryChartProps<PriceDifferenceHistoryPoint> & { overlays?: HistoryOverlaySeries[] }) {
   return <SpreadHistoryChart {...props} unit=" bps" ariaLabel="Historical price difference" />;
 }
 

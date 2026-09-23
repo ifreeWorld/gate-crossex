@@ -740,6 +740,8 @@ test.describe.serial('local trading terminal', () => {
     await page.goto('/');
     await expect(page.getByRole('button', { name: /BTCUSDT/ })).toBeVisible();
     await expect(page.locator('.ohlc')).not.toContainText('—');
+    // 行情先于懒加载图表到达；等画布就绪后再比较截图。
+    await expect(page.locator('.price-chart canvas').first()).toBeVisible();
 
     const widths = await page.evaluate(() => ({
       viewport: window.innerWidth,

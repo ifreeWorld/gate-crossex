@@ -1,0 +1,12 @@
+{
+  "checkedAt": "2026-09-20T16:04:58.188Z",
+  "updatedAt": "2026-09-20T16:04:57.564Z",
+  "days": 30,
+  "row": {
+    "id": "BINANCE_FUTURE_ONE_USDT~OKX_FUTURE_ONE_USDT",
+    "coverage": 1,
+    "historyHours": 720,
+    "status": "watching",
+    "reason": null
+  }
+}

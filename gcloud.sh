@@ -13,6 +13,9 @@ set -euo pipefail
 #   bash gcloud.sh tunnel
 # Then open http://127.0.0.1:27840 in the Mac browser and keep this shell open.
 # Local port 17840 stays free for running the development checkout on this Mac.
+#
+# Show the personal Hysteria 2 QR code, Shadowrocket URI, and Clash Party YAML:
+#   bash gcloud.sh proxy-config
 
 ACCOUNT="wangzilong13991@gmail.com"
 PROJECT="project-d47dd35b-3573-43da-bf2"
@@ -39,8 +42,12 @@ case "${1:-ssh}" in
     gcloud compute ssh "$INSTANCE" --zone="$ZONE" -- \
       -C -L 27840:127.0.0.1:17840
     ;;
+  proxy-config)
+    gcloud compute ssh "$INSTANCE" --zone="$ZONE" \
+      --command='sudo /usr/local/sbin/hysteria-client-info'
+    ;;
   *)
-    echo "Usage: bash gcloud.sh [ssh|tunnel]" >&2
+    echo "Usage: bash gcloud.sh [ssh|tunnel|proxy-config]" >&2
     exit 2
     ;;
 esac

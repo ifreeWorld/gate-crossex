@@ -1,9 +1,10 @@
-export type StrategyRouteKind = 'position' | 'auto' | 'premium' | 'boros';
+export type StrategyRouteKind = 'position' | 'auto' | 'premium' | 'boros' | 'asset-monitor';
 
 export type FrontendRoute =
   | { workspace: 'Trade' }
   | { workspace: 'Strategy'; strategyKind: StrategyRouteKind }
   | { workspace: 'Funding Rates'; asset: string | null }
+  | { workspace: 'Spread Monitor' }
   | { workspace: 'Portfolio' }
   | { workspace: 'Trading Fees' };
 
@@ -14,12 +15,14 @@ const STRATEGY_PATHS: Record<StrategyRouteKind, string> = {
   auto: '/strategies/price-difference',
   premium: '/strategies/sk-hynix-premium',
   boros: '/strategies/boros',
+  'asset-monitor': '/strategies/asset-monitor',
 };
 
 /** Convert an application page into its canonical, reload-safe browser path. */
 export function frontendPath(route: FrontendRoute): string {
   if (route.workspace === 'Trade') return '/';
   if (route.workspace === 'Strategy') return STRATEGY_PATHS[route.strategyKind];
+  if (route.workspace === 'Spread Monitor') return '/spread-monitor';
   if (route.workspace === 'Portfolio') return '/portfolio';
   if (route.workspace === 'Trading Fees') return '/tools/trading-fees';
   return route.asset ? `/funding-rates/${encodeURIComponent(route.asset)}` : '/funding-rates';
@@ -29,6 +32,7 @@ export function frontendPath(route: FrontendRoute): string {
 export function frontendRoute(pathname: string): FrontendRoute | null {
   const path = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname;
   if (path === '/') return DEFAULT_FRONTEND_ROUTE;
+  if (path === '/spread-monitor') return { workspace: 'Spread Monitor' };
   if (path === '/portfolio') return { workspace: 'Portfolio' };
   if (path === '/tools/trading-fees') return { workspace: 'Trading Fees' };
   if (path === '/funding-rates') return { workspace: 'Funding Rates', asset: null };

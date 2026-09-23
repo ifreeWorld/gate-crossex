@@ -1,0 +1,704 @@
+{
+  "at": "2026-09-20T15:37:03.253Z",
+  "streams": {
+    "bbo-tbt:BTC-USDT-SWAP": {
+      "count": 236,
+      "last": 1789918648564,
+      "maxGapMs": 641,
+      "sourceAt": 1789918648473
+    },
+    "books5:BTC-USDT-SWAP": {
+      "count": 133,
+      "last": 1789918648595,
+      "maxGapMs": 645,
+      "sourceAt": 1789918648503
+    },
+    "bbo-tbt:ZHIPU-USDT-SWAP": {
+      "count": 2,
+      "last": 1789918643654,
+      "maxGapMs": 18757,
+      "sourceAt": 1789918643561
+    },
+    "books5:ZHIPU-USDT-SWAP": {
+      "count": 6,
+      "last": 1789918646227,
+      "maxGapMs": 7431,
+      "sourceAt": 1789918646101
+    }
+  },
+  "samples": [
+    {
+      "at": 1789918623286,
+      "row": {
+        "symbol": "OKX_FUTURE_ZHIPU_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789918499159,
+        "acknowledgedAt": 1789918499438,
+        "receivedAt": 1789918616995,
+        "appliedAt": 1789918616996,
+        "sourceAt": 1789918616901,
+        "error": null
+      }
+    },
+    {
+      "at": 1789918625300,
+      "row": {
+        "symbol": "OKX_FUTURE_ZHIPU_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789918499159,
+        "acknowledgedAt": 1789918499438,
+        "receivedAt": 1789918616995,
+        "appliedAt": 1789918616996,
+        "sourceAt": 1789918616901,
+        "error": null
+      }
+    },
+    {
+      "at": 1789918626324,
+      "row": {
+        "symbol": "OKX_FUTURE_ZHIPU_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789918499159,
+        "acknowledgedAt": 1789918499438,
+        "receivedAt": 1789918616995,
+        "appliedAt": 1789918616996,
+        "sourceAt": 1789918616901,
+        "error": null
+      }
+    },
+    {
+      "at": 1789918627335,
+      "row": {
+        "symbol": "OKX_FUTURE_ZHIPU_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789918499159,
+        "acknowledgedAt": 1789918499438,
+        "receivedAt": 1789918627194,
+        "appliedAt": 1789918627196,
+        "sourceAt": 1789918627101,
+        "error": null
+      }
+    },
+    {
+      "at": 1789918628347,
+      "row": {
+        "symbol": "OKX_FUTURE_ZHIPU_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789918499159,
+        "acknowledgedAt": 1789918499438,
+        "receivedAt": 1789918627194,
+        "appliedAt": 1789918627196,
+        "sourceAt": 1789918627101,
+        "error": null
+      }
+    },
+    {
+      "at": 1789918630452,
+      "row": {
+        "symbol": "OKX_FUTURE_ZHIPU_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789918499159,
+        "acknowledgedAt": 1789918499438,
+        "receivedAt": 1789918627194,
+        "appliedAt": 1789918627196,
+        "sourceAt": 1789918627101,
+        "error": null
+      }
+    },
+    {
+      "at": 1789918631458,
+      "row": {
+        "symbol": "OKX_FUTURE_ZHIPU_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789918499159,
+        "acknowledgedAt": 1789918499438,
+        "receivedAt": 1789918627194,
+        "appliedAt": 1789918627196,
+        "sourceAt": 1789918627101,
+        "error": null
+      }
+    },
+    {
+      "at": 1789918632465,
+      "row": {
+        "symbol": "OKX_FUTURE_ZHIPU_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789918499159,
+        "acknowledgedAt": 1789918499438,
+        "receivedAt": 1789918631551,
+        "appliedAt": 1789918631551,
+        "sourceAt": 1789918631401,
+        "error": null
+      }
+    },
+    {
+      "at": 1789918633471,
+      "row": {
+        "symbol": "OKX_FUTURE_ZHIPU_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789918499159,
+        "acknowledgedAt": 1789918499438,
+        "receivedAt": 1789918631551,
+        "appliedAt": 1789918631551,
+        "sourceAt": 1789918631401,
+        "error": null
+      }
+    },
+    {
+      "at": 1789918635504,
+      "row": {
+        "symbol": "OKX_FUTURE_ZHIPU_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789918499159,
+        "acknowledgedAt": 1789918499438,
+        "receivedAt": 1789918631551,
+        "appliedAt": 1789918631551,
+        "sourceAt": 1789918631401,
+        "error": null
+      }
+    },
+    {
+      "at": 1789918636509,
+      "row": {
+        "symbol": "OKX_FUTURE_ZHIPU_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789918499159,
+        "acknowledgedAt": 1789918499438,
+        "receivedAt": 1789918636265,
+        "appliedAt": 1789918636265,
+        "sourceAt": 1789918636101,
+        "error": null
+      }
+    },
+    {
+      "at": 1789918637516,
+      "row": {
+        "symbol": "OKX_FUTURE_ZHIPU_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789918499159,
+        "acknowledgedAt": 1789918499438,
+        "receivedAt": 1789918636265,
+        "appliedAt": 1789918636265,
+        "sourceAt": 1789918636101,
+        "error": null
+      }
+    },
+    {
+      "at": 1789918638525,
+      "row": {
+        "symbol": "OKX_FUTURE_ZHIPU_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789918499159,
+        "acknowledgedAt": 1789918499438,
+        "receivedAt": 1789918636265,
+        "appliedAt": 1789918636265,
+        "sourceAt": 1789918636101,
+        "error": null
+      }
+    },
+    {
+      "at": 1789918640500,
+      "row": {
+        "symbol": "OKX_FUTURE_ZHIPU_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789918499159,
+        "acknowledgedAt": 1789918499438,
+        "receivedAt": 1789918636265,
+        "appliedAt": 1789918636265,
+        "sourceAt": 1789918636101,
+        "error": null
+      }
+    },
+    {
+      "at": 1789918641504,
+      "row": {
+        "symbol": "OKX_FUTURE_ZHIPU_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789918499159,
+        "acknowledgedAt": 1789918499438,
+        "receivedAt": 1789918636265,
+        "appliedAt": 1789918636265,
+        "sourceAt": 1789918636101,
+        "error": null
+      }
+    },
+    {
+      "at": 1789918642509,
+      "row": {
+        "symbol": "OKX_FUTURE_ZHIPU_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789918499159,
+        "acknowledgedAt": 1789918499438,
+        "receivedAt": 1789918636265,
+        "appliedAt": 1789918636265,
+        "sourceAt": 1789918636101,
+        "error": null
+      }
+    },
+    {
+      "at": 1789918643515,
+      "row": {
+        "symbol": "OKX_FUTURE_ZHIPU_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789918499159,
+        "acknowledgedAt": 1789918499438,
+        "receivedAt": 1789918636265,
+        "appliedAt": 1789918636265,
+        "sourceAt": 1789918636101,
+        "error": null
+      }
+    },
+    {
+      "at": 1789918645657,
+      "row": {
+        "symbol": "OKX_FUTURE_ZHIPU_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789918499159,
+        "acknowledgedAt": 1789918499438,
+        "receivedAt": 1789918643694,
+        "appliedAt": 1789918643694,
+        "sourceAt": 1789918643601,
+        "error": null
+      }
+    },
+    {
+      "at": 1789918646666,
+      "row": {
+        "symbol": "OKX_FUTURE_ZHIPU_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789918499159,
+        "acknowledgedAt": 1789918499438,
+        "receivedAt": 1789918646231,
+        "appliedAt": 1789918646231,
+        "sourceAt": 1789918646101,
+        "error": null
+      }
+    },
+    {
+      "at": 1789918647676,
+      "row": {
+        "symbol": "OKX_FUTURE_ZHIPU_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789918499159,
+        "acknowledgedAt": 1789918499438,
+        "receivedAt": 1789918646231,
+        "appliedAt": 1789918646231,
+        "sourceAt": 1789918646101,
+        "error": null
+      }
+    }
+  ],
+  "rest": [
+    {
+      "at": 1789918624298,
+      "duration": 1004,
+      "response": {
+        "code": "0",
+        "msg": "",
+        "data": [
+          {
+            "asks": [
+              [
+                "93.03",
+                "0.08",
+                "0",
+                "2"
+              ],
+              [
+                "93.04",
+                "2.83",
+                "0",
+                "2"
+              ],
+              [
+                "93.05",
+                "33.44",
+                "0",
+                "7"
+              ],
+              [
+                "93.06",
+                "3.58",
+                "0",
+                "2"
+              ],
+              [
+                "93.07",
+                "32.21",
+                "0",
+                "2"
+              ]
+            ],
+            "bids": [
+              [
+                "93",
+                "0.05",
+                "0",
+                "2"
+              ],
+              [
+                "92.99",
+                "2.02",
+                "0",
+                "1"
+              ],
+              [
+                "92.98",
+                "2.97",
+                "0",
+                "3"
+              ],
+              [
+                "92.97",
+                "2.04",
+                "0",
+                "1"
+              ],
+              [
+                "92.96",
+                "3.15",
+                "0",
+                "3"
+              ]
+            ],
+            "ts": "1789918624201",
+            "seqId": 580227938
+          }
+        ]
+      }
+    },
+    {
+      "at": 1789918629450,
+      "duration": 1091,
+      "response": {
+        "code": "0",
+        "msg": "",
+        "data": [
+          {
+            "asks": [
+              [
+                "93.03",
+                "0.08",
+                "0",
+                "2"
+              ],
+              [
+                "93.04",
+                "2.83",
+                "0",
+                "2"
+              ],
+              [
+                "93.05",
+                "33.44",
+                "0",
+                "7"
+              ],
+              [
+                "93.06",
+                "3.58",
+                "0",
+                "2"
+              ],
+              [
+                "93.07",
+                "32.21",
+                "0",
+                "2"
+              ]
+            ],
+            "bids": [
+              [
+                "93",
+                "0.05",
+                "0",
+                "2"
+              ],
+              [
+                "92.99",
+                "2.02",
+                "0",
+                "1"
+              ],
+              [
+                "92.98",
+                "2.97",
+                "0",
+                "3"
+              ],
+              [
+                "92.97",
+                "2.21",
+                "0",
+                "2"
+              ],
+              [
+                "92.96",
+                "3.03",
+                "0",
+                "2"
+              ]
+            ],
+            "ts": "1789918629301",
+            "seqId": 580227964
+          }
+        ]
+      }
+    },
+    {
+      "at": 1789918634501,
+      "duration": 1026,
+      "response": {
+        "code": "0",
+        "msg": "",
+        "data": [
+          {
+            "asks": [
+              [
+                "93.03",
+                "0.08",
+                "0",
+                "2"
+              ],
+              [
+                "93.04",
+                "5.42",
+                "0",
+                "3"
+              ],
+              [
+                "93.05",
+                "33.44",
+                "0",
+                "7"
+              ],
+              [
+                "93.06",
+                "3.58",
+                "0",
+                "2"
+              ],
+              [
+                "93.07",
+                "32.21",
+                "0",
+                "2"
+              ]
+            ],
+            "bids": [
+              [
+                "93",
+                "0.05",
+                "0",
+                "2"
+              ],
+              [
+                "92.99",
+                "2.02",
+                "0",
+                "1"
+              ],
+              [
+                "92.98",
+                "2.97",
+                "0",
+                "3"
+              ],
+              [
+                "92.97",
+                "2.21",
+                "0",
+                "2"
+              ],
+              [
+                "92.96",
+                "3.03",
+                "0",
+                "2"
+              ]
+            ],
+            "ts": "1789918634401",
+            "seqId": 580227981
+          }
+        ]
+      }
+    },
+    {
+      "at": 1789918639499,
+      "duration": 970,
+      "response": {
+        "code": "0",
+        "msg": "",
+        "data": [
+          {
+            "asks": [
+              [
+                "93.03",
+                "0.08",
+                "0",
+                "2"
+              ],
+              [
+                "93.04",
+                "5.42",
+                "0",
+                "3"
+              ],
+              [
+                "93.05",
+                "33.44",
+                "0",
+                "7"
+              ],
+              [
+                "93.06",
+                "3.58",
+                "0",
+                "2"
+              ],
+              [
+                "93.07",
+                "32.21",
+                "0",
+                "2"
+              ]
+            ],
+            "bids": [
+              [
+                "93",
+                "0.05",
+                "0",
+                "2"
+              ],
+              [
+                "92.99",
+                "2.02",
+                "0",
+                "1"
+              ],
+              [
+                "92.98",
+                "2.97",
+                "0",
+                "3"
+              ],
+              [
+                "92.97",
+                "2.04",
+                "0",
+                "1"
+              ],
+              [
+                "92.96",
+                "3.15",
+                "0",
+                "3"
+              ]
+            ],
+            "ts": "1789918639401",
+            "seqId": 580228017
+          }
+        ]
+      }
+    },
+    {
+      "at": 1789918644654,
+      "duration": 1134,
+      "response": {
+        "code": "0",
+        "msg": "",
+        "data": [
+          {
+            "asks": [
+              [
+                "93.03",
+                "1.64",
+                "0",
+                "3"
+              ],
+              [
+                "93.04",
+                "26.03",
+                "0",
+                "4"
+              ],
+              [
+                "93.05",
+                "33.44",
+                "0",
+                "7"
+              ],
+              [
+                "93.06",
+                "3.58",
+                "0",
+                "2"
+              ],
+              [
+                "93.07",
+                "32.21",
+                "0",
+                "2"
+              ]
+            ],
+            "bids": [
+              [
+                "93",
+                "0.05",
+                "0",
+                "2"
+              ],
+              [
+                "92.99",
+                "2.02",
+                "0",
+                "1"
+              ],
+              [
+                "92.98",
+                "2.97",
+                "0",
+                "3"
+              ],
+              [
+                "92.97",
+                "2.04",
+                "0",
+                "1"
+              ],
+              [
+                "92.96",
+                "3.15",
+                "0",
+                "3"
+              ]
+            ],
+            "ts": "1789918644501",
+            "seqId": 580228048
+          }
+        ]
+      }
+    }
+  ],
+  "errors": []
+}

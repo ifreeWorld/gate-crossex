@@ -8,6 +8,8 @@ Type=simple
 User=wangzilong
 Group=wangzilong
 WorkingDirectory=/home/wangzilong/gate-crossex
+# 可选的服务器本地配置；不随代码提交。
+EnvironmentFile=-/home/wangzilong/gate-crossex/.env
 Environment=HOME=/home/wangzilong
 Environment=NODE_ENV=production
 Environment=GCT_HOST=127.0.0.1

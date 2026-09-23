@@ -1,0 +1,236 @@
+{
+  "startedAt": "2026-09-20T14:59:17.122Z",
+  "endpoint": "wss://api.gateio.ws/ws/crossex/public",
+  "connections": 1,
+  "authenticated": false,
+  "requests": [
+    [
+      "order_book_20",
+      [
+        "BINANCE_FUTURE_BTC_USDT",
+        "HYPERLIQUID_FUTURE_BTC_USDC"
+      ]
+    ],
+    [
+      "order_book_5",
+      [
+        "OKX_FUTURE_BTC_USDT"
+      ]
+    ],
+    [
+      "order_book_100",
+      [
+        "GATE_FUTURE_BTC_USDT"
+      ]
+    ],
+    [
+      "order_book_1",
+      [
+        "BYBIT_FUTURE_BTC_USDT"
+      ]
+    ],
+    [
+      "order_book_update",
+      [
+        "BYBIT_FUTURE_BTC_USDT",
+        "KRAKEN_FUTURE_BTC_USD"
+      ]
+    ],
+    [
+      "order_book_50",
+      [
+        "BYBIT_FUTURE_BTC_USDT"
+      ]
+    ],
+    [
+      "order_book_400",
+      [
+        "HYPERLIQUID_FUTURE_BTC_USDC"
+      ]
+    ]
+  ],
+  "responses": [
+    {
+      "time": 1789916366,
+      "channel": "order_book_20",
+      "event": "subscribe",
+      "result": {
+        "status": "success"
+      },
+      "payload": [
+        "BINANCE_FUTURE_BTC_USDT",
+        "HYPERLIQUID_FUTURE_BTC_USDC"
+      ],
+      "time_ms": 1789916366912
+    },
+    {
+      "time": 1789916367,
+      "channel": "order_book_5",
+      "event": "subscribe",
+      "result": {
+        "status": "success"
+      },
+      "payload": [
+        "OKX_FUTURE_BTC_USDT"
+      ],
+      "time_ms": 1789916367728
+    },
+    {
+      "time": 1789916368,
+      "channel": "order_book_100",
+      "event": "subscribe",
+      "result": {
+        "status": "success"
+      },
+      "payload": [
+        "GATE_FUTURE_BTC_USDT"
+      ],
+      "time_ms": 1789916368516
+    },
+    {
+      "time": 1789916369,
+      "channel": "order_book_1",
+      "event": "subscribe",
+      "result": {
+        "status": "success"
+      },
+      "payload": [
+        "BYBIT_FUTURE_BTC_USDT"
+      ],
+      "time_ms": 1789916369329
+    },
+    {
+      "time": 1789916370,
+      "channel": "order_book_update",
+      "event": "subscribe",
+      "result": {
+        "status": "success"
+      },
+      "payload": [
+        "BYBIT_FUTURE_BTC_USDT",
+        "KRAKEN_FUTURE_BTC_USD"
+      ],
+      "time_ms": 1789916370129
+    },
+    {
+      "time": 1789916370,
+      "channel": "order_book_50",
+      "event": "subscribe",
+      "result": {
+        "status": "failed"
+      },
+      "error": {
+        "code": 1000101,
+        "message": "Bybit just support [1] level snapshot orderBook"
+      },
+      "payload": [
+        "BYBIT_FUTURE_BTC_USDT"
+      ],
+      "time_ms": 1789916370921
+    },
+    {
+      "time": 1789916371,
+      "channel": "order_book_400",
+      "event": "subscribe",
+      "result": {
+        "status": "failed"
+      },
+      "error": {
+        "code": 1000111,
+        "message": "Hyperliquid just support [1,5,10,20] level snapshot orderBook"
+      },
+      "payload": [
+        "HYPERLIQUID_FUTURE_BTC_USDC"
+      ],
+      "time_ms": 1789916371723
+    }
+  ],
+  "streams": {
+    "order_book_20:BINANCE_FUTURE_BTC_USDT": {
+      "count": 209,
+      "snapshots": 0,
+      "deltas": 0,
+      "firstSnapshot": null,
+      "firstU": null,
+      "firstu": null,
+      "maxAsks": 20,
+      "maxBids": 20,
+      "maxArrivalMinusTsMs": 5549,
+      "maxGapMs": 2440,
+      "lastArrival": 1789916391565,
+      "meanArrivalMinusTsMs": 2502
+    },
+    "order_book_5:OKX_FUTURE_BTC_USDT": {
+      "count": 165,
+      "snapshots": 0,
+      "deltas": 0,
+      "firstSnapshot": null,
+      "firstU": null,
+      "firstu": null,
+      "maxAsks": 5,
+      "maxBids": 5,
+      "maxArrivalMinusTsMs": 5523,
+      "maxGapMs": 1625,
+      "lastArrival": 1789916391565,
+      "meanArrivalMinusTsMs": 2448
+    },
+    "order_book_100:GATE_FUTURE_BTC_USDT": {
+      "count": 217,
+      "snapshots": 0,
+      "deltas": 0,
+      "firstSnapshot": null,
+      "firstU": null,
+      "firstu": null,
+      "maxAsks": 100,
+      "maxBids": 100,
+      "maxArrivalMinusTsMs": 5622,
+      "maxGapMs": 1626,
+      "lastArrival": 1789916391565,
+      "meanArrivalMinusTsMs": 2496
+    },
+    "order_book_1:BYBIT_FUTURE_BTC_USDT": {
+      "count": 492,
+      "snapshots": 0,
+      "deltas": 0,
+      "firstSnapshot": null,
+      "firstU": null,
+      "firstu": null,
+      "maxAsks": 1,
+      "maxBids": 1,
+      "maxArrivalMinusTsMs": 5709,
+      "maxGapMs": 1332,
+      "lastArrival": 1789916391565,
+      "meanArrivalMinusTsMs": 2689
+    },
+    "order_book_update:KRAKEN_FUTURE_BTC_USD": {
+      "count": 9074,
+      "snapshots": 0,
+      "deltas": 9074,
+      "firstSnapshot": false,
+      "firstU": 167939781,
+      "firstu": 167939781,
+      "maxAsks": 1,
+      "maxBids": 1,
+      "maxArrivalMinusTsMs": 5787,
+      "maxGapMs": 1329,
+      "lastArrival": 1789916391565,
+      "meanArrivalMinusTsMs": 2450
+    },
+    "order_book_update:BYBIT_FUTURE_BTC_USDT": {
+      "count": 100,
+      "snapshots": 0,
+      "deltas": 100,
+      "firstSnapshot": false,
+      "firstU": 25638531,
+      "firstu": -1,
+      "maxAsks": 456,
+      "maxBids": 427,
+      "maxArrivalMinusTsMs": 5629,
+      "maxGapMs": 1465,
+      "lastArrival": 1789916391564,
+      "meanArrivalMinusTsMs": 2404
+    }
+  },
+  "errors": [],
+  "finishedAt": "2026-09-20T14:59:52.145Z"
+}

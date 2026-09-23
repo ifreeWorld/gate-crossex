@@ -1,3 +1,5 @@
+import { loadEnvFile } from 'node:process';
+import { fileURLToPath } from 'node:url';
 import { buildApp } from './app.js';
 import { loadConfig } from './config.js';
 import { createSystemCredentialVault } from './credential-vault.js';
@@ -9,6 +11,16 @@ import { readHyperliquidPerpMetadata, writeHyperliquidPerpMetadata } from './rep
 import { monitorWindowsServiceParent } from './service-parent-monitor.js';
 
 process.umask(0o077);
+// 从源码和 dist 启动均定位到项目根目录；已有环境变量优先。
+try {
+  loadEnvFile(fileURLToPath(new URL('../../../.env', import.meta.url)));
+} catch (error) {
+  if (!(error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT')) {
+    // 不附带原始配置读取错误，避免启动日志泄露配置内容。
+    // eslint-disable-next-line preserve-caught-error
+    throw new Error('无法加载项目 .env，请检查文件权限和格式。');
+  }
+}
 const config = loadConfig();
 const processLock = acquireBackendProcessLock(config.dataDir);
 let database: ReturnType<typeof openDatabase>;

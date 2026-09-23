@@ -367,6 +367,8 @@ async function createTestApp(options: {
     credentialVault: vault,
     crossExGateway: gateway,
     publicMarketGateway,
+    observationMarketStats: null,
+    observationSource: { collect: async () => [], stop: () => {} },
     tradingSession,
     marketHub: options.marketHub,
     startMarketStream: options.startMarketStream,
@@ -479,7 +481,7 @@ describe('local backend', () => {
       authenticatedTradingEnabled: false,
       tradingMode: 'unset',
       mode: 'live',
-      database: { migrationCount: 17, currentMigration: '0017_hyperliquid_perp_metadata.sql' },
+      database: { migrationCount: 20, currentMigration: '0020_asset_monitor.sql' },
       security: {
         credentialStorage: 'memory_test_only',
         credentialEntryPath: '/secure/credentials',
@@ -2078,5 +2080,26 @@ describe('local backend', () => {
     expect(response.statusCode).toBe(400);
     expect(gateway.receivedCredentials).toEqual([]);
     expect(await vault.get(DEFAULT_CREDENTIAL_PROFILE)).toBeNull();
+  });
+});
+
+
+describe('稳定币与黄金观察 API', () => {
+  it('只读快照、历史参数与写入意图校验', async () => {
+    const {app}=await createTestApp();
+    const snapshot=await app.inject({method:'GET',url:'/api/asset-monitor'});
+    expect(snapshot.statusCode).toBe(200);expect(snapshot.json()).toMatchObject({stable:[],gold:[],updatedAt:null});
+    const bad=await app.inject({method:'GET',url:'/api/asset-monitor/history?a=x&b=x&hours=24'});expect(bad.statusCode).toBe(400);
+    expect((await app.inject({method:'GET',url:'/api/asset-monitor/history?a=x&b=y&hours=10&intervalMinutes=2'})).statusCode).toBe(400);
+    const interval=await app.inject({method:'GET',url:'/api/asset-monitor/history?a=x&b=y&hours=10&intervalMinutes=5'});expect(interval.statusCode).toBe(200);expect(interval.json().intervalMs).toBe(300000);
+    const good=await app.inject({method:'GET',url:'/api/asset-monitor/history?a=x&b=y&hours=24'});expect(good.statusCode).toBe(200);expect(good.json().points).toEqual([]);
+    const gold={thresholdBps:50,durationSeconds:15,recoveryBps:25,recoverySeconds:10,notificationsEnabled:false};
+    expect((await app.inject({method:'PUT',url:'/api/asset-monitor/gold-settings',payload:gold})).statusCode).toBe(403);
+    expect((await app.inject({method:'PUT',url:'/api/asset-monitor/gold-settings',headers:{'x-gct-monitor-intent':'update-settings'},payload:{...gold,recoveryBps:50}})).statusCode).toBe(400);
+    const goldSaved=await app.inject({method:'PUT',url:'/api/asset-monitor/gold-settings',headers:{'x-gct-monitor-intent':'update-settings'},payload:gold});
+    expect(goldSaved.statusCode).toBe(200);expect(goldSaved.json().goldSettings).toEqual(gold);
+    const settings={threshold:'0.99',durationSeconds:30,notificationsEnabled:false,paymentCoins:'both',bidirectional:true,minPayAmount:100};
+    expect((await app.inject({method:'PUT',url:'/api/asset-monitor/settings',payload:settings})).statusCode).toBe(403);
+    const saved=await app.inject({method:'PUT',url:'/api/asset-monitor/settings',headers:{'x-gct-monitor-intent':'update-settings'},payload:settings});expect(saved.statusCode).toBe(200);expect(saved.json().settings).toEqual(settings);
   });
 });

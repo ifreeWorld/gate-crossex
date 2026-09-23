@@ -91,25 +91,30 @@ offer_update() {
 }
 
 ensure_node
+# Node 解析配置，不作为 shell 脚本执行；进程已有环境变量优先。
+NODE_LAUNCHER=("$NODE_BIN")
+if [ -f "$ROOT/.env" ]; then
+  NODE_LAUNCHER+=("--env-file=$ROOT/.env")
+fi
 case "$CMD" in
   start)
     offer_update
     ensure_deps
-    "$NODE_BIN" scripts/launcher.mjs "$CMD"
+    "${NODE_LAUNCHER[@]}" scripts/launcher.mjs "$CMD"
     ;;
   dev)
     ensure_deps
-    "$NODE_BIN" scripts/launcher.mjs "$CMD"
+    "${NODE_LAUNCHER[@]}" scripts/launcher.mjs "$CMD"
     ;;
   doctor|stop|logs)
-    "$NODE_BIN" scripts/launcher.mjs "$CMD"
+    "${NODE_LAUNCHER[@]}" scripts/launcher.mjs "$CMD"
     ;;
   reset)
     echo "Destructive reset: this removes local configuration, database, and runtime state."
     printf "Type RESET to continue: "
     read -r answer
     if [ "$answer" = RESET ]; then
-      "$NODE_BIN" scripts/launcher.mjs stop
+      "${NODE_LAUNCHER[@]}" scripts/launcher.mjs stop
       rm -rf .local-data
       echo "Local state reset."
     else
@@ -120,7 +125,7 @@ case "$CMD" in
     if [ -f .gate-crossex-source-install ] && [ ! -d .git ]; then
       exec env GCT_INSTALL_DIR="$ROOT" /bin/bash "$ROOT/bootstrap.sh" --update
     fi
-    "$NODE_BIN" scripts/launcher.mjs stop
+    "${NODE_LAUNCHER[@]}" scripts/launcher.mjs stop
     ensure_deps
     if [ -f .local-data/gate-crossex.sqlite ]; then
       backup_path=".local-data/gate-crossex.sqlite.backup.$(date +%Y%m%d%H%M%S)"
@@ -134,7 +139,7 @@ case "$CMD" in
     ;;
   backup)
     ensure_deps
-    "$NODE_BIN" scripts/launcher.mjs stop
+    "${NODE_LAUNCHER[@]}" scripts/launcher.mjs stop
     if [ ! -f .local-data/gate-crossex.sqlite ]; then
       echo "No local database exists to back up." >&2
       exit 1
@@ -157,12 +162,12 @@ case "$CMD" in
       echo "Restore aborted."
       exit 0
     fi
-    "$NODE_BIN" scripts/launcher.mjs stop
+    "${NODE_LAUNCHER[@]}" scripts/launcher.mjs stop
     "$NODE_BIN" scripts/restore-database.mjs "$restore_path" .local-data/gate-crossex.sqlite
     ;;
   maintenance)
     ensure_deps
-    "$NODE_BIN" scripts/launcher.mjs stop
+    "${NODE_LAUNCHER[@]}" scripts/launcher.mjs stop
     "$NODE_BIN" scripts/maintain-database.mjs .local-data/gate-crossex.sqlite
     ;;
   *)
