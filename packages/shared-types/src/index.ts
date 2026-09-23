@@ -591,7 +591,7 @@ export const OrderBookSnapshotSchema = z.object({
   bids: z.array(OrderBookLevelSchema),
   asks: z.array(OrderBookLevelSchema),
   updatedAt: z.string(),
-  source: z.literal('gate_crossex_websocket'),
+  source: z.enum(['gate_crossex_websocket', 'kraken_public_websocket', 'venue_public_websocket', 'venue_public_rest']),
 });
 export type OrderBookSnapshot = z.infer<typeof OrderBookSnapshotSchema>;
 
@@ -965,3 +965,7 @@ export type UserPreferences = z.infer<typeof UserPreferencesSchema>;
 
 export const UserPreferencesResponseSchema = z.object({ preferences: UserPreferencesSchema });
 export type UserPreferencesResponse = z.infer<typeof UserPreferencesResponseSchema>;
+
+export * from './spread-monitor.js';
+
+export * from "./asset-monitor.js";

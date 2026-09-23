@@ -675,3 +675,17 @@ describe('bulk venue funding stats', () => {
     }]);
   });
 });
+
+
+it('原生盘口映射共用元数据：基础币优先，HIP-3 同名歧义和退市不猜测', async () => {
+  const fetcher = vi.fn(async () => new Response(JSON.stringify([
+    { universe: [{ name: 'BTC' }] },
+    { universe: [{ name: 'xyz:BTC' }, { name: 'xyz:NVDA' }, { name: 'xyz:CL' }, { name: 'xyz:OLD', isDelisted: true }] },
+    { universe: [{ name: 'other:CL' }, { name: 'other:SKHX' }] },
+  ]), { status: 200 }));
+  const client = new VenuePublicMarketDataClient(fetcher);
+  const markets = await client.queryHyperliquidMarkets();
+  expect(markets).toEqual({ HYPERLIQUID_FUTURE_BTC_USDC: 'BTC', HYPERLIQUID_FUTURE_NVDA_USDC: 'xyz:NVDA', HYPERLIQUID_FUTURE_SKHX_USDC: 'other:SKHX' });
+  expect(await client.queryHyperliquidMarkets()).toEqual(markets);
+  expect(fetcher).toHaveBeenCalledTimes(1);
+});

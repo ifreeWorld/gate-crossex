@@ -1,0 +1,3213 @@
+{
+  "startedAt": "2026-09-20T15:16:54.380Z",
+  "durationMs": 40000,
+  "connections": [
+    {
+      "name": "gate_usdt",
+      "url": "wss://fx-ws.gateio.ws/v4/ws/usdt",
+      "openedAt": 1789917415714,
+      "controls": [
+        {
+          "time": 1789917415,
+          "time_ms": 1789917415880,
+          "channel": "futures.order_book",
+          "event": "subscribe",
+          "payload": [
+            "BTC_USDT",
+            "100",
+            "0"
+          ],
+          "result": {
+            "status": "success"
+          }
+        },
+        {
+          "time": 1789917416,
+          "time_ms": 1789917416179,
+          "channel": "futures.order_book",
+          "event": "subscribe",
+          "payload": [
+            "AAPL_USDT",
+            "100",
+            "0"
+          ],
+          "result": {
+            "status": "success"
+          }
+        },
+        {
+          "time": 1789917416,
+          "time_ms": 1789917416480,
+          "channel": "futures.order_book",
+          "event": "subscribe",
+          "payload": [
+            "XAU_USDT",
+            "100",
+            "0"
+          ],
+          "result": {
+            "status": "success"
+          }
+        }
+      ],
+      "streams": {
+        "GATE_FUTURE_BTC_USDT": {
+          "frames": 385,
+          "firstFrameDelayMs": 286,
+          "maxArrivalGapMs": 380,
+          "maxSourceAgeMs": 375,
+          "sourceAgeTotal": 40531,
+          "lastReceived": 1789917454393,
+          "lastSourceAt": 1789917454304,
+          "unchangedTimestamps": 0,
+          "levels": 100
+        },
+        "GATE_FUTURE_AAPL_USDT": {
+          "frames": 17,
+          "firstFrameDelayMs": 1042,
+          "maxArrivalGapMs": 7595,
+          "maxSourceAgeMs": 264,
+          "sourceAgeTotal": 2914,
+          "lastReceived": 1789917449263,
+          "lastSourceAt": 1789917449102,
+          "unchangedTimestamps": 0,
+          "levels": 100
+        },
+        "GATE_FUTURE_XAU_USDT": {
+          "frames": 194,
+          "firstFrameDelayMs": 1058,
+          "maxArrivalGapMs": 802,
+          "maxSourceAgeMs": 473,
+          "sourceAgeTotal": 31155,
+          "lastReceived": 1789917454364,
+          "lastSourceAt": 1789917454249,
+          "unchangedTimestamps": 0,
+          "levels": 100
+        }
+      },
+      "decodeErrors": [],
+      "transportErrors": []
+    },
+    {
+      "name": "binance_book",
+      "url": "wss://fstream.binance.com/public/ws",
+      "openedAt": 1789917415707,
+      "controls": [
+        {
+          "result": null,
+          "id": 1
+        }
+      ],
+      "streams": {
+        "BINANCE_FUTURE_AAPL_USDT": {
+          "frames": 29,
+          "firstFrameDelayMs": 702,
+          "maxArrivalGapMs": 4962,
+          "maxSourceAgeMs": 247,
+          "sourceAgeTotal": 3024,
+          "lastReceived": 1789917453874,
+          "lastSourceAt": 1789917453788,
+          "unchangedTimestamps": 0,
+          "levels": 20
+        },
+        "BINANCE_FUTURE_BTC_USDT": {
+          "frames": 76,
+          "firstFrameDelayMs": 851,
+          "maxArrivalGapMs": 606,
+          "maxSourceAgeMs": 240,
+          "sourceAgeTotal": 7461,
+          "lastReceived": 1789917454356,
+          "lastSourceAt": 1789917454272,
+          "unchangedTimestamps": 0,
+          "levels": 20
+        },
+        "BINANCE_FUTURE_XAUT_USDT": {
+          "frames": 52,
+          "firstFrameDelayMs": 1418,
+          "maxArrivalGapMs": 1384,
+          "maxSourceAgeMs": 232,
+          "sourceAgeTotal": 5508,
+          "lastReceived": 1789917453822,
+          "lastSourceAt": 1789917453736,
+          "unchangedTimestamps": 0,
+          "levels": 20
+        }
+      },
+      "decodeErrors": [],
+      "transportErrors": []
+    },
+    {
+      "name": "okx_book",
+      "url": "wss://ws.okx.com:8443/ws/v5/public",
+      "openedAt": 1789917415707,
+      "controls": [
+        {
+          "event": "subscribe",
+          "arg": {
+            "channel": "books5",
+            "instId": "BTC-USDT-SWAP"
+          }
+        },
+        {
+          "event": "subscribe",
+          "arg": {
+            "channel": "books5",
+            "instId": "AAPL-USDT-SWAP"
+          }
+        },
+        {
+          "event": "subscribe",
+          "arg": {
+            "channel": "books5",
+            "instId": "XAU-USDT-SWAP"
+          }
+        }
+      ],
+      "streams": {
+        "OKX_FUTURE_AAPL_USDT": {
+          "frames": 8,
+          "firstFrameDelayMs": 532,
+          "maxArrivalGapMs": 13399,
+          "maxSourceAgeMs": 138,
+          "sourceAgeTotal": 789,
+          "lastReceived": 1789917438090,
+          "lastSourceAt": 1789917438001,
+          "unchangedTimestamps": 0,
+          "levels": 5
+        },
+        "OKX_FUTURE_BTC_USDT": {
+          "frames": 370,
+          "firstFrameDelayMs": 535,
+          "maxArrivalGapMs": 249,
+          "maxSourceAgeMs": 182,
+          "sourceAgeTotal": 36199,
+          "lastReceived": 1789917454395,
+          "lastSourceAt": 1789917454303,
+          "unchangedTimestamps": 0,
+          "levels": 5
+        },
+        "OKX_FUTURE_XAU_USDT": {
+          "frames": 101,
+          "firstFrameDelayMs": 538,
+          "maxArrivalGapMs": 1598,
+          "maxSourceAgeMs": 180,
+          "sourceAgeTotal": 10134,
+          "lastReceived": 1789917454195,
+          "lastSourceAt": 1789917454104,
+          "unchangedTimestamps": 0,
+          "levels": 5
+        }
+      },
+      "decodeErrors": [],
+      "transportErrors": []
+    },
+    {
+      "name": "crossex_hyperliquid",
+      "url": "wss://api.gateio.ws/ws/crossex/public",
+      "openedAt": 1789917416031,
+      "controls": [
+        {
+          "time": 1789917416,
+          "channel": "order_book_20",
+          "event": "subscribe",
+          "result": {
+            "status": "success"
+          },
+          "payload": [
+            "HYPERLIQUID_FUTURE_BTC_USDC",
+            "HYPERLIQUID_FUTURE_NVDA_USDC",
+            "HYPERLIQUID_FUTURE_CL_USDC"
+          ],
+          "time_ms": 1789917416231
+        }
+      ],
+      "streams": {},
+      "decodeErrors": [],
+      "transportErrors": []
+    },
+    {
+      "name": "native_hyperliquid",
+      "url": "wss://api.hyperliquid.xyz/ws",
+      "openedAt": 1789917415563,
+      "controls": [
+        {
+          "channel": "subscriptionResponse",
+          "data": {
+            "method": "subscribe",
+            "subscription": {
+              "type": "l2Book",
+              "coin": "BTC",
+              "nSigFigs": null,
+              "mantissa": null,
+              "fast": false
+            }
+          }
+        },
+        {
+          "channel": "subscriptionResponse",
+          "data": {
+            "method": "subscribe",
+            "subscription": {
+              "type": "l2Book",
+              "coin": "xyz:NVDA",
+              "nSigFigs": null,
+              "mantissa": null,
+              "fast": false
+            }
+          }
+        },
+        {
+          "channel": "subscriptionResponse",
+          "data": {
+            "method": "subscribe",
+            "subscription": {
+              "type": "l2Book",
+              "coin": "xyz:CL",
+              "nSigFigs": null,
+              "mantissa": null,
+              "fast": false
+            }
+          }
+        }
+      ],
+      "streams": {
+        "BTC": {
+          "frames": 8,
+          "firstFrameDelayMs": 269,
+          "maxArrivalGapMs": 5684,
+          "maxSourceAgeMs": 786,
+          "sourceAgeTotal": 3676,
+          "lastReceived": 1789917448990,
+          "lastSourceAt": 1789917448607,
+          "unchangedTimestamps": 0,
+          "levels": 20
+        },
+        "xyz:NVDA": {
+          "frames": 8,
+          "firstFrameDelayMs": 565,
+          "maxArrivalGapMs": 5685,
+          "maxSourceAgeMs": 565,
+          "sourceAgeTotal": 3459,
+          "lastReceived": 1789917448990,
+          "lastSourceAt": 1789917448607,
+          "unchangedTimestamps": 0,
+          "levels": 20
+        },
+        "xyz:CL": {
+          "frames": 8,
+          "firstFrameDelayMs": 924,
+          "maxArrivalGapMs": 5685,
+          "maxSourceAgeMs": 546,
+          "sourceAgeTotal": 3313,
+          "lastReceived": 1789917448990,
+          "lastSourceAt": 1789917448607,
+          "unchangedTimestamps": 0,
+          "levels": 20
+        }
+      },
+      "decodeErrors": [],
+      "transportErrors": []
+    }
+  ],
+  "samples": [
+    {
+      "at": 1789917415405,
+      "streams": []
+    },
+    {
+      "at": 1789917416406,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 8,
+          "sourceAgeMs": 104
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 167,
+          "sourceAgeMs": 305
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 16,
+          "sourceAgeMs": 103
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 11,
+          "sourceAgeMs": 102
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 574,
+          "sourceAgeMs": 1360
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 278,
+          "sourceAgeMs": 843
+        }
+      ]
+    },
+    {
+      "at": 1789917417407,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 12,
+          "sourceAgeMs": 102
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 396,
+          "sourceAgeMs": 597
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 238,
+          "sourceAgeMs": 334
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 285,
+          "sourceAgeMs": 369
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 345,
+          "sourceAgeMs": 431
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_XAUT_USDT",
+          "arrivalAgeMs": 282,
+          "sourceAgeMs": 367
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 1168,
+          "sourceAgeMs": 1306
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 17,
+          "sourceAgeMs": 104
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 127,
+          "sourceAgeMs": 303
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 429,
+          "sourceAgeMs": 800
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 429,
+          "sourceAgeMs": 800
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:CL",
+          "arrivalAgeMs": 429,
+          "sourceAgeMs": 800
+        }
+      ]
+    },
+    {
+      "at": 1789917418407,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 1,
+          "sourceAgeMs": 102
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 13,
+          "sourceAgeMs": 200
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 40,
+          "sourceAgeMs": 148
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 1285,
+          "sourceAgeMs": 1369
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 333,
+          "sourceAgeMs": 423
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_XAUT_USDT",
+          "arrivalAgeMs": 64,
+          "sourceAgeMs": 155
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 2168,
+          "sourceAgeMs": 2306
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 17,
+          "sourceAgeMs": 104
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 213,
+          "sourceAgeMs": 303
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 1429,
+          "sourceAgeMs": 1800
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 1429,
+          "sourceAgeMs": 1800
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:CL",
+          "arrivalAgeMs": 1429,
+          "sourceAgeMs": 1800
+        }
+      ]
+    },
+    {
+      "at": 1789917419407,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 11,
+          "sourceAgeMs": 106
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 1013,
+          "sourceAgeMs": 1200
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 27,
+          "sourceAgeMs": 134
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 724,
+          "sourceAgeMs": 809
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 330,
+          "sourceAgeMs": 415
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_XAUT_USDT",
+          "arrivalAgeMs": 32,
+          "sourceAgeMs": 207
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 3168,
+          "sourceAgeMs": 3306
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 16,
+          "sourceAgeMs": 104
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 13,
+          "sourceAgeMs": 103
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 2429,
+          "sourceAgeMs": 2800
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 2429,
+          "sourceAgeMs": 2800
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:CL",
+          "arrivalAgeMs": 2429,
+          "sourceAgeMs": 2800
+        }
+      ]
+    },
+    {
+      "at": 1789917420408,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 111,
+          "sourceAgeMs": 204
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 2014,
+          "sourceAgeMs": 2201
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 139,
+          "sourceAgeMs": 321
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 510,
+          "sourceAgeMs": 676
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 323,
+          "sourceAgeMs": 408
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_XAUT_USDT",
+          "arrivalAgeMs": 620,
+          "sourceAgeMs": 704
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 507,
+          "sourceAgeMs": 607
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 115,
+          "sourceAgeMs": 205
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 216,
+          "sourceAgeMs": 304
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 3430,
+          "sourceAgeMs": 3801
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 3430,
+          "sourceAgeMs": 3801
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:CL",
+          "arrivalAgeMs": 3430,
+          "sourceAgeMs": 3801
+        }
+      ]
+    },
+    {
+      "at": 1789917421409,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 114,
+          "sourceAgeMs": 204
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 3015,
+          "sourceAgeMs": 3202
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 42,
+          "sourceAgeMs": 144
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 872,
+          "sourceAgeMs": 957
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 317,
+          "sourceAgeMs": 401
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_XAUT_USDT",
+          "arrivalAgeMs": 355,
+          "sourceAgeMs": 445
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 212,
+          "sourceAgeMs": 308
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 118,
+          "sourceAgeMs": 206
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 715,
+          "sourceAgeMs": 805
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 4431,
+          "sourceAgeMs": 4802
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 4431,
+          "sourceAgeMs": 4802
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:CL",
+          "arrivalAgeMs": 4431,
+          "sourceAgeMs": 4802
+        }
+      ]
+    },
+    {
+      "at": 1789917422409,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 14,
+          "sourceAgeMs": 110
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 102,
+          "sourceAgeMs": 285
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 43,
+          "sourceAgeMs": 200
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 263,
+          "sourceAgeMs": 349
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 304,
+          "sourceAgeMs": 393
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_XAUT_USDT",
+          "arrivalAgeMs": 735,
+          "sourceAgeMs": 827
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 917,
+          "sourceAgeMs": 1008
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 19,
+          "sourceAgeMs": 106
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 609,
+          "sourceAgeMs": 705
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 5431,
+          "sourceAgeMs": 5802
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 5431,
+          "sourceAgeMs": 5802
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:CL",
+          "arrivalAgeMs": 5431,
+          "sourceAgeMs": 5802
+        }
+      ]
+    },
+    {
+      "at": 1789917423411,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 14,
+          "sourceAgeMs": 111
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 1104,
+          "sourceAgeMs": 1287
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 47,
+          "sourceAgeMs": 170
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 239,
+          "sourceAgeMs": 325
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 301,
+          "sourceAgeMs": 387
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_XAUT_USDT",
+          "arrivalAgeMs": 364,
+          "sourceAgeMs": 467
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 1919,
+          "sourceAgeMs": 2010
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 16,
+          "sourceAgeMs": 108
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 116,
+          "sourceAgeMs": 207
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 1000,
+          "sourceAgeMs": 1408
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 997,
+          "sourceAgeMs": 1408
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:CL",
+          "arrivalAgeMs": 997,
+          "sourceAgeMs": 1408
+        }
+      ]
+    },
+    {
+      "at": 1789917424411,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 19,
+          "sourceAgeMs": 110
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 2104,
+          "sourceAgeMs": 2287
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 44,
+          "sourceAgeMs": 231
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 713,
+          "sourceAgeMs": 797
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 294,
+          "sourceAgeMs": 379
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_XAUT_USDT",
+          "arrivalAgeMs": 12,
+          "sourceAgeMs": 99
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 2919,
+          "sourceAgeMs": 3010
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 21,
+          "sourceAgeMs": 108
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 17,
+          "sourceAgeMs": 107
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 2000,
+          "sourceAgeMs": 2408
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 1997,
+          "sourceAgeMs": 2408
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:CL",
+          "arrivalAgeMs": 1997,
+          "sourceAgeMs": 2408
+        }
+      ]
+    },
+    {
+      "at": 1789917425411,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 14,
+          "sourceAgeMs": 107
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 3104,
+          "sourceAgeMs": 3287
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 39,
+          "sourceAgeMs": 167
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 1713,
+          "sourceAgeMs": 1797
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 267,
+          "sourceAgeMs": 371
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_XAUT_USDT",
+          "arrivalAgeMs": 1012,
+          "sourceAgeMs": 1099
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 3919,
+          "sourceAgeMs": 4010
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 19,
+          "sourceAgeMs": 108
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 115,
+          "sourceAgeMs": 207
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 3000,
+          "sourceAgeMs": 3408
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 2997,
+          "sourceAgeMs": 3408
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:CL",
+          "arrivalAgeMs": 2997,
+          "sourceAgeMs": 3408
+        }
+      ]
+    },
+    {
+      "at": 1789917426411,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 18,
+          "sourceAgeMs": 110
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 4104,
+          "sourceAgeMs": 4287
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 44,
+          "sourceAgeMs": 217
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 2713,
+          "sourceAgeMs": 2797
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 222,
+          "sourceAgeMs": 363
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_XAUT_USDT",
+          "arrivalAgeMs": 34,
+          "sourceAgeMs": 119
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 4919,
+          "sourceAgeMs": 5010
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 20,
+          "sourceAgeMs": 108
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 216,
+          "sourceAgeMs": 307
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 4000,
+          "sourceAgeMs": 4408
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 3997,
+          "sourceAgeMs": 4408
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:CL",
+          "arrivalAgeMs": 3997,
+          "sourceAgeMs": 4408
+        }
+      ]
+    },
+    {
+      "at": 1789917427411,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 15,
+          "sourceAgeMs": 106
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 5104,
+          "sourceAgeMs": 5287
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 47,
+          "sourceAgeMs": 180
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 34,
+          "sourceAgeMs": 119
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 271,
+          "sourceAgeMs": 355
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_XAUT_USDT",
+          "arrivalAgeMs": 459,
+          "sourceAgeMs": 543
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 5919,
+          "sourceAgeMs": 6010
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 19,
+          "sourceAgeMs": 108
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 519,
+          "sourceAgeMs": 607
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 5000,
+          "sourceAgeMs": 5408
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 4997,
+          "sourceAgeMs": 5408
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:CL",
+          "arrivalAgeMs": 4997,
+          "sourceAgeMs": 5408
+        }
+      ]
+    },
+    {
+      "at": 1789917428411,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 16,
+          "sourceAgeMs": 112
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 6104,
+          "sourceAgeMs": 6287
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 120,
+          "sourceAgeMs": 335
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 1034,
+          "sourceAgeMs": 1119
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 261,
+          "sourceAgeMs": 347
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_XAUT_USDT",
+          "arrivalAgeMs": 871,
+          "sourceAgeMs": 955
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 6919,
+          "sourceAgeMs": 7010
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 21,
+          "sourceAgeMs": 108
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 17,
+          "sourceAgeMs": 107
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 649,
+          "sourceAgeMs": 1087
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 649,
+          "sourceAgeMs": 1087
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:CL",
+          "arrivalAgeMs": 649,
+          "sourceAgeMs": 1087
+        }
+      ]
+    },
+    {
+      "at": 1789917429411,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 18,
+          "sourceAgeMs": 107
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 310,
+          "sourceAgeMs": 427
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 43,
+          "sourceAgeMs": 177
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 2034,
+          "sourceAgeMs": 2119
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 254,
+          "sourceAgeMs": 339
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_XAUT_USDT",
+          "arrivalAgeMs": 74,
+          "sourceAgeMs": 209
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 7919,
+          "sourceAgeMs": 8010
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 19,
+          "sourceAgeMs": 108
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 315,
+          "sourceAgeMs": 407
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 1649,
+          "sourceAgeMs": 2087
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 1649,
+          "sourceAgeMs": 2087
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:CL",
+          "arrivalAgeMs": 1649,
+          "sourceAgeMs": 2087
+        }
+      ]
+    },
+    {
+      "at": 1789917430413,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 18,
+          "sourceAgeMs": 112
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 1312,
+          "sourceAgeMs": 1429
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 245,
+          "sourceAgeMs": 409
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 3036,
+          "sourceAgeMs": 3121
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 248,
+          "sourceAgeMs": 333
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_XAUT_USDT",
+          "arrivalAgeMs": 553,
+          "sourceAgeMs": 695
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 8921,
+          "sourceAgeMs": 9012
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 22,
+          "sourceAgeMs": 110
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 18,
+          "sourceAgeMs": 109
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 2651,
+          "sourceAgeMs": 3089
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 2651,
+          "sourceAgeMs": 3089
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:CL",
+          "arrivalAgeMs": 2651,
+          "sourceAgeMs": 3089
+        }
+      ]
+    },
+    {
+      "at": 1789917431413,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 114,
+          "sourceAgeMs": 209
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 2312,
+          "sourceAgeMs": 2429
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 172,
+          "sourceAgeMs": 409
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 4036,
+          "sourceAgeMs": 4121
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 237,
+          "sourceAgeMs": 325
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_XAUT_USDT",
+          "arrivalAgeMs": 380,
+          "sourceAgeMs": 465
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 9921,
+          "sourceAgeMs": 10012
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 223,
+          "sourceAgeMs": 310
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 417,
+          "sourceAgeMs": 509
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 3651,
+          "sourceAgeMs": 4089
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 3651,
+          "sourceAgeMs": 4089
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:CL",
+          "arrivalAgeMs": 3651,
+          "sourceAgeMs": 4089
+        }
+      ]
+    },
+    {
+      "at": 1789917432413,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 117,
+          "sourceAgeMs": 212
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 3312,
+          "sourceAgeMs": 3429
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 449,
+          "sourceAgeMs": 633
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 74,
+          "sourceAgeMs": 159
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 232,
+          "sourceAgeMs": 317
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_XAUT_USDT",
+          "arrivalAgeMs": 732,
+          "sourceAgeMs": 817
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 10921,
+          "sourceAgeMs": 11012
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 118,
+          "sourceAgeMs": 210
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 419,
+          "sourceAgeMs": 509
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 4651,
+          "sourceAgeMs": 5089
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 4651,
+          "sourceAgeMs": 5089
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:CL",
+          "arrivalAgeMs": 4651,
+          "sourceAgeMs": 5089
+        }
+      ]
+    },
+    {
+      "at": 1789917433413,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 18,
+          "sourceAgeMs": 113
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 4312,
+          "sourceAgeMs": 4429
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 46,
+          "sourceAgeMs": 196
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 1074,
+          "sourceAgeMs": 1159
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 224,
+          "sourceAgeMs": 309
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_XAUT_USDT",
+          "arrivalAgeMs": 360,
+          "sourceAgeMs": 449
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 11921,
+          "sourceAgeMs": 12012
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 23,
+          "sourceAgeMs": 110
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 121,
+          "sourceAgeMs": 209
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 326,
+          "sourceAgeMs": 709
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 326,
+          "sourceAgeMs": 709
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:CL",
+          "arrivalAgeMs": 326,
+          "sourceAgeMs": 709
+        }
+      ]
+    },
+    {
+      "at": 1789917434414,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 14,
+          "sourceAgeMs": 110
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 5314,
+          "sourceAgeMs": 5431
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 246,
+          "sourceAgeMs": 340
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 2076,
+          "sourceAgeMs": 2161
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 218,
+          "sourceAgeMs": 303
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_XAUT_USDT",
+          "arrivalAgeMs": 459,
+          "sourceAgeMs": 545
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 12923,
+          "sourceAgeMs": 13014
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 15,
+          "sourceAgeMs": 112
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 217,
+          "sourceAgeMs": 311
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 1328,
+          "sourceAgeMs": 1711
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 1328,
+          "sourceAgeMs": 1711
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:CL",
+          "arrivalAgeMs": 1328,
+          "sourceAgeMs": 1711
+        }
+      ]
+    },
+    {
+      "at": 1789917435415,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 120,
+          "sourceAgeMs": 210
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 6314,
+          "sourceAgeMs": 6431
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 50,
+          "sourceAgeMs": 187
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 946,
+          "sourceAgeMs": 1031
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 210,
+          "sourceAgeMs": 295
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_XAUT_USDT",
+          "arrivalAgeMs": 134,
+          "sourceAgeMs": 219
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 524,
+          "sourceAgeMs": 614
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 23,
+          "sourceAgeMs": 112
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 1217,
+          "sourceAgeMs": 1311
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 2328,
+          "sourceAgeMs": 2711
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 2328,
+          "sourceAgeMs": 2711
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:CL",
+          "arrivalAgeMs": 2328,
+          "sourceAgeMs": 2711
+        }
+      ]
+    },
+    {
+      "at": 1789917436416,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 21,
+          "sourceAgeMs": 157
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 7315,
+          "sourceAgeMs": 7432
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 47,
+          "sourceAgeMs": 186
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 131,
+          "sourceAgeMs": 280
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 150,
+          "sourceAgeMs": 288
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_XAUT_USDT",
+          "arrivalAgeMs": 563,
+          "sourceAgeMs": 650
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 119,
+          "sourceAgeMs": 215
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 19,
+          "sourceAgeMs": 113
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 18,
+          "sourceAgeMs": 112
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 3330,
+          "sourceAgeMs": 3713
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 3330,
+          "sourceAgeMs": 3713
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:CL",
+          "arrivalAgeMs": 3330,
+          "sourceAgeMs": 3713
+        }
+      ]
+    },
+    {
+      "at": 1789917437416,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 18,
+          "sourceAgeMs": 110
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 720,
+          "sourceAgeMs": 982
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 23,
+          "sourceAgeMs": 199
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 511,
+          "sourceAgeMs": 758
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 91,
+          "sourceAgeMs": 280
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_XAUT_USDT",
+          "arrivalAgeMs": 182,
+          "sourceAgeMs": 414
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 1119,
+          "sourceAgeMs": 1215
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 22,
+          "sourceAgeMs": 113
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 22,
+          "sourceAgeMs": 112
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 4329,
+          "sourceAgeMs": 4712
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 4329,
+          "sourceAgeMs": 4712
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:CL",
+          "arrivalAgeMs": 4329,
+          "sourceAgeMs": 4712
+        }
+      ]
+    },
+    {
+      "at": 1789917438417,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 25,
+          "sourceAgeMs": 112
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 163,
+          "sourceAgeMs": 387
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 52,
+          "sourceAgeMs": 156
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 143,
+          "sourceAgeMs": 229
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 159,
+          "sourceAgeMs": 273
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_XAUT_USDT",
+          "arrivalAgeMs": 687,
+          "sourceAgeMs": 869
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 327,
+          "sourceAgeMs": 416
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 126,
+          "sourceAgeMs": 214
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 23,
+          "sourceAgeMs": 113
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 5330,
+          "sourceAgeMs": 5713
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 5330,
+          "sourceAgeMs": 5713
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:CL",
+          "arrivalAgeMs": 5330,
+          "sourceAgeMs": 5713
+        }
+      ]
+    },
+    {
+      "at": 1789917439417,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 25,
+          "sourceAgeMs": 115
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 644,
+          "sourceAgeMs": 908
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 53,
+          "sourceAgeMs": 176
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 634,
+          "sourceAgeMs": 725
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 110,
+          "sourceAgeMs": 265
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_XAUT_USDT",
+          "arrivalAgeMs": 109,
+          "sourceAgeMs": 219
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 1327,
+          "sourceAgeMs": 1416
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 25,
+          "sourceAgeMs": 114
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 222,
+          "sourceAgeMs": 313
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 646,
+          "sourceAgeMs": 1191
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 645,
+          "sourceAgeMs": 1191
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:CL",
+          "arrivalAgeMs": 645,
+          "sourceAgeMs": 1191
+        }
+      ]
+    },
+    {
+      "at": 1789917440419,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 26,
+          "sourceAgeMs": 113
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 1646,
+          "sourceAgeMs": 1910
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 257,
+          "sourceAgeMs": 417
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 376,
+          "sourceAgeMs": 467
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 174,
+          "sourceAgeMs": 259
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_XAUT_USDT",
+          "arrivalAgeMs": 205,
+          "sourceAgeMs": 291
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 2329,
+          "sourceAgeMs": 2418
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 26,
+          "sourceAgeMs": 116
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 70,
+          "sourceAgeMs": 215
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 1648,
+          "sourceAgeMs": 2193
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 1647,
+          "sourceAgeMs": 2193
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:CL",
+          "arrivalAgeMs": 1647,
+          "sourceAgeMs": 2193
+        }
+      ]
+    },
+    {
+      "at": 1789917441419,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 17,
+          "sourceAgeMs": 116
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 2646,
+          "sourceAgeMs": 2910
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 21,
+          "sourceAgeMs": 177
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 1376,
+          "sourceAgeMs": 1467
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 165,
+          "sourceAgeMs": 251
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_XAUT_USDT",
+          "arrivalAgeMs": 149,
+          "sourceAgeMs": 235
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 3329,
+          "sourceAgeMs": 3418
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 19,
+          "sourceAgeMs": 116
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 428,
+          "sourceAgeMs": 515
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 2648,
+          "sourceAgeMs": 3193
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 2647,
+          "sourceAgeMs": 3193
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:CL",
+          "arrivalAgeMs": 2647,
+          "sourceAgeMs": 3193
+        }
+      ]
+    },
+    {
+      "at": 1789917442420,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 127,
+          "sourceAgeMs": 219
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 3647,
+          "sourceAgeMs": 3911
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 496,
+          "sourceAgeMs": 668
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 2377,
+          "sourceAgeMs": 2468
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 159,
+          "sourceAgeMs": 244
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_XAUT_USDT",
+          "arrivalAgeMs": 479,
+          "sourceAgeMs": 564
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 4330,
+          "sourceAgeMs": 4419
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 129,
+          "sourceAgeMs": 217
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 426,
+          "sourceAgeMs": 516
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 3649,
+          "sourceAgeMs": 4194
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 3648,
+          "sourceAgeMs": 4194
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:CL",
+          "arrivalAgeMs": 3648,
+          "sourceAgeMs": 4194
+        }
+      ]
+    },
+    {
+      "at": 1789917443421,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 27,
+          "sourceAgeMs": 115
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 4648,
+          "sourceAgeMs": 4912
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 56,
+          "sourceAgeMs": 180
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 131,
+          "sourceAgeMs": 217
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 151,
+          "sourceAgeMs": 237
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_XAUT_USDT",
+          "arrivalAgeMs": 374,
+          "sourceAgeMs": 461
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 5331,
+          "sourceAgeMs": 5420
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 30,
+          "sourceAgeMs": 118
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 27,
+          "sourceAgeMs": 117
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 4650,
+          "sourceAgeMs": 5195
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 4649,
+          "sourceAgeMs": 5195
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:CL",
+          "arrivalAgeMs": 4649,
+          "sourceAgeMs": 5195
+        }
+      ]
+    },
+    {
+      "at": 1789917444421,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 126,
+          "sourceAgeMs": 217
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 5648,
+          "sourceAgeMs": 5912
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 252,
+          "sourceAgeMs": 345
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 1131,
+          "sourceAgeMs": 1217
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 141,
+          "sourceAgeMs": 229
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_XAUT_USDT",
+          "arrivalAgeMs": 522,
+          "sourceAgeMs": 609
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 6331,
+          "sourceAgeMs": 6420
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 29,
+          "sourceAgeMs": 118
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 26,
+          "sourceAgeMs": 117
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 801,
+          "sourceAgeMs": 1163
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 801,
+          "sourceAgeMs": 1163
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:CL",
+          "arrivalAgeMs": 801,
+          "sourceAgeMs": 1163
+        }
+      ]
+    },
+    {
+      "at": 1789917445422,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 28,
+          "sourceAgeMs": 117
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 320,
+          "sourceAgeMs": 476
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 57,
+          "sourceAgeMs": 203
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 7,
+          "sourceAgeMs": 94
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 135,
+          "sourceAgeMs": 222
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_XAUT_USDT",
+          "arrivalAgeMs": 882,
+          "sourceAgeMs": 1010
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 7332,
+          "sourceAgeMs": 7421
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 27,
+          "sourceAgeMs": 119
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 127,
+          "sourceAgeMs": 218
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 1802,
+          "sourceAgeMs": 2164
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 1802,
+          "sourceAgeMs": 2164
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:CL",
+          "arrivalAgeMs": 1802,
+          "sourceAgeMs": 2164
+        }
+      ]
+    },
+    {
+      "at": 1789917446422,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 28,
+          "sourceAgeMs": 116
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 1320,
+          "sourceAgeMs": 1476
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 58,
+          "sourceAgeMs": 237
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 1007,
+          "sourceAgeMs": 1094
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 127,
+          "sourceAgeMs": 214
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_XAUT_USDT",
+          "arrivalAgeMs": 677,
+          "sourceAgeMs": 762
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 8332,
+          "sourceAgeMs": 8421
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 27,
+          "sourceAgeMs": 119
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 125,
+          "sourceAgeMs": 218
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 2802,
+          "sourceAgeMs": 3164
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 2802,
+          "sourceAgeMs": 3164
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:CL",
+          "arrivalAgeMs": 2802,
+          "sourceAgeMs": 3164
+        }
+      ]
+    },
+    {
+      "at": 1789917447424,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 32,
+          "sourceAgeMs": 120
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 784,
+          "sourceAgeMs": 937
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 58,
+          "sourceAgeMs": 182
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 259,
+          "sourceAgeMs": 350
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 123,
+          "sourceAgeMs": 208
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_XAUT_USDT",
+          "arrivalAgeMs": 261,
+          "sourceAgeMs": 420
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 9334,
+          "sourceAgeMs": 9423
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 33,
+          "sourceAgeMs": 121
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 30,
+          "sourceAgeMs": 120
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 3804,
+          "sourceAgeMs": 4166
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 3804,
+          "sourceAgeMs": 4166
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:CL",
+          "arrivalAgeMs": 3804,
+          "sourceAgeMs": 4166
+        }
+      ]
+    },
+    {
+      "at": 1789917448424,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 30,
+          "sourceAgeMs": 120
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 1784,
+          "sourceAgeMs": 1937
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 158,
+          "sourceAgeMs": 343
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 1259,
+          "sourceAgeMs": 1350
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 115,
+          "sourceAgeMs": 200
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_XAUT_USDT",
+          "arrivalAgeMs": 738,
+          "sourceAgeMs": 880
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 10334,
+          "sourceAgeMs": 10423
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 29,
+          "sourceAgeMs": 121
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 29,
+          "sourceAgeMs": 120
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 4804,
+          "sourceAgeMs": 5166
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 4804,
+          "sourceAgeMs": 5166
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:CL",
+          "arrivalAgeMs": 4804,
+          "sourceAgeMs": 5166
+        }
+      ]
+    },
+    {
+      "at": 1789917449424,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 32,
+          "sourceAgeMs": 120
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 161,
+          "sourceAgeMs": 322
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 60,
+          "sourceAgeMs": 205
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 993,
+          "sourceAgeMs": 1078
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 106,
+          "sourceAgeMs": 192
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_XAUT_USDT",
+          "arrivalAgeMs": 43,
+          "sourceAgeMs": 128
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 11334,
+          "sourceAgeMs": 11423
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 29,
+          "sourceAgeMs": 121
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 162,
+          "sourceAgeMs": 320
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 434,
+          "sourceAgeMs": 817
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 434,
+          "sourceAgeMs": 817
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:CL",
+          "arrivalAgeMs": 434,
+          "sourceAgeMs": 817
+        }
+      ]
+    },
+    {
+      "at": 1789917450425,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 32,
+          "sourceAgeMs": 126
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 1162,
+          "sourceAgeMs": 1323
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 120,
+          "sourceAgeMs": 346
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 1994,
+          "sourceAgeMs": 2079
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 99,
+          "sourceAgeMs": 185
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_XAUT_USDT",
+          "arrivalAgeMs": 1044,
+          "sourceAgeMs": 1129
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 12335,
+          "sourceAgeMs": 12424
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 31,
+          "sourceAgeMs": 122
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 30,
+          "sourceAgeMs": 121
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 1435,
+          "sourceAgeMs": 1818
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 1435,
+          "sourceAgeMs": 1818
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:CL",
+          "arrivalAgeMs": 1435,
+          "sourceAgeMs": 1818
+        }
+      ]
+    },
+    {
+      "at": 1789917451426,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 32,
+          "sourceAgeMs": 121
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 2163,
+          "sourceAgeMs": 2324
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 462,
+          "sourceAgeMs": 609
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 2995,
+          "sourceAgeMs": 3080
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 65,
+          "sourceAgeMs": 178
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_XAUT_USDT",
+          "arrivalAgeMs": 334,
+          "sourceAgeMs": 420
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 13336,
+          "sourceAgeMs": 13425
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 32,
+          "sourceAgeMs": 123
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 230,
+          "sourceAgeMs": 322
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 2436,
+          "sourceAgeMs": 2819
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 2436,
+          "sourceAgeMs": 2819
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:CL",
+          "arrivalAgeMs": 2436,
+          "sourceAgeMs": 2819
+        }
+      ]
+    },
+    {
+      "at": 1789917452426,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 20,
+          "sourceAgeMs": 121
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 3163,
+          "sourceAgeMs": 3324
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 362,
+          "sourceAgeMs": 496
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 19,
+          "sourceAgeMs": 138
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 23,
+          "sourceAgeMs": 170
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_XAUT_USDT",
+          "arrivalAgeMs": 512,
+          "sourceAgeMs": 598
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 14336,
+          "sourceAgeMs": 14425
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 19,
+          "sourceAgeMs": 123
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 534,
+          "sourceAgeMs": 622
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 3436,
+          "sourceAgeMs": 3819
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 3436,
+          "sourceAgeMs": 3819
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:CL",
+          "arrivalAgeMs": 3436,
+          "sourceAgeMs": 3819
+        }
+      ]
+    },
+    {
+      "at": 1789917453426,
+      "streams": [
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 134,
+          "sourceAgeMs": 223
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 4163,
+          "sourceAgeMs": 4324
+        },
+        {
+          "name": "gate_usdt",
+          "symbol": "GATE_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 161,
+          "sourceAgeMs": 330
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 1019,
+          "sourceAgeMs": 1138
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 77,
+          "sourceAgeMs": 162
+        },
+        {
+          "name": "binance_book",
+          "symbol": "BINANCE_FUTURE_XAUT_USDT",
+          "arrivalAgeMs": 649,
+          "sourceAgeMs": 734
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_AAPL_USDT",
+          "arrivalAgeMs": 15336,
+          "sourceAgeMs": 15425
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_BTC_USDT",
+          "arrivalAgeMs": 133,
+          "sourceAgeMs": 223
+        },
+        {
+          "name": "okx_book",
+          "symbol": "OKX_FUTURE_XAU_USDT",
+          "arrivalAgeMs": 432,
+          "sourceAgeMs": 522
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "BTC",
+          "arrivalAgeMs": 4436,
+          "sourceAgeMs": 4819
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:NVDA",
+          "arrivalAgeMs": 4436,
+          "sourceAgeMs": 4819
+        },
+        {
+          "name": "native_hyperliquid",
+          "symbol": "xyz:CL",
+          "arrivalAgeMs": 4436,
+          "sourceAgeMs": 4819
+        }
+      ]
+    }
+  ],
+  "eventLoop": {
+    "p99Ms": 21.921791,
+    "maxMs": 32.440319
+  },
+  "finishedAt": "2026-09-20T15:17:34.406Z"
+}

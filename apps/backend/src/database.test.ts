@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3';
 import { afterEach, describe, expect, it } from 'vitest';
-import { chmodSync, cpSync, mkdtempSync, readdirSync, rmSync, statSync } from 'node:fs';
+import { chmodSync, cpSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { openDatabase, readDatabaseStatus } from './database.js';
@@ -22,6 +22,23 @@ afterEach(() => {
 });
 
 describe('database migrations', () => {
+  it('upgrades the original 0018 database without changing its checksum or losing spread data', () => {
+    const location = temporaryDatabasePath();
+    const migrationsDir = resolve(process.cwd(), '../../migrations');
+    const old = new Database(location.path);
+    old.exec("CREATE TABLE schema_migrations (id TEXT PRIMARY KEY, checksum TEXT NOT NULL, applied_at TEXT NOT NULL)");
+    old.exec(readFileSync(join(migrationsDir, '0018_spread_monitor.sql'), 'utf8'));
+    old.prepare('INSERT INTO schema_migrations VALUES (?,?,?)').run('0018_spread_monitor.sql', '1224bf0fddc936dfad5d2730e399171fb92bd07bf76f3d77b6373d8ccb42a0e3', new Date().toISOString());
+    old.prepare('INSERT INTO spread_episodes VALUES (?,1)').run('existing-direction');
+    old.prepare('INSERT INTO spread_history VALUES (?,?,?,?)').run('existing-direction@1000', 1000, 26, 1);
+    old.close();
+    const upgraded = openDatabase(location.path, migrationsDir);
+    expect(readDatabaseStatus(upgraded).currentMigration).toBe('0020_asset_monitor.sql');
+    expect(upgraded.prepare('SELECT * FROM spread_episodes').get()).toMatchObject({ direction_id: 'existing-direction', notified: 1, amount_usd: 1000, recovery_bps: null });
+    expect(upgraded.prepare('SELECT * FROM spread_series').get()).toEqual({ series_key: 'existing-direction@1000', started_at: 1000 });
+    upgraded.close();
+  });
+
   it('applies migrations once and reports the current version', () => {
     const location = temporaryDatabasePath();
     const migrationsDir = resolve(process.cwd(), '../../migrations');
@@ -30,8 +47,8 @@ describe('database migrations', () => {
 
     expect(readDatabaseStatus(first)).toEqual({
       state: 'ok',
-      migrationCount: 17,
-      currentMigration: '0017_hyperliquid_perp_metadata.sql',
+      migrationCount: 20,
+      currentMigration: '0020_asset_monitor.sql',
     });
     const orderColumns = first.prepare('PRAGMA table_info(execution_orders)').all() as Array<{ name: string }>;
     expect(orderColumns.map((column) => column.name)).toContain('failure_reason');
@@ -44,7 +61,7 @@ describe('database migrations', () => {
     first.close();
 
     const reopened = openDatabase(location.path, migrationsDir);
-    expect(readDatabaseStatus(reopened).migrationCount).toBe(17);
+    expect(readDatabaseStatus(reopened).migrationCount).toBe(20);
     reopened.close();
   });
 
@@ -87,7 +104,7 @@ describe('database migrations', () => {
     const database = openDatabase(location.path, resolve(process.cwd(), '../../migrations'));
     const columns = database.prepare('PRAGMA table_info(audit_events)').all() as Array<{ name: string }>;
     expect(columns.map((column) => column.name)).toContain('correlation_id');
-    expect(readDatabaseStatus(database).currentMigration).toBe('0017_hyperliquid_perp_metadata.sql');
+    expect(readDatabaseStatus(database).currentMigration).toBe('0020_asset_monitor.sql');
     database.close();
   });
 

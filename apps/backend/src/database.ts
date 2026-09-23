@@ -26,6 +26,15 @@ const CURRENT_SCHEMA_TABLES = [
   'funding_rate_history',
   'hyperliquid_perp_metadata',
   'schema_migrations',
+  'spread_settings',
+  'spread_history',
+  'spread_episodes',
+  'spread_notices',
+  'spread_series',
+  'observation_settings',
+  'observation_history',
+  'observation_episodes',
+  'observation_events',
 ] as const;
 
 function migrationChecksum(sql: string): string {

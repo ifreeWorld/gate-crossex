@@ -268,6 +268,25 @@ git status --short
 sudo journalctl -u gate-crossex -n 200 --no-pager
 ```
 
+## Bark 推送环境变量
+
+systemd unit 从 `/home/wangzilong/gate-crossex/.env` 读取服务器本地环境变量；路径前的 `-` 表示文件不存在时仍允许启动。此配置仅适用于已安装新版 unit 的 systemd 服务，本地 `./run` 和 `./run dev` 也已在启动脚本中支持加载项目根目录的 `.env`。
+
+在服务器 `.env` 中设置 `BARK_DEVICE_KEY=你的设备Key`，可选设置 `BARK_SERVER_URL=https://api.day.app`。使用 `变量名=值` 格式，不要加 `export` 或依赖 shell 变量展开。不要提交该文件；本机 `.env` 不会自动上传。文件中的同名变量会覆盖 unit 的 `Environment=`，因此不要复制无关的本地开发配置。
+
+首次更新 unit 时执行：
+
+```bash
+cd /home/wangzilong/gate-crossex
+chmod 600 .env
+sudo install -m 644 packaging/linux/gate-crossex.service /etc/systemd/system/gate-crossex.service
+sudo systemctl daemon-reload
+sudo systemctl restart gate-crossex
+curl -fsS http://127.0.0.1:17840/health
+```
+
+若线上 unit 有额外定制，安装前应保留相应配置。之后仅修改 `.env` 内容时，重启服务即可，无需重新安装 unit 或重新构建。到价差监控点击“发送测试通知”，确认手机收到后开启正式推送。
+
 ## 凭据和数据
 
 服务器没有桌面系统钥匙串，因此 systemd 明确使用本地凭据文件：

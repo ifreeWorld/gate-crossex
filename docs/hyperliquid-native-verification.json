@@ -1,0 +1,830 @@
+[
+  {
+    "at": 1789918150489,
+    "groups": [
+      {
+        "channel": "hyperliquid_book",
+        "socketState": 1,
+        "symbols": 95,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      }
+    ],
+    "states": {
+      "ready": 95,
+      "missing_market_mapping": 4
+    },
+    "examples": [
+      {
+        "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918047328,
+        "acknowledgedAt": 1789918047596,
+        "receivedAt": 1789918148807,
+        "appliedAt": 1789918148807,
+        "sourceAt": 1789918148341,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918048329,
+        "acknowledgedAt": 1789918048595,
+        "receivedAt": 1789918149007,
+        "appliedAt": 1789918149008,
+        "sourceAt": 1789918148341,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918058439,
+        "acknowledgedAt": 1789918058756,
+        "receivedAt": 1789918149027,
+        "appliedAt": 1789918149028,
+        "sourceAt": 1789918148341,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_SKHX_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918061446,
+        "acknowledgedAt": 1789918061736,
+        "receivedAt": 1789918149040,
+        "appliedAt": 1789918149040,
+        "sourceAt": 1789918148341,
+        "error": null
+      }
+    ],
+    "missing": [
+      "HYPERLIQUID_FUTURE_AVGO_USDC",
+      "HYPERLIQUID_FUTURE_DRAM_USDC",
+      "HYPERLIQUID_FUTURE_SNDK_USDC",
+      "HYPERLIQUID_FUTURE_UNITREE_USDC"
+    ]
+  },
+  {
+    "at": 1789918152004,
+    "groups": [
+      {
+        "channel": "hyperliquid_book",
+        "socketState": 1,
+        "symbols": 95,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      }
+    ],
+    "states": {
+      "ready": 95,
+      "missing_market_mapping": 4
+    },
+    "examples": [
+      {
+        "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918047328,
+        "acknowledgedAt": 1789918047596,
+        "receivedAt": 1789918148807,
+        "appliedAt": 1789918148807,
+        "sourceAt": 1789918148341,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918048329,
+        "acknowledgedAt": 1789918048595,
+        "receivedAt": 1789918149007,
+        "appliedAt": 1789918149008,
+        "sourceAt": 1789918148341,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918058439,
+        "acknowledgedAt": 1789918058756,
+        "receivedAt": 1789918149027,
+        "appliedAt": 1789918149028,
+        "sourceAt": 1789918148341,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_SKHX_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918061446,
+        "acknowledgedAt": 1789918061736,
+        "receivedAt": 1789918149040,
+        "appliedAt": 1789918149040,
+        "sourceAt": 1789918148341,
+        "error": null
+      }
+    ],
+    "missing": [
+      "HYPERLIQUID_FUTURE_AVGO_USDC",
+      "HYPERLIQUID_FUTURE_DRAM_USDC",
+      "HYPERLIQUID_FUTURE_SNDK_USDC",
+      "HYPERLIQUID_FUTURE_UNITREE_USDC"
+    ]
+  },
+  {
+    "at": 1789918153514,
+    "groups": [
+      {
+        "channel": "hyperliquid_book",
+        "socketState": 1,
+        "symbols": 95,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      }
+    ],
+    "states": {
+      "ready": 95,
+      "missing_market_mapping": 4
+    },
+    "examples": [
+      {
+        "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918047328,
+        "acknowledgedAt": 1789918047596,
+        "receivedAt": 1789918148807,
+        "appliedAt": 1789918148807,
+        "sourceAt": 1789918148341,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918048329,
+        "acknowledgedAt": 1789918048595,
+        "receivedAt": 1789918149007,
+        "appliedAt": 1789918149008,
+        "sourceAt": 1789918148341,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918058439,
+        "acknowledgedAt": 1789918058756,
+        "receivedAt": 1789918149027,
+        "appliedAt": 1789918149028,
+        "sourceAt": 1789918148341,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_SKHX_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918061446,
+        "acknowledgedAt": 1789918061736,
+        "receivedAt": 1789918149040,
+        "appliedAt": 1789918149040,
+        "sourceAt": 1789918148341,
+        "error": null
+      }
+    ],
+    "missing": [
+      "HYPERLIQUID_FUTURE_AVGO_USDC",
+      "HYPERLIQUID_FUTURE_DRAM_USDC",
+      "HYPERLIQUID_FUTURE_SNDK_USDC",
+      "HYPERLIQUID_FUTURE_UNITREE_USDC"
+    ]
+  },
+  {
+    "at": 1789918155057,
+    "groups": [
+      {
+        "channel": "hyperliquid_book",
+        "socketState": 1,
+        "symbols": 95,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      }
+    ],
+    "states": {
+      "ready": 95,
+      "missing_market_mapping": 4
+    },
+    "examples": [
+      {
+        "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918047328,
+        "acknowledgedAt": 1789918047596,
+        "receivedAt": 1789918154260,
+        "appliedAt": 1789918154261,
+        "sourceAt": 1789918153752,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918048329,
+        "acknowledgedAt": 1789918048595,
+        "receivedAt": 1789918154473,
+        "appliedAt": 1789918154473,
+        "sourceAt": 1789918153752,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918058439,
+        "acknowledgedAt": 1789918058756,
+        "receivedAt": 1789918154490,
+        "appliedAt": 1789918154490,
+        "sourceAt": 1789918153752,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_SKHX_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918061446,
+        "acknowledgedAt": 1789918061736,
+        "receivedAt": 1789918154496,
+        "appliedAt": 1789918154496,
+        "sourceAt": 1789918153752,
+        "error": null
+      }
+    ],
+    "missing": [
+      "HYPERLIQUID_FUTURE_AVGO_USDC",
+      "HYPERLIQUID_FUTURE_DRAM_USDC",
+      "HYPERLIQUID_FUTURE_SNDK_USDC",
+      "HYPERLIQUID_FUTURE_UNITREE_USDC"
+    ]
+  },
+  {
+    "at": 1789918156573,
+    "groups": [
+      {
+        "channel": "hyperliquid_book",
+        "socketState": 1,
+        "symbols": 95,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      }
+    ],
+    "states": {
+      "ready": 95,
+      "missing_market_mapping": 4
+    },
+    "examples": [
+      {
+        "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918047328,
+        "acknowledgedAt": 1789918047596,
+        "receivedAt": 1789918154260,
+        "appliedAt": 1789918154261,
+        "sourceAt": 1789918153752,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918048329,
+        "acknowledgedAt": 1789918048595,
+        "receivedAt": 1789918154473,
+        "appliedAt": 1789918154473,
+        "sourceAt": 1789918153752,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918058439,
+        "acknowledgedAt": 1789918058756,
+        "receivedAt": 1789918154490,
+        "appliedAt": 1789918154490,
+        "sourceAt": 1789918153752,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_SKHX_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918061446,
+        "acknowledgedAt": 1789918061736,
+        "receivedAt": 1789918154496,
+        "appliedAt": 1789918154496,
+        "sourceAt": 1789918153752,
+        "error": null
+      }
+    ],
+    "missing": [
+      "HYPERLIQUID_FUTURE_AVGO_USDC",
+      "HYPERLIQUID_FUTURE_DRAM_USDC",
+      "HYPERLIQUID_FUTURE_SNDK_USDC",
+      "HYPERLIQUID_FUTURE_UNITREE_USDC"
+    ]
+  },
+  {
+    "at": 1789918158078,
+    "groups": [
+      {
+        "channel": "hyperliquid_book",
+        "socketState": 1,
+        "symbols": 95,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      }
+    ],
+    "states": {
+      "ready": 95,
+      "missing_market_mapping": 4
+    },
+    "examples": [
+      {
+        "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918047328,
+        "acknowledgedAt": 1789918047596,
+        "receivedAt": 1789918154260,
+        "appliedAt": 1789918154261,
+        "sourceAt": 1789918153752,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918048329,
+        "acknowledgedAt": 1789918048595,
+        "receivedAt": 1789918154473,
+        "appliedAt": 1789918154473,
+        "sourceAt": 1789918153752,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918058439,
+        "acknowledgedAt": 1789918058756,
+        "receivedAt": 1789918154490,
+        "appliedAt": 1789918154490,
+        "sourceAt": 1789918153752,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_SKHX_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918061446,
+        "acknowledgedAt": 1789918061736,
+        "receivedAt": 1789918154496,
+        "appliedAt": 1789918154496,
+        "sourceAt": 1789918153752,
+        "error": null
+      }
+    ],
+    "missing": [
+      "HYPERLIQUID_FUTURE_AVGO_USDC",
+      "HYPERLIQUID_FUTURE_DRAM_USDC",
+      "HYPERLIQUID_FUTURE_SNDK_USDC",
+      "HYPERLIQUID_FUTURE_UNITREE_USDC"
+    ]
+  },
+  {
+    "at": 1789918159585,
+    "groups": [
+      {
+        "channel": "hyperliquid_book",
+        "socketState": 1,
+        "symbols": 95,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      }
+    ],
+    "states": {
+      "ready": 95,
+      "missing_market_mapping": 4
+    },
+    "examples": [
+      {
+        "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918047328,
+        "acknowledgedAt": 1789918047596,
+        "receivedAt": 1789918154260,
+        "appliedAt": 1789918154261,
+        "sourceAt": 1789918153752,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918048329,
+        "acknowledgedAt": 1789918048595,
+        "receivedAt": 1789918154473,
+        "appliedAt": 1789918154473,
+        "sourceAt": 1789918153752,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918058439,
+        "acknowledgedAt": 1789918058756,
+        "receivedAt": 1789918154490,
+        "appliedAt": 1789918154490,
+        "sourceAt": 1789918153752,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_SKHX_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918061446,
+        "acknowledgedAt": 1789918061736,
+        "receivedAt": 1789918154496,
+        "appliedAt": 1789918154496,
+        "sourceAt": 1789918153752,
+        "error": null
+      }
+    ],
+    "missing": [
+      "HYPERLIQUID_FUTURE_AVGO_USDC",
+      "HYPERLIQUID_FUTURE_DRAM_USDC",
+      "HYPERLIQUID_FUTURE_SNDK_USDC",
+      "HYPERLIQUID_FUTURE_UNITREE_USDC"
+    ]
+  },
+  {
+    "at": 1789918161091,
+    "groups": [
+      {
+        "channel": "hyperliquid_book",
+        "socketState": 1,
+        "symbols": 95,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      }
+    ],
+    "states": {
+      "ready": 95,
+      "missing_market_mapping": 4
+    },
+    "examples": [
+      {
+        "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918047328,
+        "acknowledgedAt": 1789918047596,
+        "receivedAt": 1789918159693,
+        "appliedAt": 1789918159694,
+        "sourceAt": 1789918159154,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918048329,
+        "acknowledgedAt": 1789918048595,
+        "receivedAt": 1789918159876,
+        "appliedAt": 1789918159876,
+        "sourceAt": 1789918159154,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918058439,
+        "acknowledgedAt": 1789918058756,
+        "receivedAt": 1789918159898,
+        "appliedAt": 1789918159898,
+        "sourceAt": 1789918159154,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_SKHX_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918061446,
+        "acknowledgedAt": 1789918061736,
+        "receivedAt": 1789918159900,
+        "appliedAt": 1789918159901,
+        "sourceAt": 1789918159154,
+        "error": null
+      }
+    ],
+    "missing": [
+      "HYPERLIQUID_FUTURE_AVGO_USDC",
+      "HYPERLIQUID_FUTURE_DRAM_USDC",
+      "HYPERLIQUID_FUTURE_SNDK_USDC",
+      "HYPERLIQUID_FUTURE_UNITREE_USDC"
+    ]
+  },
+  {
+    "at": 1789918162603,
+    "groups": [
+      {
+        "channel": "hyperliquid_book",
+        "socketState": 1,
+        "symbols": 95,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      }
+    ],
+    "states": {
+      "ready": 95,
+      "missing_market_mapping": 4
+    },
+    "examples": [
+      {
+        "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918047328,
+        "acknowledgedAt": 1789918047596,
+        "receivedAt": 1789918159693,
+        "appliedAt": 1789918159694,
+        "sourceAt": 1789918159154,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918048329,
+        "acknowledgedAt": 1789918048595,
+        "receivedAt": 1789918159876,
+        "appliedAt": 1789918159876,
+        "sourceAt": 1789918159154,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918058439,
+        "acknowledgedAt": 1789918058756,
+        "receivedAt": 1789918159898,
+        "appliedAt": 1789918159898,
+        "sourceAt": 1789918159154,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_SKHX_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918061446,
+        "acknowledgedAt": 1789918061736,
+        "receivedAt": 1789918159900,
+        "appliedAt": 1789918159901,
+        "sourceAt": 1789918159154,
+        "error": null
+      }
+    ],
+    "missing": [
+      "HYPERLIQUID_FUTURE_AVGO_USDC",
+      "HYPERLIQUID_FUTURE_DRAM_USDC",
+      "HYPERLIQUID_FUTURE_SNDK_USDC",
+      "HYPERLIQUID_FUTURE_UNITREE_USDC"
+    ]
+  },
+  {
+    "at": 1789918164113,
+    "groups": [
+      {
+        "channel": "hyperliquid_book",
+        "socketState": 1,
+        "symbols": 95,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      }
+    ],
+    "states": {
+      "ready": 95,
+      "missing_market_mapping": 4
+    },
+    "examples": [
+      {
+        "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918047328,
+        "acknowledgedAt": 1789918047596,
+        "receivedAt": 1789918159693,
+        "appliedAt": 1789918159694,
+        "sourceAt": 1789918159154,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918048329,
+        "acknowledgedAt": 1789918048595,
+        "receivedAt": 1789918159876,
+        "appliedAt": 1789918159876,
+        "sourceAt": 1789918159154,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918058439,
+        "acknowledgedAt": 1789918058756,
+        "receivedAt": 1789918159898,
+        "appliedAt": 1789918159898,
+        "sourceAt": 1789918159154,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_SKHX_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918061446,
+        "acknowledgedAt": 1789918061736,
+        "receivedAt": 1789918159900,
+        "appliedAt": 1789918159901,
+        "sourceAt": 1789918159154,
+        "error": null
+      }
+    ],
+    "missing": [
+      "HYPERLIQUID_FUTURE_AVGO_USDC",
+      "HYPERLIQUID_FUTURE_DRAM_USDC",
+      "HYPERLIQUID_FUTURE_SNDK_USDC",
+      "HYPERLIQUID_FUTURE_UNITREE_USDC"
+    ]
+  },
+  {
+    "at": 1789918165622,
+    "groups": [
+      {
+        "channel": "hyperliquid_book",
+        "socketState": 1,
+        "symbols": 95,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      }
+    ],
+    "states": {
+      "ready": 95,
+      "missing_market_mapping": 4
+    },
+    "examples": [
+      {
+        "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918047328,
+        "acknowledgedAt": 1789918047596,
+        "receivedAt": 1789918165127,
+        "appliedAt": 1789918165128,
+        "sourceAt": 1789918164613,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918048329,
+        "acknowledgedAt": 1789918048595,
+        "receivedAt": 1789918165329,
+        "appliedAt": 1789918165329,
+        "sourceAt": 1789918164613,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918058439,
+        "acknowledgedAt": 1789918058756,
+        "receivedAt": 1789918165356,
+        "appliedAt": 1789918165356,
+        "sourceAt": 1789918164613,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_SKHX_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918061446,
+        "acknowledgedAt": 1789918061736,
+        "receivedAt": 1789918165357,
+        "appliedAt": 1789918165357,
+        "sourceAt": 1789918164613,
+        "error": null
+      }
+    ],
+    "missing": [
+      "HYPERLIQUID_FUTURE_AVGO_USDC",
+      "HYPERLIQUID_FUTURE_DRAM_USDC",
+      "HYPERLIQUID_FUTURE_SNDK_USDC",
+      "HYPERLIQUID_FUTURE_UNITREE_USDC"
+    ]
+  },
+  {
+    "at": 1789918167129,
+    "groups": [
+      {
+        "channel": "hyperliquid_book",
+        "socketState": 1,
+        "symbols": 95,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      }
+    ],
+    "states": {
+      "ready": 95,
+      "missing_market_mapping": 4
+    },
+    "examples": [
+      {
+        "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918047328,
+        "acknowledgedAt": 1789918047596,
+        "receivedAt": 1789918165127,
+        "appliedAt": 1789918165128,
+        "sourceAt": 1789918164613,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918048329,
+        "acknowledgedAt": 1789918048595,
+        "receivedAt": 1789918165329,
+        "appliedAt": 1789918165329,
+        "sourceAt": 1789918164613,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918058439,
+        "acknowledgedAt": 1789918058756,
+        "receivedAt": 1789918165356,
+        "appliedAt": 1789918165356,
+        "sourceAt": 1789918164613,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_SKHX_USDC",
+        "channel": "hyperliquid_book",
+        "state": "ready",
+        "requestedAt": 1789918061446,
+        "acknowledgedAt": 1789918061736,
+        "receivedAt": 1789918165357,
+        "appliedAt": 1789918165357,
+        "sourceAt": 1789918164613,
+        "error": null
+      }
+    ],
+    "missing": [
+      "HYPERLIQUID_FUTURE_AVGO_USDC",
+      "HYPERLIQUID_FUTURE_DRAM_USDC",
+      "HYPERLIQUID_FUTURE_SNDK_USDC",
+      "HYPERLIQUID_FUTURE_UNITREE_USDC"
+    ]
+  }
+]

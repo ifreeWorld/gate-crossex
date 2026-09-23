@@ -1,3 +1,6 @@
+import { ObservationSnapshotSchema, ObservationHistorySchema, type ObservationSettings, type GoldAlertSettings } from '@gate-crossex/shared-types';
+import { z } from 'zod';
+import { SpreadSnapshotSchema, SpreadDetailSchema, SpreadHistorySchema, SpreadNoticesSchema, type SpreadSettings } from '@gate-crossex/shared-types';
 import {
   AuthenticatedPortfolioSnapshotSchema,
   BorosStrategiesResponseSchema,
@@ -247,6 +250,16 @@ async function request<T>(schema: RuntimeSchema<T>, path: string, init?: Request
 }
 
 export const api = {
+  assetObservation: () => request(ObservationSnapshotSchema, '/api/asset-monitor'),
+  assetObservationHistory: (a:string,b:string,hours:number,referenceHours=168,intervalMinutes?:number,fresh=false,before?:number) => request(ObservationHistorySchema, `/api/asset-monitor/history?${new URLSearchParams({a,b,hours:String(hours),referenceHours:String(referenceHours),...(intervalMinutes===undefined?{}:{intervalMinutes:String(intervalMinutes)}),...(fresh?{fresh:'1'}:{}),...(before===undefined?{}:{before:String(before)})})}`),
+  saveGoldObservation: (settings:GoldAlertSettings) => request(ObservationSnapshotSchema, '/api/asset-monitor/gold-settings', {method:'PUT',headers:{'x-gct-monitor-intent':'update-settings'},body:JSON.stringify(settings)}),
+  saveAssetObservation: (settings:ObservationSettings) => request(ObservationSnapshotSchema, '/api/asset-monitor/settings', {method:'PUT',headers:{'x-gct-monitor-intent':'update-settings'},body:JSON.stringify(settings)}),
+  spreadSnapshot: () => request(SpreadSnapshotSchema, '/api/spread-monitor'),
+  spreadSettings: (settings: SpreadSettings) => request(SpreadSnapshotSchema, '/api/spread-monitor/settings', { method: 'PUT', headers: { 'x-gct-monitor-intent': 'update-settings' }, body: JSON.stringify(settings) }),
+  spreadDetail: (id: string, amount: number) => request(SpreadDetailSchema, `/api/spread-monitor/detail?id=${encodeURIComponent(id)}&amount=${amount}`),
+  spreadHistory: (id: string, minutes: number, before = Date.now(), amount = 1000) => request(SpreadHistorySchema, `/api/spread-monitor/history?id=${encodeURIComponent(id)}&minutes=${minutes}&before=${before}&amount=${amount}`),
+  spreadTestNotification: () => request(z.object({ status: z.enum(['sent', 'failed', 'unknown']) }), '/api/spread-monitor/test-notification', { method: 'POST', headers: { 'x-gct-monitor-intent': 'test-notification' } }),
+  spreadNotices: () => request(SpreadNoticesSchema, '/api/spread-monitor/notices'),
   markets: () => request(MarketSnapshotSchema, '/api/markets'),
   borosStrategies: () => request(BorosStrategiesResponseSchema, '/api/boros/strategies'),
   marketCatalog: () => request(MarketCatalogResponseSchema, '/api/markets/catalog'),

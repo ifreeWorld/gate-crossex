@@ -1,3 +1,8 @@
+import { AssetMonitor, type ObservationSource } from './asset-monitor.js';
+import { ObservationSettingsSchema, GoldAlertSettingsSchema } from '@gate-crossex/shared-types';
+import { SpreadMonitor } from './spread-monitor.js';
+import { SpreadFeed } from './spread-feed.js';
+import { SpreadSettingsSchema } from '@gate-crossex/shared-types';
 import cors from '@fastify/cors';
 import compress from '@fastify/compress';
 import formbody from '@fastify/formbody';
@@ -197,6 +202,8 @@ const DeleteCredentialFormSchema = CredentialContextSchema.extend({
 });
 
 export interface BuildAppOptions {
+  observationSource?: ObservationSource;
+  observationMarketStats?: import('./spread-market-caps.js').SpreadMarketCapSource | null;
   config: BackendConfig;
   database: Database.Database;
   credentialVault: CredentialVault;
@@ -778,6 +785,7 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
     app.get('/', sendFrontend);
     app.get('/portfolio', sendFrontend);
     app.get('/funding-rates', sendFrontend);
+    app.get('/spread-monitor', sendFrontend);
     app.get('/funding-rates/:asset', async (request, reply) => {
       const parsed = z.object({ asset: z.string().regex(/^[A-Z0-9]{1,20}$/i) }).safeParse(request.params);
       if (!parsed.success) return reply.code(404).send({ error: 'frontend_route_not_found' });
@@ -787,6 +795,7 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
     app.get('/strategies/price-difference', sendFrontend);
     app.get('/strategies/sk-hynix-premium', sendFrontend);
     app.get('/strategies/boros', sendFrontend);
+    app.get('/strategies/asset-monitor', sendFrontend);
   }
 
   const candleStore = new CandleStore(database, marketHub, publicMarketGateway, {
@@ -796,6 +805,30 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
   const fundingOverviewService = new FundingOverviewService(publicMarketGateway, {
     warn: (venue, reason) => app.log.warn({ venue, reason }, 'funding overview venue fetch failed'),
   });
+  const assetMonitor = new AssetMonitor(database, options.observationSource, {marketStats:options.observationMarketStats});
+  const spreadFeed = new SpreadFeed(config.gatePublicWebSocketUrl);
+  let spreadUnitsAt = 0;
+  const spreadMonitor = new SpreadMonitor(database, spreadFeed, async () => {
+    let catalog = derivedMarketCatalog();
+    if (!catalog || Date.now() - Date.parse(catalog.fetchedAt) > 5 * 60_000) {
+      await fetchInstrumentCatalog(); catalog = derivedMarketCatalog();
+    }
+    if (!catalog) throw new Error('catalog_unavailable');
+    if (Date.now() - spreadUnitsAt > 3600000) {
+      const results = await Promise.allSettled((['GATE', 'OKX'] as const).map(async venue => {
+        const sizes = await publicMarketGateway.queryContractSizes?.(venue);
+        if (!sizes?.length) throw new Error('contract_sizes_unavailable');
+        spreadFeed.setContractSizes(venue, sizes);
+      }));
+      if (results.every(result => result.status === 'fulfilled')) spreadUnitsAt = Date.now();
+    }
+    try {
+      const markets = await publicMarketGateway.queryHyperliquidMarkets?.();
+      if (markets) spreadFeed.setHyperliquidMarkets(markets);
+    } catch { /* 映射失败保留已验证映射，其他交易所继续运行；未知合约明确提示。 */ }
+    await fundingOverviewService.ensureFresh();
+    return fundingOverviewService.buildResponse(catalog);
+  }, { candles: (symbol, limit, before) => publicMarketGateway.queryCandles?.(symbol, '1h', limit, before) ?? Promise.resolve([]) });
   const fundingHistoryService = new FundingHistoryService(database, publicMarketGateway, {
     warn: (symbol, reason) => app.log.warn({ symbol, reason }, 'funding history fetch failed'),
   });
@@ -882,6 +915,8 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
   };
 
   if (options.startMarketStream) {
+    spreadMonitor.start();
+    assetMonitor.start();
     marketHub.start();
     privateStream.start();
     strategyEngine.start();
@@ -903,6 +938,8 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
     triggerPortfolioRefresh();
   }
   app.addHook('onClose', async () => {
+    await spreadMonitor.stop();
+    await assetMonitor.stop();
     await fundingHistoryService.stopBackground();
     await strategyEngine.stop();
     if (portfolioReconcileTimer) clearTimeout(portfolioReconcileTimer);
@@ -1450,6 +1487,63 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
       unsubscribePortfolio();
       unsubscribeMode();
     });
+  });
+
+  app.get('/api/asset-monitor', async () => assetMonitor.snapshot());
+  app.put('/api/asset-monitor/settings', async (request, reply) => {
+    if (request.headers['x-gct-monitor-intent'] !== 'update-settings') return reply.code(403).send({error:'missing_monitor_intent'});
+    const parsed = ObservationSettingsSchema.safeParse(request.body);
+    if (!parsed.success) return reply.code(400).send({error:'invalid_monitor_settings'});
+    try { return assetMonitor.save(parsed.data); } catch { return reply.code(409).send({error:'bark_not_configured'}); }
+  });
+  app.put('/api/asset-monitor/gold-settings', async (request, reply) => {
+    if (request.headers['x-gct-monitor-intent'] !== 'update-settings') return reply.code(403).send({error:'missing_monitor_intent'});
+    const parsed = GoldAlertSettingsSchema.safeParse(request.body);
+    if (!parsed.success) return reply.code(400).send({error:'invalid_gold_settings'});
+    try { return assetMonitor.saveGold(parsed.data); } catch { return reply.code(409).send({error:'bark_not_configured'}); }
+  });
+  app.get('/api/asset-monitor/history', async (request, reply) => {
+    const query = z.object({ a:z.string().min(1).max(180), b:z.string().min(1).max(180), hours:z.coerce.number().int().min(1).max(12000), before:z.coerce.number().int().positive().max(8640000000000000).optional(), intervalMinutes:z.coerce.number().refine(n=>[1,5,15,60,240,1440,10080].includes(n)).default(5), fresh:z.enum(['0','1']).optional(), referenceHours:z.coerce.number().refine(n=>[24,72,168,720].includes(n)).default(168) }).safeParse(request.query);
+    if (!query.success || query.data.a === query.data.b) return reply.code(400).send({error:'invalid_history_query'});
+    try { return await assetMonitor.queryHistory(query.data.a,query.data.b,query.data.hours,query.data.referenceHours,query.data.intervalMinutes,query.data.fresh==='1',query.data.before); } catch (error) { return reply.code(502).send({error:error instanceof Error?error.message:'history_unavailable'}); }
+  });
+
+  app.get('/api/spread-monitor', async () => spreadMonitor.view());
+  app.get('/api/spread-monitor/diagnostics', async () => spreadFeed.diagnostics());
+  app.put('/api/spread-monitor/settings', async (request, reply) => {
+    if (request.headers['x-gct-monitor-intent'] !== 'update-settings') return reply.code(403).send({ error: 'missing_monitor_intent' });
+    const parsed = SpreadSettingsSchema.safeParse(request.body);
+    if (!parsed.success) return reply.code(400).send({ error: 'invalid_monitor_settings' });
+    if (parsed.data.notificationsEnabled && !spreadMonitor.configured()) return reply.code(409).send({ error: 'bark_not_configured' });
+    return spreadMonitor.save(parsed.data);
+  });
+  const SpreadDirectionQuery = z.object({ id: z.string().min(1).max(300) });
+  app.get('/api/spread-monitor/detail', async (request, reply) => {
+    const parsed = SpreadDirectionQuery.extend({ amount: z.coerce.number().finite().min(10).max(1e8) }).safeParse(request.query);
+    if (!parsed.success) return reply.code(400).send({ error: 'invalid_spread_query' });
+    const result = spreadMonitor.detail(parsed.data.id, parsed.data.amount);
+    return result ?? reply.code(404).send({ error: 'spread_direction_unavailable' });
+  });
+  app.get('/api/spread-monitor/history', async (request, reply) => {
+    const parsed = SpreadDirectionQuery.extend({ amount: z.coerce.number().finite().min(10).max(1e8), minutes: z.coerce.number().refine(v => [1,5,15,60,240,1440].includes(v)), before: z.coerce.number().finite().positive().default(Date.now()) }).safeParse(request.query);
+    if (!parsed.success) return reply.code(400).send({ error: 'invalid_spread_query' });
+    return { points: spreadMonitor.historyPoints(parsed.data.id, parsed.data.minutes, parsed.data.before, parsed.data.amount) };
+  });
+  app.post('/api/spread-monitor/test-notification', { config: { rateLimit: { max: 2, timeWindow: '1 minute' } } }, async (request, reply) => {
+    if (request.headers['x-gct-monitor-intent'] !== 'test-notification') return reply.code(403).send({ error: 'missing_monitor_intent' });
+    if (!spreadMonitor.configured()) return reply.code(409).send({ error: 'bark_not_configured' });
+    return spreadMonitor.testNotification();
+  });
+  app.get('/api/spread-monitor/notices', async () => ({ notices: spreadMonitor.notices() }));
+  app.get('/ws/spread-monitor', { websocket: true }, (socket) => {
+    let busy = false;
+    const send = async () => {
+      if (busy || socket.readyState !== 1 || socket.bufferedAmount > 1_000_000) return;
+      busy = true;
+      try { const snapshot = await spreadMonitor.view(); if (socket.readyState === 1) socket.send(JSON.stringify(snapshot)); } catch { /* 客户端重连后重试 */ }
+      finally { busy = false; }
+    };
+    void send(); const timer = setInterval(() => void send(), 1000); timer.unref?.(); socket.on('close', () => clearInterval(timer));
   });
 
   app.get('/api/markets/catalog', async (request, reply) => {

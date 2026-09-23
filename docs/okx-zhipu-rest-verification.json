@@ -1,0 +1,678 @@
+{
+  "at": "2026-09-20T15:41:33.593Z",
+  "samples": [
+    {
+      "at": 1789918893612,
+      "symbol": "OKX_FUTURE_ZHIPU_USDT",
+      "channel": "okx_book",
+      "state": "ready",
+      "requestedAt": 1789918885043,
+      "acknowledgedAt": 1789918885309,
+      "receivedAt": 1789918891502,
+      "appliedAt": 1789918891502,
+      "sourceAt": 1789918891401,
+      "source": "venue_public_websocket",
+      "restRefresh": {
+        "attemptedAt": 1789918888370,
+        "nextAt": 1789918889870,
+        "receivedAt": 1789918888755,
+        "error": null
+      },
+      "error": null
+    },
+    {
+      "at": 1789918894623,
+      "symbol": "OKX_FUTURE_ZHIPU_USDT",
+      "channel": "okx_book",
+      "state": "ready",
+      "requestedAt": 1789918885043,
+      "acknowledgedAt": 1789918885309,
+      "receivedAt": 1789918891502,
+      "appliedAt": 1789918891502,
+      "sourceAt": 1789918894001,
+      "source": "venue_public_rest",
+      "restRefresh": {
+        "attemptedAt": 1789918893788,
+        "nextAt": 1789918895288,
+        "receivedAt": 1789918894098,
+        "error": null
+      },
+      "error": null
+    },
+    {
+      "at": 1789918895627,
+      "symbol": "OKX_FUTURE_ZHIPU_USDT",
+      "channel": "okx_book",
+      "state": "ready",
+      "requestedAt": 1789918885043,
+      "acknowledgedAt": 1789918885309,
+      "receivedAt": 1789918891502,
+      "appliedAt": 1789918891502,
+      "sourceAt": 1789918894001,
+      "source": "venue_public_rest",
+      "restRefresh": {
+        "attemptedAt": 1789918893788,
+        "nextAt": 1789918895288,
+        "receivedAt": 1789918894098,
+        "error": null
+      },
+      "error": null
+    },
+    {
+      "at": 1789918896632,
+      "symbol": "OKX_FUTURE_ZHIPU_USDT",
+      "channel": "okx_book",
+      "state": "ready",
+      "requestedAt": 1789918885043,
+      "acknowledgedAt": 1789918885309,
+      "receivedAt": 1789918896403,
+      "appliedAt": 1789918896404,
+      "sourceAt": 1789918896301,
+      "source": "venue_public_websocket",
+      "restRefresh": {
+        "attemptedAt": 1789918893788,
+        "nextAt": 1789918895288,
+        "receivedAt": 1789918894098,
+        "error": null
+      },
+      "error": null
+    },
+    {
+      "at": 1789918897638,
+      "symbol": "OKX_FUTURE_ZHIPU_USDT",
+      "channel": "okx_book",
+      "state": "ready",
+      "requestedAt": 1789918885043,
+      "acknowledgedAt": 1789918885309,
+      "receivedAt": 1789918896403,
+      "appliedAt": 1789918896404,
+      "sourceAt": 1789918896301,
+      "source": "venue_public_websocket",
+      "restRefresh": {
+        "attemptedAt": 1789918893788,
+        "nextAt": 1789918895288,
+        "receivedAt": 1789918894098,
+        "error": null
+      },
+      "error": null
+    },
+    {
+      "at": 1789918898643,
+      "symbol": "OKX_FUTURE_ZHIPU_USDT",
+      "channel": "okx_book",
+      "state": "ready",
+      "requestedAt": 1789918885043,
+      "acknowledgedAt": 1789918885309,
+      "receivedAt": 1789918896403,
+      "appliedAt": 1789918896404,
+      "sourceAt": 1789918898101,
+      "source": "venue_public_rest",
+      "restRefresh": {
+        "attemptedAt": 1789918897821,
+        "nextAt": 1789918899321,
+        "receivedAt": 1789918898204,
+        "error": null
+      },
+      "error": null
+    },
+    {
+      "at": 1789918899649,
+      "symbol": "OKX_FUTURE_ZHIPU_USDT",
+      "channel": "okx_book",
+      "state": "ready",
+      "requestedAt": 1789918885043,
+      "acknowledgedAt": 1789918885309,
+      "receivedAt": 1789918896403,
+      "appliedAt": 1789918896404,
+      "sourceAt": 1789918898101,
+      "source": "venue_public_rest",
+      "restRefresh": {
+        "attemptedAt": 1789918897821,
+        "nextAt": 1789918899321,
+        "receivedAt": 1789918898204,
+        "error": null
+      },
+      "error": null
+    },
+    {
+      "at": 1789918900653,
+      "symbol": "OKX_FUTURE_ZHIPU_USDT",
+      "channel": "okx_book",
+      "state": "ready",
+      "requestedAt": 1789918885043,
+      "acknowledgedAt": 1789918885309,
+      "receivedAt": 1789918896403,
+      "appliedAt": 1789918896404,
+      "sourceAt": 1789918898101,
+      "source": "venue_public_rest",
+      "restRefresh": {
+        "attemptedAt": 1789918897821,
+        "nextAt": 1789918899321,
+        "receivedAt": 1789918898204,
+        "error": null
+      },
+      "error": null
+    },
+    {
+      "at": 1789918901659,
+      "symbol": "OKX_FUTURE_ZHIPU_USDT",
+      "channel": "okx_book",
+      "state": "ready",
+      "requestedAt": 1789918885043,
+      "acknowledgedAt": 1789918885309,
+      "receivedAt": 1789918896403,
+      "appliedAt": 1789918896404,
+      "sourceAt": 1789918898101,
+      "source": "venue_public_rest",
+      "restRefresh": {
+        "attemptedAt": 1789918897821,
+        "nextAt": 1789918899321,
+        "receivedAt": 1789918898204,
+        "error": null
+      },
+      "error": null
+    },
+    {
+      "at": 1789918902665,
+      "symbol": "OKX_FUTURE_ZHIPU_USDT",
+      "channel": "okx_book",
+      "state": "ready",
+      "requestedAt": 1789918885043,
+      "acknowledgedAt": 1789918885309,
+      "receivedAt": 1789918896403,
+      "appliedAt": 1789918896404,
+      "sourceAt": 1789918898101,
+      "source": "venue_public_rest",
+      "restRefresh": {
+        "attemptedAt": 1789918902473,
+        "nextAt": 1789918903973,
+        "receivedAt": null,
+        "error": null
+      },
+      "error": null
+    },
+    {
+      "at": 1789918903670,
+      "symbol": "OKX_FUTURE_ZHIPU_USDT",
+      "channel": "okx_book",
+      "state": "ready",
+      "requestedAt": 1789918885043,
+      "acknowledgedAt": 1789918885309,
+      "receivedAt": 1789918896403,
+      "appliedAt": 1789918896404,
+      "sourceAt": 1789918902651,
+      "source": "venue_public_rest",
+      "restRefresh": {
+        "attemptedAt": 1789918902473,
+        "nextAt": 1789918903973,
+        "receivedAt": 1789918902750,
+        "error": null
+      },
+      "error": null
+    },
+    {
+      "at": 1789918904675,
+      "symbol": "OKX_FUTURE_ZHIPU_USDT",
+      "channel": "okx_book",
+      "state": "ready",
+      "requestedAt": 1789918885043,
+      "acknowledgedAt": 1789918885309,
+      "receivedAt": 1789918896403,
+      "appliedAt": 1789918896404,
+      "sourceAt": 1789918902651,
+      "source": "venue_public_rest",
+      "restRefresh": {
+        "attemptedAt": 1789918902473,
+        "nextAt": 1789918903973,
+        "receivedAt": 1789918902750,
+        "error": null
+      },
+      "error": null
+    },
+    {
+      "at": 1789918905679,
+      "symbol": "OKX_FUTURE_ZHIPU_USDT",
+      "channel": "okx_book",
+      "state": "ready",
+      "requestedAt": 1789918885043,
+      "acknowledgedAt": 1789918885309,
+      "receivedAt": 1789918896403,
+      "appliedAt": 1789918896404,
+      "sourceAt": 1789918902651,
+      "source": "venue_public_rest",
+      "restRefresh": {
+        "attemptedAt": 1789918905580,
+        "nextAt": 1789918907080,
+        "receivedAt": null,
+        "error": null
+      },
+      "error": null
+    },
+    {
+      "at": 1789918906684,
+      "symbol": "OKX_FUTURE_ZHIPU_USDT",
+      "channel": "okx_book",
+      "state": "ready",
+      "requestedAt": 1789918885043,
+      "acknowledgedAt": 1789918885309,
+      "receivedAt": 1789918896403,
+      "appliedAt": 1789918896404,
+      "sourceAt": 1789918905801,
+      "source": "venue_public_rest",
+      "restRefresh": {
+        "attemptedAt": 1789918905580,
+        "nextAt": 1789918907080,
+        "receivedAt": 1789918905901,
+        "error": null
+      },
+      "error": null
+    },
+    {
+      "at": 1789918907690,
+      "symbol": "OKX_FUTURE_ZHIPU_USDT",
+      "channel": "okx_book",
+      "state": "ready",
+      "requestedAt": 1789918885043,
+      "acknowledgedAt": 1789918885309,
+      "receivedAt": 1789918896403,
+      "appliedAt": 1789918896404,
+      "sourceAt": 1789918905801,
+      "source": "venue_public_rest",
+      "restRefresh": {
+        "attemptedAt": 1789918905580,
+        "nextAt": 1789918907080,
+        "receivedAt": 1789918905901,
+        "error": null
+      },
+      "error": null
+    },
+    {
+      "at": 1789918908691,
+      "symbol": "OKX_FUTURE_ZHIPU_USDT",
+      "channel": "okx_book",
+      "state": "ready",
+      "requestedAt": 1789918885043,
+      "acknowledgedAt": 1789918885309,
+      "receivedAt": 1789918896403,
+      "appliedAt": 1789918896404,
+      "sourceAt": 1789918905801,
+      "source": "venue_public_rest",
+      "restRefresh": {
+        "attemptedAt": 1789918905580,
+        "nextAt": 1789918907080,
+        "receivedAt": 1789918905901,
+        "error": null
+      },
+      "error": null
+    },
+    {
+      "at": 1789918909696,
+      "symbol": "OKX_FUTURE_ZHIPU_USDT",
+      "channel": "okx_book",
+      "state": "ready",
+      "requestedAt": 1789918885043,
+      "acknowledgedAt": 1789918885309,
+      "receivedAt": 1789918896403,
+      "appliedAt": 1789918896404,
+      "sourceAt": 1789918909401,
+      "source": "venue_public_rest",
+      "restRefresh": {
+        "attemptedAt": 1789918909219,
+        "nextAt": 1789918910719,
+        "receivedAt": 1789918909506,
+        "error": null
+      },
+      "error": null
+    },
+    {
+      "at": 1789918910699,
+      "symbol": "OKX_FUTURE_ZHIPU_USDT",
+      "channel": "okx_book",
+      "state": "ready",
+      "requestedAt": 1789918885043,
+      "acknowledgedAt": 1789918885309,
+      "receivedAt": 1789918896403,
+      "appliedAt": 1789918896404,
+      "sourceAt": 1789918909401,
+      "source": "venue_public_rest",
+      "restRefresh": {
+        "attemptedAt": 1789918909219,
+        "nextAt": 1789918910719,
+        "receivedAt": 1789918909506,
+        "error": null
+      },
+      "error": null
+    },
+    {
+      "at": 1789918911711,
+      "symbol": "OKX_FUTURE_ZHIPU_USDT",
+      "channel": "okx_book",
+      "state": "ready",
+      "requestedAt": 1789918885043,
+      "acknowledgedAt": 1789918885309,
+      "receivedAt": 1789918896403,
+      "appliedAt": 1789918896404,
+      "sourceAt": 1789918909401,
+      "source": "venue_public_rest",
+      "restRefresh": {
+        "attemptedAt": 1789918909219,
+        "nextAt": 1789918910719,
+        "receivedAt": 1789918909506,
+        "error": null
+      },
+      "error": null
+    },
+    {
+      "at": 1789918912715,
+      "symbol": "OKX_FUTURE_ZHIPU_USDT",
+      "channel": "okx_book",
+      "state": "ready",
+      "requestedAt": 1789918885043,
+      "acknowledgedAt": 1789918885309,
+      "receivedAt": 1789918896403,
+      "appliedAt": 1789918896404,
+      "sourceAt": 1789918909401,
+      "source": "venue_public_rest",
+      "restRefresh": {
+        "attemptedAt": 1789918909219,
+        "nextAt": 1789918910719,
+        "receivedAt": 1789918909506,
+        "error": null
+      },
+      "error": null
+    },
+    {
+      "at": 1789918913720,
+      "symbol": "OKX_FUTURE_ZHIPU_USDT",
+      "channel": "okx_book",
+      "state": "ready",
+      "requestedAt": 1789918885043,
+      "acknowledgedAt": 1789918885309,
+      "receivedAt": 1789918896403,
+      "appliedAt": 1789918896404,
+      "sourceAt": 1789918909401,
+      "source": "venue_public_rest",
+      "restRefresh": {
+        "attemptedAt": 1789918913599,
+        "nextAt": 1789918915099,
+        "receivedAt": null,
+        "error": null
+      },
+      "error": null
+    },
+    {
+      "at": 1789918914725,
+      "symbol": "OKX_FUTURE_ZHIPU_USDT",
+      "channel": "okx_book",
+      "state": "ready",
+      "requestedAt": 1789918885043,
+      "acknowledgedAt": 1789918885309,
+      "receivedAt": 1789918896403,
+      "appliedAt": 1789918896404,
+      "sourceAt": 1789918913801,
+      "source": "venue_public_rest",
+      "restRefresh": {
+        "attemptedAt": 1789918913599,
+        "nextAt": 1789918915099,
+        "receivedAt": 1789918913902,
+        "error": null
+      },
+      "error": null
+    },
+    {
+      "at": 1789918915744,
+      "symbol": "OKX_FUTURE_ZHIPU_USDT",
+      "channel": "okx_book",
+      "state": "ready",
+      "requestedAt": 1789918885043,
+      "acknowledgedAt": 1789918885309,
+      "receivedAt": 1789918896403,
+      "appliedAt": 1789918896404,
+      "sourceAt": 1789918913801,
+      "source": "venue_public_rest",
+      "restRefresh": {
+        "attemptedAt": 1789918913599,
+        "nextAt": 1789918915099,
+        "receivedAt": 1789918913902,
+        "error": null
+      },
+      "error": null
+    },
+    {
+      "at": 1789918916809,
+      "symbol": "OKX_FUTURE_ZHIPU_USDT",
+      "channel": "okx_book",
+      "state": "ready",
+      "requestedAt": 1789918885043,
+      "acknowledgedAt": 1789918885309,
+      "receivedAt": 1789918896403,
+      "appliedAt": 1789918896404,
+      "sourceAt": 1789918913801,
+      "source": "venue_public_rest",
+      "restRefresh": {
+        "attemptedAt": 1789918913599,
+        "nextAt": 1789918915099,
+        "receivedAt": 1789918913902,
+        "error": null
+      },
+      "error": null
+    },
+    {
+      "at": 1789918917817,
+      "symbol": "OKX_FUTURE_ZHIPU_USDT",
+      "channel": "okx_book",
+      "state": "ready",
+      "requestedAt": 1789918885043,
+      "acknowledgedAt": 1789918885309,
+      "receivedAt": 1789918896403,
+      "appliedAt": 1789918896404,
+      "sourceAt": 1789918913801,
+      "source": "venue_public_rest",
+      "restRefresh": {
+        "attemptedAt": 1789918913599,
+        "nextAt": 1789918915099,
+        "receivedAt": 1789918913902,
+        "error": null
+      },
+      "error": null
+    },
+    {
+      "at": 1789918918833,
+      "symbol": "OKX_FUTURE_ZHIPU_USDT",
+      "channel": "okx_book",
+      "state": "ready",
+      "requestedAt": 1789918885043,
+      "acknowledgedAt": 1789918885309,
+      "receivedAt": 1789918896403,
+      "appliedAt": 1789918896404,
+      "sourceAt": 1789918913801,
+      "source": "venue_public_rest",
+      "restRefresh": {
+        "attemptedAt": 1789918918329,
+        "nextAt": 1789918919829,
+        "receivedAt": null,
+        "error": null
+      },
+      "error": null
+    },
+    {
+      "at": 1789918919840,
+      "symbol": "OKX_FUTURE_ZHIPU_USDT",
+      "channel": "okx_book",
+      "state": "ready",
+      "requestedAt": 1789918885043,
+      "acknowledgedAt": 1789918885309,
+      "receivedAt": 1789918919608,
+      "appliedAt": 1789918919608,
+      "sourceAt": 1789918919501,
+      "source": "venue_public_websocket",
+      "restRefresh": {
+        "attemptedAt": 1789918918329,
+        "nextAt": 1789918919829,
+        "receivedAt": 1789918919408,
+        "error": null
+      },
+      "error": null
+    },
+    {
+      "at": 1789918920850,
+      "symbol": "OKX_FUTURE_ZHIPU_USDT",
+      "channel": "okx_book",
+      "state": "ready",
+      "requestedAt": 1789918885043,
+      "acknowledgedAt": 1789918885309,
+      "receivedAt": 1789918919712,
+      "appliedAt": 1789918920109,
+      "sourceAt": 1789918919601,
+      "source": "venue_public_websocket",
+      "restRefresh": {
+        "attemptedAt": 1789918918329,
+        "nextAt": 1789918919829,
+        "receivedAt": 1789918919408,
+        "error": null
+      },
+      "error": null
+    },
+    {
+      "at": 1789918921854,
+      "symbol": "OKX_FUTURE_ZHIPU_USDT",
+      "channel": "okx_book",
+      "state": "ready",
+      "requestedAt": 1789918885043,
+      "acknowledgedAt": 1789918885309,
+      "receivedAt": 1789918919712,
+      "appliedAt": 1789918920109,
+      "sourceAt": 1789918921701,
+      "source": "venue_public_rest",
+      "restRefresh": {
+        "attemptedAt": 1789918921392,
+        "nextAt": 1789918922892,
+        "receivedAt": 1789918921805,
+        "error": null
+      },
+      "error": null
+    },
+    {
+      "at": 1789918922858,
+      "symbol": "OKX_FUTURE_ZHIPU_USDT",
+      "channel": "okx_book",
+      "state": "ready",
+      "requestedAt": 1789918885043,
+      "acknowledgedAt": 1789918885309,
+      "receivedAt": 1789918919712,
+      "appliedAt": 1789918920109,
+      "sourceAt": 1789918921701,
+      "source": "venue_public_rest",
+      "restRefresh": {
+        "attemptedAt": 1789918921392,
+        "nextAt": 1789918922892,
+        "receivedAt": 1789918921805,
+        "error": null
+      },
+      "error": null
+    },
+    {
+      "at": 1789918923863,
+      "symbol": "OKX_FUTURE_ZHIPU_USDT",
+      "channel": "okx_book",
+      "state": "ready",
+      "requestedAt": 1789918885043,
+      "acknowledgedAt": 1789918885309,
+      "receivedAt": 1789918919712,
+      "appliedAt": 1789918920109,
+      "sourceAt": 1789918921701,
+      "source": "venue_public_rest",
+      "restRefresh": {
+        "attemptedAt": 1789918921392,
+        "nextAt": 1789918922892,
+        "receivedAt": 1789918921805,
+        "error": null
+      },
+      "error": null
+    },
+    {
+      "at": 1789918924868,
+      "symbol": "OKX_FUTURE_ZHIPU_USDT",
+      "channel": "okx_book",
+      "state": "ready",
+      "requestedAt": 1789918885043,
+      "acknowledgedAt": 1789918885309,
+      "receivedAt": 1789918919712,
+      "appliedAt": 1789918920109,
+      "sourceAt": 1789918921701,
+      "source": "venue_public_rest",
+      "restRefresh": {
+        "attemptedAt": 1789918921392,
+        "nextAt": 1789918922892,
+        "receivedAt": 1789918921805,
+        "error": null
+      },
+      "error": null
+    },
+    {
+      "at": 1789918925872,
+      "symbol": "OKX_FUTURE_ZHIPU_USDT",
+      "channel": "okx_book",
+      "state": "ready",
+      "requestedAt": 1789918885043,
+      "acknowledgedAt": 1789918885309,
+      "receivedAt": 1789918919712,
+      "appliedAt": 1789918920109,
+      "sourceAt": 1789918925201,
+      "source": "venue_public_rest",
+      "restRefresh": {
+        "attemptedAt": 1789918925027,
+        "nextAt": 1789918926527,
+        "receivedAt": 1789918925300,
+        "error": null
+      },
+      "error": null
+    },
+    {
+      "at": 1789918926878,
+      "symbol": "OKX_FUTURE_ZHIPU_USDT",
+      "channel": "okx_book",
+      "state": "ready",
+      "requestedAt": 1789918885043,
+      "acknowledgedAt": 1789918885309,
+      "receivedAt": 1789918919712,
+      "appliedAt": 1789918920109,
+      "sourceAt": 1789918925201,
+      "source": "venue_public_rest",
+      "restRefresh": {
+        "attemptedAt": 1789918925027,
+        "nextAt": 1789918926527,
+        "receivedAt": 1789918925300,
+        "error": null
+      },
+      "error": null
+    },
+    {
+      "at": 1789918927885,
+      "symbol": "OKX_FUTURE_ZHIPU_USDT",
+      "channel": "okx_book",
+      "state": "ready",
+      "requestedAt": 1789918885043,
+      "acknowledgedAt": 1789918885309,
+      "receivedAt": 1789918919712,
+      "appliedAt": 1789918920109,
+      "sourceAt": 1789918927601,
+      "source": "venue_public_rest",
+      "restRefresh": {
+        "attemptedAt": 1789918927380,
+        "nextAt": 1789918928880,
+        "receivedAt": 1789918927789,
+        "error": null
+      },
+      "error": null
+    }
+  ],
+  "summary": {
+    "samples": 35,
+    "expired": 1,
+    "unavailable": 0,
+    "maxSourceAgeMs": 5032,
+    "restSamples": 30,
+    "maxWsAgeMs": 22430
+  }
+}

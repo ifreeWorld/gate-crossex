@@ -1,0 +1,2346 @@
+[
+  {
+    "at": 1789917667010,
+    "groups": [
+      {
+        "channel": "gate_usdt",
+        "socketState": 1,
+        "symbols": 100,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "binance_book",
+        "socketState": 1,
+        "symbols": 100,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "okx_book",
+        "socketState": 1,
+        "symbols": 98,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "order_book_20",
+        "socketState": 1,
+        "symbols": 92,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "gate_usdt",
+        "socketState": 1,
+        "symbols": 4,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "binance_book",
+        "socketState": 1,
+        "symbols": 2,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      }
+    ],
+    "states": {
+      "gate_usdt:ready": 104,
+      "binance_book:ready": 102,
+      "okx_book:ready": 98,
+      "order_book_20:waiting_snapshot": 92
+    },
+    "summary": {
+      "gate_usdt": {
+        "count": 104,
+        "maxProcessingMs": 502,
+        "totalProcessingMs": 10676,
+        "maxReceiveMinusSourceMs": 259,
+        "stale": 0
+      },
+      "binance_book": {
+        "count": 102,
+        "maxProcessingMs": 176,
+        "totalProcessingMs": 542,
+        "maxReceiveMinusSourceMs": 286,
+        "stale": 3
+      },
+      "okx_book": {
+        "count": 98,
+        "maxProcessingMs": 516,
+        "totalProcessingMs": 14166,
+        "maxReceiveMinusSourceMs": 251,
+        "stale": 7
+      }
+    },
+    "symbols": [
+      {
+        "symbol": "GATE_FUTURE_AAPL_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917609671,
+        "acknowledgedAt": 1789917609933,
+        "receivedAt": 1789917666855,
+        "appliedAt": 1789917666856,
+        "sourceAt": 1789917666644,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_AAPL_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917609680,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917664399,
+        "appliedAt": 1789917664400,
+        "sourceAt": 1789917664310,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_AAPL_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917610208,
+        "acknowledgedAt": 1789917610467,
+        "receivedAt": 1789917660556,
+        "appliedAt": 1789917660556,
+        "sourceAt": 1789917660401,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_AAPL_USDC",
+        "channel": "order_book_20",
+        "state": "waiting_snapshot",
+        "requestedAt": 1789917610746,
+        "acknowledgedAt": 1789917611004,
+        "receivedAt": null,
+        "appliedAt": null,
+        "sourceAt": null,
+        "error": null
+      },
+      {
+        "symbol": "GATE_FUTURE_BTC_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917613443,
+        "acknowledgedAt": 1789917613687,
+        "receivedAt": 1789917666712,
+        "appliedAt": 1789917666847,
+        "sourceAt": 1789917666626,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_BTC_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917609931,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917666557,
+        "appliedAt": 1789917666618,
+        "sourceAt": 1789917666470,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_BTC_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917610459,
+        "acknowledgedAt": 1789917610751,
+        "receivedAt": 1789917666499,
+        "appliedAt": 1789917666504,
+        "sourceAt": 1789917666403,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+        "channel": "order_book_20",
+        "state": "waiting_snapshot",
+        "requestedAt": 1789917610746,
+        "acknowledgedAt": 1789917611004,
+        "receivedAt": null,
+        "appliedAt": null,
+        "sourceAt": null,
+        "error": null
+      },
+      {
+        "symbol": "GATE_FUTURE_CL_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917614696,
+        "acknowledgedAt": 1789917614952,
+        "receivedAt": 1789917666325,
+        "appliedAt": 1789917666326,
+        "sourceAt": 1789917666110,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_CL_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917610183,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917666959,
+        "appliedAt": 1789917666959,
+        "sourceAt": 1789917666804,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_CL_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917610459,
+        "acknowledgedAt": 1789917610752,
+        "receivedAt": 1789917666343,
+        "appliedAt": 1789917666708,
+        "sourceAt": 1789917666204,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+        "channel": "order_book_20",
+        "state": "waiting_snapshot",
+        "requestedAt": 1789917610746,
+        "acknowledgedAt": 1789917611004,
+        "receivedAt": null,
+        "appliedAt": null,
+        "sourceAt": null,
+        "error": null
+      },
+      {
+        "symbol": "GATE_FUTURE_NVDA_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917624225,
+        "acknowledgedAt": 1789917624470,
+        "receivedAt": 1789917666950,
+        "appliedAt": 1789917666950,
+        "sourceAt": 1789917666826,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_NVDA_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917611183,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917665689,
+        "appliedAt": 1789917665689,
+        "sourceAt": 1789917665600,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_NVDA_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917611461,
+        "acknowledgedAt": 1789917611800,
+        "receivedAt": 1789917665698,
+        "appliedAt": 1789917665699,
+        "sourceAt": 1789917665601,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+        "channel": "order_book_20",
+        "state": "waiting_snapshot",
+        "requestedAt": 1789917610746,
+        "acknowledgedAt": 1789917611004,
+        "receivedAt": null,
+        "appliedAt": null,
+        "sourceAt": null,
+        "error": null
+      },
+      {
+        "symbol": "GATE_FUTURE_XAU_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917633238,
+        "acknowledgedAt": 1789917633528,
+        "receivedAt": 1789917666325,
+        "appliedAt": 1789917666454,
+        "sourceAt": 1789917666175,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_XAU_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917611935,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917666613,
+        "appliedAt": 1789917666613,
+        "sourceAt": 1789917666526,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_XAU_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917612463,
+        "acknowledgedAt": 1789917612732,
+        "receivedAt": 1789917666503,
+        "appliedAt": 1789917666953,
+        "sourceAt": 1789917666404,
+        "error": null
+      }
+    ]
+  },
+  {
+    "at": 1789917668516,
+    "groups": [
+      {
+        "channel": "gate_usdt",
+        "socketState": 1,
+        "symbols": 100,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "binance_book",
+        "socketState": 1,
+        "symbols": 100,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "okx_book",
+        "socketState": 1,
+        "symbols": 98,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "order_book_20",
+        "socketState": 1,
+        "symbols": 92,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "gate_usdt",
+        "socketState": 1,
+        "symbols": 4,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "binance_book",
+        "socketState": 1,
+        "symbols": 2,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      }
+    ],
+    "states": {
+      "gate_usdt:ready": 104,
+      "binance_book:ready": 102,
+      "okx_book:ready": 98,
+      "order_book_20:waiting_snapshot": 92
+    },
+    "summary": {
+      "gate_usdt": {
+        "count": 104,
+        "maxProcessingMs": 500,
+        "totalProcessingMs": 10259,
+        "maxReceiveMinusSourceMs": 264,
+        "stale": 1
+      },
+      "binance_book": {
+        "count": 102,
+        "maxProcessingMs": 266,
+        "totalProcessingMs": 1050,
+        "maxReceiveMinusSourceMs": 230,
+        "stale": 4
+      },
+      "okx_book": {
+        "count": 98,
+        "maxProcessingMs": 563,
+        "totalProcessingMs": 11152,
+        "maxReceiveMinusSourceMs": 262,
+        "stale": 8
+      }
+    },
+    "symbols": [
+      {
+        "symbol": "GATE_FUTURE_AAPL_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917609671,
+        "acknowledgedAt": 1789917609933,
+        "receivedAt": 1789917668491,
+        "appliedAt": 1789917668491,
+        "sourceAt": 1789917668384,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_AAPL_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917609680,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917664399,
+        "appliedAt": 1789917664400,
+        "sourceAt": 1789917664310,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_AAPL_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917610208,
+        "acknowledgedAt": 1789917610467,
+        "receivedAt": 1789917660556,
+        "appliedAt": 1789917660556,
+        "sourceAt": 1789917660401,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_AAPL_USDC",
+        "channel": "order_book_20",
+        "state": "waiting_snapshot",
+        "requestedAt": 1789917610746,
+        "acknowledgedAt": 1789917611004,
+        "receivedAt": null,
+        "appliedAt": null,
+        "sourceAt": null,
+        "error": null
+      },
+      {
+        "symbol": "GATE_FUTURE_BTC_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917613443,
+        "acknowledgedAt": 1789917613687,
+        "receivedAt": 1789917668312,
+        "appliedAt": 1789917668349,
+        "sourceAt": 1789917668219,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_BTC_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917609931,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917668069,
+        "appliedAt": 1789917668146,
+        "sourceAt": 1789917667982,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_BTC_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917610459,
+        "acknowledgedAt": 1789917610751,
+        "receivedAt": 1789917668498,
+        "appliedAt": 1789917668505,
+        "sourceAt": 1789917668403,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+        "channel": "order_book_20",
+        "state": "waiting_snapshot",
+        "requestedAt": 1789917610746,
+        "acknowledgedAt": 1789917611004,
+        "receivedAt": null,
+        "appliedAt": null,
+        "sourceAt": null,
+        "error": null
+      },
+      {
+        "symbol": "GATE_FUTURE_CL_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917614696,
+        "acknowledgedAt": 1789917614952,
+        "receivedAt": 1789917668169,
+        "appliedAt": 1789917668169,
+        "sourceAt": 1789917668073,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_CL_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917610183,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917668489,
+        "appliedAt": 1789917668489,
+        "sourceAt": 1789917668322,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_CL_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917610459,
+        "acknowledgedAt": 1789917610752,
+        "receivedAt": 1789917667604,
+        "appliedAt": 1789917667604,
+        "sourceAt": 1789917667504,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+        "channel": "order_book_20",
+        "state": "waiting_snapshot",
+        "requestedAt": 1789917610746,
+        "acknowledgedAt": 1789917611004,
+        "receivedAt": null,
+        "appliedAt": null,
+        "sourceAt": null,
+        "error": null
+      },
+      {
+        "symbol": "GATE_FUTURE_NVDA_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917624225,
+        "acknowledgedAt": 1789917624470,
+        "receivedAt": 1789917668031,
+        "appliedAt": 1789917668466,
+        "sourceAt": 1789917667908,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_NVDA_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917611183,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917665689,
+        "appliedAt": 1789917665689,
+        "sourceAt": 1789917665600,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_NVDA_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917611461,
+        "acknowledgedAt": 1789917611800,
+        "receivedAt": 1789917665698,
+        "appliedAt": 1789917665699,
+        "sourceAt": 1789917665601,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+        "channel": "order_book_20",
+        "state": "waiting_snapshot",
+        "requestedAt": 1789917610746,
+        "acknowledgedAt": 1789917611004,
+        "receivedAt": null,
+        "appliedAt": null,
+        "sourceAt": null,
+        "error": null
+      },
+      {
+        "symbol": "GATE_FUTURE_XAU_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917633238,
+        "acknowledgedAt": 1789917633528,
+        "receivedAt": 1789917668471,
+        "appliedAt": 1789917668471,
+        "sourceAt": 1789917668309,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_XAU_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917611935,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917668478,
+        "appliedAt": 1789917668479,
+        "sourceAt": 1789917668248,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_XAU_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917612463,
+        "acknowledgedAt": 1789917612732,
+        "receivedAt": 1789917668500,
+        "appliedAt": 1789917668500,
+        "sourceAt": 1789917668404,
+        "error": null
+      }
+    ]
+  },
+  {
+    "at": 1789917670021,
+    "groups": [
+      {
+        "channel": "gate_usdt",
+        "socketState": 1,
+        "symbols": 100,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "binance_book",
+        "socketState": 1,
+        "symbols": 100,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "okx_book",
+        "socketState": 1,
+        "symbols": 98,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "order_book_20",
+        "socketState": 1,
+        "symbols": 92,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "gate_usdt",
+        "socketState": 1,
+        "symbols": 4,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "binance_book",
+        "socketState": 1,
+        "symbols": 2,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      }
+    ],
+    "states": {
+      "gate_usdt:ready": 104,
+      "binance_book:ready": 102,
+      "okx_book:ready": 98,
+      "order_book_20:waiting_snapshot": 92
+    },
+    "summary": {
+      "gate_usdt": {
+        "count": 104,
+        "maxProcessingMs": 498,
+        "totalProcessingMs": 13273,
+        "maxReceiveMinusSourceMs": 262,
+        "stale": 0
+      },
+      "binance_book": {
+        "count": 102,
+        "maxProcessingMs": 264,
+        "totalProcessingMs": 786,
+        "maxReceiveMinusSourceMs": 294,
+        "stale": 5
+      },
+      "okx_book": {
+        "count": 98,
+        "maxProcessingMs": 499,
+        "totalProcessingMs": 10263,
+        "maxReceiveMinusSourceMs": 193,
+        "stale": 9
+      }
+    },
+    "symbols": [
+      {
+        "symbol": "GATE_FUTURE_AAPL_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917609671,
+        "acknowledgedAt": 1789917609933,
+        "receivedAt": 1789917669292,
+        "appliedAt": 1789917669292,
+        "sourceAt": 1789917669201,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_AAPL_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917609680,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917669658,
+        "appliedAt": 1789917669659,
+        "sourceAt": 1789917669572,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_AAPL_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917610208,
+        "acknowledgedAt": 1789917610467,
+        "receivedAt": 1789917660556,
+        "appliedAt": 1789917660556,
+        "sourceAt": 1789917660401,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_AAPL_USDC",
+        "channel": "order_book_20",
+        "state": "waiting_snapshot",
+        "requestedAt": 1789917610746,
+        "acknowledgedAt": 1789917611004,
+        "receivedAt": null,
+        "appliedAt": null,
+        "sourceAt": null,
+        "error": null
+      },
+      {
+        "symbol": "GATE_FUTURE_BTC_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917613443,
+        "acknowledgedAt": 1789917613687,
+        "receivedAt": 1789917669812,
+        "appliedAt": 1789917669852,
+        "sourceAt": 1789917669723,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_BTC_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917609931,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917669582,
+        "appliedAt": 1789917669648,
+        "sourceAt": 1789917669494,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_BTC_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917610459,
+        "acknowledgedAt": 1789917610751,
+        "receivedAt": 1789917669997,
+        "appliedAt": 1789917670005,
+        "sourceAt": 1789917669903,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+        "channel": "order_book_20",
+        "state": "waiting_snapshot",
+        "requestedAt": 1789917610746,
+        "acknowledgedAt": 1789917611004,
+        "receivedAt": null,
+        "appliedAt": null,
+        "sourceAt": null,
+        "error": null
+      },
+      {
+        "symbol": "GATE_FUTURE_CL_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917614696,
+        "acknowledgedAt": 1789917614952,
+        "receivedAt": 1789917669369,
+        "appliedAt": 1789917669672,
+        "sourceAt": 1789917669264,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_CL_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917610183,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917669515,
+        "appliedAt": 1789917669516,
+        "sourceAt": 1789917669426,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_CL_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917610459,
+        "acknowledgedAt": 1789917610752,
+        "receivedAt": 1789917667604,
+        "appliedAt": 1789917667604,
+        "sourceAt": 1789917667504,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+        "channel": "order_book_20",
+        "state": "waiting_snapshot",
+        "requestedAt": 1789917610746,
+        "acknowledgedAt": 1789917611004,
+        "receivedAt": null,
+        "appliedAt": null,
+        "sourceAt": null,
+        "error": null
+      },
+      {
+        "symbol": "GATE_FUTURE_NVDA_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917624225,
+        "acknowledgedAt": 1789917624470,
+        "receivedAt": 1789917669530,
+        "appliedAt": 1789917669973,
+        "sourceAt": 1789917669398,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_NVDA_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917611183,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917665689,
+        "appliedAt": 1789917665689,
+        "sourceAt": 1789917665600,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_NVDA_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917611461,
+        "acknowledgedAt": 1789917611800,
+        "receivedAt": 1789917665698,
+        "appliedAt": 1789917665699,
+        "sourceAt": 1789917665601,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+        "channel": "order_book_20",
+        "state": "waiting_snapshot",
+        "requestedAt": 1789917610746,
+        "acknowledgedAt": 1789917611004,
+        "receivedAt": null,
+        "appliedAt": null,
+        "sourceAt": null,
+        "error": null
+      },
+      {
+        "symbol": "GATE_FUTURE_XAU_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917633238,
+        "acknowledgedAt": 1789917633528,
+        "receivedAt": 1789917669476,
+        "appliedAt": 1789917669477,
+        "sourceAt": 1789917669287,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_XAU_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917611935,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917669523,
+        "appliedAt": 1789917669523,
+        "sourceAt": 1789917669436,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_XAU_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917612463,
+        "acknowledgedAt": 1789917612732,
+        "receivedAt": 1789917670000,
+        "appliedAt": 1789917670005,
+        "sourceAt": 1789917669904,
+        "error": null
+      }
+    ]
+  },
+  {
+    "at": 1789917671527,
+    "groups": [
+      {
+        "channel": "gate_usdt",
+        "socketState": 1,
+        "symbols": 100,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "binance_book",
+        "socketState": 1,
+        "symbols": 100,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "okx_book",
+        "socketState": 1,
+        "symbols": 98,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "order_book_20",
+        "socketState": 1,
+        "symbols": 92,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "gate_usdt",
+        "socketState": 1,
+        "symbols": 4,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "binance_book",
+        "socketState": 1,
+        "symbols": 2,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      }
+    ],
+    "states": {
+      "gate_usdt:ready": 104,
+      "binance_book:ready": 102,
+      "okx_book:ready": 98,
+      "order_book_20:waiting_snapshot": 92
+    },
+    "summary": {
+      "gate_usdt": {
+        "count": 104,
+        "maxProcessingMs": 498,
+        "totalProcessingMs": 10092,
+        "maxReceiveMinusSourceMs": 235,
+        "stale": 0
+      },
+      "binance_book": {
+        "count": 102,
+        "maxProcessingMs": 253,
+        "totalProcessingMs": 3848,
+        "maxReceiveMinusSourceMs": 244,
+        "stale": 7
+      },
+      "okx_book": {
+        "count": 98,
+        "maxProcessingMs": 501,
+        "totalProcessingMs": 9976,
+        "maxReceiveMinusSourceMs": 192,
+        "stale": 10
+      }
+    },
+    "symbols": [
+      {
+        "symbol": "GATE_FUTURE_AAPL_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917609671,
+        "acknowledgedAt": 1789917609933,
+        "receivedAt": 1789917669292,
+        "appliedAt": 1789917669292,
+        "sourceAt": 1789917669201,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_AAPL_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917609680,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917669658,
+        "appliedAt": 1789917669659,
+        "sourceAt": 1789917669572,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_AAPL_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917610208,
+        "acknowledgedAt": 1789917610467,
+        "receivedAt": 1789917660556,
+        "appliedAt": 1789917660556,
+        "sourceAt": 1789917660401,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_AAPL_USDC",
+        "channel": "order_book_20",
+        "state": "waiting_snapshot",
+        "requestedAt": 1789917610746,
+        "acknowledgedAt": 1789917611004,
+        "receivedAt": null,
+        "appliedAt": null,
+        "sourceAt": null,
+        "error": null
+      },
+      {
+        "symbol": "GATE_FUTURE_BTC_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917613443,
+        "acknowledgedAt": 1789917613687,
+        "receivedAt": 1789917671312,
+        "appliedAt": 1789917671354,
+        "sourceAt": 1789917671219,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_BTC_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917609931,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917671094,
+        "appliedAt": 1789917671151,
+        "sourceAt": 1789917671006,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_BTC_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917610459,
+        "acknowledgedAt": 1789917610751,
+        "receivedAt": 1789917671423,
+        "appliedAt": 1789917671506,
+        "sourceAt": 1789917671303,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+        "channel": "order_book_20",
+        "state": "waiting_snapshot",
+        "requestedAt": 1789917610746,
+        "acknowledgedAt": 1789917611004,
+        "receivedAt": null,
+        "appliedAt": null,
+        "sourceAt": null,
+        "error": null
+      },
+      {
+        "symbol": "GATE_FUTURE_CL_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917614696,
+        "acknowledgedAt": 1789917614952,
+        "receivedAt": 1789917671169,
+        "appliedAt": 1789917671271,
+        "sourceAt": 1789917671031,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_CL_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917610183,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917671458,
+        "appliedAt": 1789917671458,
+        "sourceAt": 1789917671364,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_CL_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917610459,
+        "acknowledgedAt": 1789917610752,
+        "receivedAt": 1789917667604,
+        "appliedAt": 1789917667604,
+        "sourceAt": 1789917667504,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+        "channel": "order_book_20",
+        "state": "waiting_snapshot",
+        "requestedAt": 1789917610746,
+        "acknowledgedAt": 1789917611004,
+        "receivedAt": null,
+        "appliedAt": null,
+        "sourceAt": null,
+        "error": null
+      },
+      {
+        "symbol": "GATE_FUTURE_NVDA_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917624225,
+        "acknowledgedAt": 1789917624470,
+        "receivedAt": 1789917671231,
+        "appliedAt": 1789917671479,
+        "sourceAt": 1789917671110,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_NVDA_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917611183,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917665689,
+        "appliedAt": 1789917665689,
+        "sourceAt": 1789917665600,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_NVDA_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917611461,
+        "acknowledgedAt": 1789917611800,
+        "receivedAt": 1789917665698,
+        "appliedAt": 1789917665699,
+        "sourceAt": 1789917665601,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+        "channel": "order_book_20",
+        "state": "waiting_snapshot",
+        "requestedAt": 1789917610746,
+        "acknowledgedAt": 1789917611004,
+        "receivedAt": null,
+        "appliedAt": null,
+        "sourceAt": null,
+        "error": null
+      },
+      {
+        "symbol": "GATE_FUTURE_XAU_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917633238,
+        "acknowledgedAt": 1789917633528,
+        "receivedAt": 1789917671365,
+        "appliedAt": 1789917671367,
+        "sourceAt": 1789917671214,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_XAU_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917611935,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917671181,
+        "appliedAt": 1789917671181,
+        "sourceAt": 1789917671092,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_XAU_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917612463,
+        "acknowledgedAt": 1789917612732,
+        "receivedAt": 1789917671040,
+        "appliedAt": 1789917671466,
+        "sourceAt": 1789917670904,
+        "error": null
+      }
+    ]
+  },
+  {
+    "at": 1789917673032,
+    "groups": [
+      {
+        "channel": "gate_usdt",
+        "socketState": 1,
+        "symbols": 100,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "binance_book",
+        "socketState": 1,
+        "symbols": 100,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "okx_book",
+        "socketState": 1,
+        "symbols": 98,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "order_book_20",
+        "socketState": 1,
+        "symbols": 92,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "gate_usdt",
+        "socketState": 1,
+        "symbols": 4,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "binance_book",
+        "socketState": 1,
+        "symbols": 2,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      }
+    ],
+    "states": {
+      "gate_usdt:ready": 104,
+      "binance_book:ready": 102,
+      "okx_book:ready": 98,
+      "order_book_20:waiting_snapshot": 92
+    },
+    "summary": {
+      "gate_usdt": {
+        "count": 104,
+        "maxProcessingMs": 469,
+        "totalProcessingMs": 8581,
+        "maxReceiveMinusSourceMs": 225,
+        "stale": 1
+      },
+      "binance_book": {
+        "count": 102,
+        "maxProcessingMs": 248,
+        "totalProcessingMs": 2774,
+        "maxReceiveMinusSourceMs": 244,
+        "stale": 7
+      },
+      "okx_book": {
+        "count": 98,
+        "maxProcessingMs": 498,
+        "totalProcessingMs": 11716,
+        "maxReceiveMinusSourceMs": 191,
+        "stale": 7
+      }
+    },
+    "symbols": [
+      {
+        "symbol": "GATE_FUTURE_AAPL_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917609671,
+        "acknowledgedAt": 1789917609933,
+        "receivedAt": 1789917669292,
+        "appliedAt": 1789917669292,
+        "sourceAt": 1789917669201,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_AAPL_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917609680,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917669658,
+        "appliedAt": 1789917669659,
+        "sourceAt": 1789917669572,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_AAPL_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917610208,
+        "acknowledgedAt": 1789917610467,
+        "receivedAt": 1789917660556,
+        "appliedAt": 1789917660556,
+        "sourceAt": 1789917660401,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_AAPL_USDC",
+        "channel": "order_book_20",
+        "state": "waiting_snapshot",
+        "requestedAt": 1789917610746,
+        "acknowledgedAt": 1789917611004,
+        "receivedAt": null,
+        "appliedAt": null,
+        "sourceAt": null,
+        "error": null
+      },
+      {
+        "symbol": "GATE_FUTURE_BTC_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917613443,
+        "acknowledgedAt": 1789917613687,
+        "receivedAt": 1789917672813,
+        "appliedAt": 1789917672857,
+        "sourceAt": 1789917672724,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_BTC_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917609931,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917672625,
+        "appliedAt": 1789917672653,
+        "sourceAt": 1789917672518,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_BTC_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917610459,
+        "acknowledgedAt": 1789917610751,
+        "receivedAt": 1789917672997,
+        "appliedAt": 1789917673008,
+        "sourceAt": 1789917672903,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+        "channel": "order_book_20",
+        "state": "waiting_snapshot",
+        "requestedAt": 1789917610746,
+        "acknowledgedAt": 1789917611004,
+        "receivedAt": null,
+        "appliedAt": null,
+        "sourceAt": null,
+        "error": null
+      },
+      {
+        "symbol": "GATE_FUTURE_CL_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917614696,
+        "acknowledgedAt": 1789917614952,
+        "receivedAt": 1789917672668,
+        "appliedAt": 1789917672772,
+        "sourceAt": 1789917672573,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_CL_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917610183,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917672622,
+        "appliedAt": 1789917672622,
+        "sourceAt": 1789917672504,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_CL_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917610459,
+        "acknowledgedAt": 1789917610752,
+        "receivedAt": 1789917671709,
+        "appliedAt": 1789917671709,
+        "sourceAt": 1789917671604,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+        "channel": "order_book_20",
+        "state": "waiting_snapshot",
+        "requestedAt": 1789917610746,
+        "acknowledgedAt": 1789917611004,
+        "receivedAt": null,
+        "appliedAt": null,
+        "sourceAt": null,
+        "error": null
+      },
+      {
+        "symbol": "GATE_FUTURE_NVDA_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917624225,
+        "acknowledgedAt": 1789917624470,
+        "receivedAt": 1789917672957,
+        "appliedAt": 1789917672981,
+        "sourceAt": 1789917672844,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_NVDA_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917611183,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917672618,
+        "appliedAt": 1789917672618,
+        "sourceAt": 1789917672446,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_NVDA_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917611461,
+        "acknowledgedAt": 1789917611800,
+        "receivedAt": 1789917672398,
+        "appliedAt": 1789917672599,
+        "sourceAt": 1789917672301,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+        "channel": "order_book_20",
+        "state": "waiting_snapshot",
+        "requestedAt": 1789917610746,
+        "acknowledgedAt": 1789917611004,
+        "receivedAt": null,
+        "appliedAt": null,
+        "sourceAt": null,
+        "error": null
+      },
+      {
+        "symbol": "GATE_FUTURE_XAU_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917633238,
+        "acknowledgedAt": 1789917633528,
+        "receivedAt": 1789917672463,
+        "appliedAt": 1789917672665,
+        "sourceAt": 1789917672290,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_XAU_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917611935,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917672722,
+        "appliedAt": 1789917672722,
+        "sourceAt": 1789917672634,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_XAU_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917612463,
+        "acknowledgedAt": 1789917612732,
+        "receivedAt": 1789917671805,
+        "appliedAt": 1789917671966,
+        "sourceAt": 1789917671704,
+        "error": null
+      }
+    ]
+  },
+  {
+    "at": 1789917674538,
+    "groups": [
+      {
+        "channel": "gate_usdt",
+        "socketState": 1,
+        "symbols": 100,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "binance_book",
+        "socketState": 1,
+        "symbols": 100,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "okx_book",
+        "socketState": 1,
+        "symbols": 98,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "order_book_20",
+        "socketState": 1,
+        "symbols": 92,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "gate_usdt",
+        "socketState": 1,
+        "symbols": 4,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "binance_book",
+        "socketState": 1,
+        "symbols": 2,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      }
+    ],
+    "states": {
+      "gate_usdt:ready": 104,
+      "binance_book:ready": 102,
+      "okx_book:ready": 98,
+      "order_book_20:waiting_snapshot": 92
+    },
+    "summary": {
+      "gate_usdt": {
+        "count": 104,
+        "maxProcessingMs": 500,
+        "totalProcessingMs": 14314,
+        "maxReceiveMinusSourceMs": 613,
+        "stale": 2
+      },
+      "binance_book": {
+        "count": 102,
+        "maxProcessingMs": 225,
+        "totalProcessingMs": 2283,
+        "maxReceiveMinusSourceMs": 175,
+        "stale": 7
+      },
+      "okx_book": {
+        "count": 98,
+        "maxProcessingMs": 495,
+        "totalProcessingMs": 7685,
+        "maxReceiveMinusSourceMs": 207,
+        "stale": 8
+      }
+    },
+    "symbols": [
+      {
+        "symbol": "GATE_FUTURE_AAPL_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917609671,
+        "acknowledgedAt": 1789917609933,
+        "receivedAt": 1789917673991,
+        "appliedAt": 1789917674461,
+        "sourceAt": 1789917673838,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_AAPL_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917609680,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917674464,
+        "appliedAt": 1789917674464,
+        "sourceAt": 1789917674342,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_AAPL_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917610208,
+        "acknowledgedAt": 1789917610467,
+        "receivedAt": 1789917660556,
+        "appliedAt": 1789917660556,
+        "sourceAt": 1789917660401,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_AAPL_USDC",
+        "channel": "order_book_20",
+        "state": "waiting_snapshot",
+        "requestedAt": 1789917610746,
+        "acknowledgedAt": 1789917611004,
+        "receivedAt": null,
+        "appliedAt": null,
+        "sourceAt": null,
+        "error": null
+      },
+      {
+        "symbol": "GATE_FUTURE_BTC_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917613443,
+        "acknowledgedAt": 1789917613687,
+        "receivedAt": 1789917674319,
+        "appliedAt": 1789917674360,
+        "sourceAt": 1789917674225,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_BTC_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917609931,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917674196,
+        "appliedAt": 1789917674209,
+        "sourceAt": 1789917674030,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_BTC_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917610459,
+        "acknowledgedAt": 1789917610751,
+        "receivedAt": 1789917674500,
+        "appliedAt": 1789917674508,
+        "sourceAt": 1789917674403,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+        "channel": "order_book_20",
+        "state": "waiting_snapshot",
+        "requestedAt": 1789917610746,
+        "acknowledgedAt": 1789917611004,
+        "receivedAt": null,
+        "appliedAt": null,
+        "sourceAt": null,
+        "error": null
+      },
+      {
+        "symbol": "GATE_FUTURE_CL_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917614696,
+        "acknowledgedAt": 1789917614952,
+        "receivedAt": 1789917673690,
+        "appliedAt": 1789917674171,
+        "sourceAt": 1789917673240,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_CL_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917610183,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917674466,
+        "appliedAt": 1789917674466,
+        "sourceAt": 1789917674364,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_CL_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917610459,
+        "acknowledgedAt": 1789917610752,
+        "receivedAt": 1789917674406,
+        "appliedAt": 1789917674406,
+        "sourceAt": 1789917674304,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+        "channel": "order_book_20",
+        "state": "waiting_snapshot",
+        "requestedAt": 1789917610746,
+        "acknowledgedAt": 1789917611004,
+        "receivedAt": null,
+        "appliedAt": null,
+        "sourceAt": null,
+        "error": null
+      },
+      {
+        "symbol": "GATE_FUTURE_NVDA_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917624225,
+        "acknowledgedAt": 1789917624470,
+        "receivedAt": 1789917673956,
+        "appliedAt": 1789917674178,
+        "sourceAt": 1789917673833,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_NVDA_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917611183,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917674291,
+        "appliedAt": 1789917674291,
+        "sourceAt": 1789917674198,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_NVDA_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917611461,
+        "acknowledgedAt": 1789917611800,
+        "receivedAt": 1789917674200,
+        "appliedAt": 1789917674201,
+        "sourceAt": 1789917674101,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+        "channel": "order_book_20",
+        "state": "waiting_snapshot",
+        "requestedAt": 1789917610746,
+        "acknowledgedAt": 1789917611004,
+        "receivedAt": null,
+        "appliedAt": null,
+        "sourceAt": null,
+        "error": null
+      },
+      {
+        "symbol": "GATE_FUTURE_XAU_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917633238,
+        "acknowledgedAt": 1789917633528,
+        "receivedAt": 1789917673693,
+        "appliedAt": 1789917674192,
+        "sourceAt": 1789917673288,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_XAU_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917611935,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917674197,
+        "appliedAt": 1789917674197,
+        "sourceAt": 1789917674038,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_XAU_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917612463,
+        "acknowledgedAt": 1789917612732,
+        "receivedAt": 1789917673400,
+        "appliedAt": 1789917673400,
+        "sourceAt": 1789917673304,
+        "error": null
+      }
+    ]
+  },
+  {
+    "at": 1789917676043,
+    "groups": [
+      {
+        "channel": "gate_usdt",
+        "socketState": 1,
+        "symbols": 100,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "binance_book",
+        "socketState": 1,
+        "symbols": 100,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "okx_book",
+        "socketState": 1,
+        "symbols": 98,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "order_book_20",
+        "socketState": 1,
+        "symbols": 92,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "gate_usdt",
+        "socketState": 1,
+        "symbols": 4,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "binance_book",
+        "socketState": 1,
+        "symbols": 2,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      }
+    ],
+    "states": {
+      "gate_usdt:ready": 104,
+      "binance_book:ready": 102,
+      "okx_book:ready": 98,
+      "order_book_20:waiting_snapshot": 92
+    },
+    "summary": {
+      "gate_usdt": {
+        "count": 104,
+        "maxProcessingMs": 472,
+        "totalProcessingMs": 14066,
+        "maxReceiveMinusSourceMs": 264,
+        "stale": 2
+      },
+      "binance_book": {
+        "count": 102,
+        "maxProcessingMs": 218,
+        "totalProcessingMs": 2001,
+        "maxReceiveMinusSourceMs": 181,
+        "stale": 5
+      },
+      "okx_book": {
+        "count": 98,
+        "maxProcessingMs": 474,
+        "totalProcessingMs": 12207,
+        "maxReceiveMinusSourceMs": 194,
+        "stale": 9
+      }
+    },
+    "symbols": [
+      {
+        "symbol": "GATE_FUTURE_AAPL_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917609671,
+        "acknowledgedAt": 1789917609933,
+        "receivedAt": 1789917673991,
+        "appliedAt": 1789917674461,
+        "sourceAt": 1789917673838,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_AAPL_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917609680,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917674464,
+        "appliedAt": 1789917674464,
+        "sourceAt": 1789917674342,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_AAPL_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917610208,
+        "acknowledgedAt": 1789917610467,
+        "receivedAt": 1789917660556,
+        "appliedAt": 1789917660556,
+        "sourceAt": 1789917660401,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_AAPL_USDC",
+        "channel": "order_book_20",
+        "state": "waiting_snapshot",
+        "requestedAt": 1789917610746,
+        "acknowledgedAt": 1789917611004,
+        "receivedAt": null,
+        "appliedAt": null,
+        "sourceAt": null,
+        "error": null
+      },
+      {
+        "symbol": "GATE_FUTURE_BTC_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917613443,
+        "acknowledgedAt": 1789917613687,
+        "receivedAt": 1789917675813,
+        "appliedAt": 1789917675863,
+        "sourceAt": 1789917675725,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_BTC_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917609931,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917675633,
+        "appliedAt": 1789917675717,
+        "sourceAt": 1789917675542,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_BTC_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917610459,
+        "acknowledgedAt": 1789917610751,
+        "receivedAt": 1789917676004,
+        "appliedAt": 1789917676008,
+        "sourceAt": 1789917675903,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+        "channel": "order_book_20",
+        "state": "waiting_snapshot",
+        "requestedAt": 1789917610746,
+        "acknowledgedAt": 1789917611004,
+        "receivedAt": null,
+        "appliedAt": null,
+        "sourceAt": null,
+        "error": null
+      },
+      {
+        "symbol": "GATE_FUTURE_CL_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917614696,
+        "acknowledgedAt": 1789917614952,
+        "receivedAt": 1789917675569,
+        "appliedAt": 1789917675734,
+        "sourceAt": 1789917675450,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_CL_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917610183,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917675765,
+        "appliedAt": 1789917675765,
+        "sourceAt": 1789917675630,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_CL_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917610459,
+        "acknowledgedAt": 1789917610752,
+        "receivedAt": 1789917674406,
+        "appliedAt": 1789917674406,
+        "sourceAt": 1789917674304,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+        "channel": "order_book_20",
+        "state": "waiting_snapshot",
+        "requestedAt": 1789917610746,
+        "acknowledgedAt": 1789917611004,
+        "receivedAt": null,
+        "appliedAt": null,
+        "sourceAt": null,
+        "error": null
+      },
+      {
+        "symbol": "GATE_FUTURE_NVDA_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917624225,
+        "acknowledgedAt": 1789917624470,
+        "receivedAt": 1789917675830,
+        "appliedAt": 1789917675830,
+        "sourceAt": 1789917675701,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_NVDA_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917611183,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917674791,
+        "appliedAt": 1789917674791,
+        "sourceAt": 1789917674702,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_NVDA_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917611461,
+        "acknowledgedAt": 1789917611800,
+        "receivedAt": 1789917674200,
+        "appliedAt": 1789917674201,
+        "sourceAt": 1789917674101,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+        "channel": "order_book_20",
+        "state": "waiting_snapshot",
+        "requestedAt": 1789917610746,
+        "acknowledgedAt": 1789917611004,
+        "receivedAt": null,
+        "appliedAt": null,
+        "sourceAt": null,
+        "error": null
+      },
+      {
+        "symbol": "GATE_FUTURE_XAU_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917633238,
+        "acknowledgedAt": 1789917633528,
+        "receivedAt": 1789917675465,
+        "appliedAt": 1789917675695,
+        "sourceAt": 1789917675317,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_XAU_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917611935,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917675766,
+        "appliedAt": 1789917675766,
+        "sourceAt": 1789917675652,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_XAU_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917612463,
+        "acknowledgedAt": 1789917612732,
+        "receivedAt": 1789917673400,
+        "appliedAt": 1789917673400,
+        "sourceAt": 1789917673304,
+        "error": null
+      }
+    ]
+  },
+  {
+    "at": 1789917677548,
+    "groups": [
+      {
+        "channel": "gate_usdt",
+        "socketState": 1,
+        "symbols": 100,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "binance_book",
+        "socketState": 1,
+        "symbols": 100,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "okx_book",
+        "socketState": 1,
+        "symbols": 98,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "order_book_20",
+        "socketState": 1,
+        "symbols": 92,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "gate_usdt",
+        "socketState": 1,
+        "symbols": 4,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      },
+      {
+        "channel": "binance_book",
+        "socketState": 1,
+        "symbols": 2,
+        "queuedMessages": 0,
+        "reconnectAttempt": 0,
+        "error": null
+      }
+    ],
+    "states": {
+      "gate_usdt:ready": 104,
+      "binance_book:ready": 102,
+      "okx_book:ready": 98,
+      "order_book_20:waiting_snapshot": 92
+    },
+    "summary": {
+      "gate_usdt": {
+        "count": 104,
+        "maxProcessingMs": 499,
+        "totalProcessingMs": 11769,
+        "maxReceiveMinusSourceMs": 235,
+        "stale": 3
+      },
+      "binance_book": {
+        "count": 102,
+        "maxProcessingMs": 189,
+        "totalProcessingMs": 1563,
+        "maxReceiveMinusSourceMs": 199,
+        "stale": 5
+      },
+      "okx_book": {
+        "count": 98,
+        "maxProcessingMs": 497,
+        "totalProcessingMs": 9455,
+        "maxReceiveMinusSourceMs": 193,
+        "stale": 3
+      }
+    },
+    "symbols": [
+      {
+        "symbol": "GATE_FUTURE_AAPL_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917609671,
+        "acknowledgedAt": 1789917609933,
+        "receivedAt": 1789917673991,
+        "appliedAt": 1789917674461,
+        "sourceAt": 1789917673838,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_AAPL_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917609680,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917674464,
+        "appliedAt": 1789917674464,
+        "sourceAt": 1789917674342,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_AAPL_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917610208,
+        "acknowledgedAt": 1789917610467,
+        "receivedAt": 1789917676499,
+        "appliedAt": 1789917676499,
+        "sourceAt": 1789917676401,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_AAPL_USDC",
+        "channel": "order_book_20",
+        "state": "waiting_snapshot",
+        "requestedAt": 1789917610746,
+        "acknowledgedAt": 1789917611004,
+        "receivedAt": null,
+        "appliedAt": null,
+        "sourceAt": null,
+        "error": null
+      },
+      {
+        "symbol": "GATE_FUTURE_BTC_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917613443,
+        "acknowledgedAt": 1789917613687,
+        "receivedAt": 1789917677340,
+        "appliedAt": 1789917677365,
+        "sourceAt": 1789917677222,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_BTC_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917609931,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917677141,
+        "appliedAt": 1789917677219,
+        "sourceAt": 1789917677054,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_BTC_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917610459,
+        "acknowledgedAt": 1789917610751,
+        "receivedAt": 1789917677502,
+        "appliedAt": 1789917677508,
+        "sourceAt": 1789917677403,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_BTC_USDC",
+        "channel": "order_book_20",
+        "state": "waiting_snapshot",
+        "requestedAt": 1789917610746,
+        "acknowledgedAt": 1789917611004,
+        "receivedAt": null,
+        "appliedAt": null,
+        "sourceAt": null,
+        "error": null
+      },
+      {
+        "symbol": "GATE_FUTURE_CL_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917614696,
+        "acknowledgedAt": 1789917614952,
+        "receivedAt": 1789917677170,
+        "appliedAt": 1789917677237,
+        "sourceAt": 1789917677046,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_CL_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917610183,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917677405,
+        "appliedAt": 1789917677405,
+        "sourceAt": 1789917677316,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_CL_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917610459,
+        "acknowledgedAt": 1789917610752,
+        "receivedAt": 1789917677354,
+        "appliedAt": 1789917677354,
+        "sourceAt": 1789917677204,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_CL_USDC",
+        "channel": "order_book_20",
+        "state": "waiting_snapshot",
+        "requestedAt": 1789917610746,
+        "acknowledgedAt": 1789917611004,
+        "receivedAt": null,
+        "appliedAt": null,
+        "sourceAt": null,
+        "error": null
+      },
+      {
+        "symbol": "GATE_FUTURE_NVDA_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917624225,
+        "acknowledgedAt": 1789917624470,
+        "receivedAt": 1789917676955,
+        "appliedAt": 1789917677346,
+        "sourceAt": 1789917676806,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_NVDA_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917611183,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917677379,
+        "appliedAt": 1789917677380,
+        "sourceAt": 1789917677288,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_NVDA_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917611461,
+        "acknowledgedAt": 1789917611800,
+        "receivedAt": 1789917676699,
+        "appliedAt": 1789917677097,
+        "sourceAt": 1789917676601,
+        "error": null
+      },
+      {
+        "symbol": "HYPERLIQUID_FUTURE_NVDA_USDC",
+        "channel": "order_book_20",
+        "state": "waiting_snapshot",
+        "requestedAt": 1789917610746,
+        "acknowledgedAt": 1789917611004,
+        "receivedAt": null,
+        "appliedAt": null,
+        "sourceAt": null,
+        "error": null
+      },
+      {
+        "symbol": "GATE_FUTURE_XAU_USDT",
+        "channel": "gate_usdt",
+        "state": "ready",
+        "requestedAt": 1789917633238,
+        "acknowledgedAt": 1789917633528,
+        "receivedAt": 1789917676964,
+        "appliedAt": 1789917677198,
+        "sourceAt": 1789917676846,
+        "error": null
+      },
+      {
+        "symbol": "BINANCE_FUTURE_XAU_USDT",
+        "channel": "binance_book",
+        "state": "ready",
+        "requestedAt": 1789917611935,
+        "acknowledgedAt": null,
+        "receivedAt": 1789917677351,
+        "appliedAt": 1789917677351,
+        "sourceAt": 1789917677188,
+        "error": null
+      },
+      {
+        "symbol": "OKX_FUTURE_XAU_USDT",
+        "channel": "okx_book",
+        "state": "ready",
+        "requestedAt": 1789917612463,
+        "acknowledgedAt": 1789917612732,
+        "receivedAt": 1789917677502,
+        "appliedAt": 1789917677502,
+        "sourceAt": 1789917677404,
+        "error": null
+      }
+    ]
+  }
+]

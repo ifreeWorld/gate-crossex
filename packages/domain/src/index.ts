@@ -148,3 +148,5 @@ export function stalePortfolioReconciliation(
     issues: [issue('remote_refresh_failed', 'warning', 'system', null, 'Remote account refresh failed; the last validated snapshot is stale.')],
   };
 }
+
+export * from './spread-execution.js';

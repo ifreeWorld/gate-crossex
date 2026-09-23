@@ -1,0 +1,1153 @@
+[
+  {
+    "at": "2026-09-20T15:15:42.477Z",
+    "requestMs": 43,
+    "snapshotAt": "2026-09-20T15:15:41.694Z",
+    "coverage": {
+      "assets": 106,
+      "symbols": 396,
+      "validSymbols": 261,
+      "connections": 6,
+      "error": null
+    },
+    "rows": 1120,
+    "causes": {
+      "历史 K 线获取失败，正在重试": 222,
+      "目标金额深度不足，仅价差信号达标时计时": 25,
+      "HYPERLIQUID 尚未收到盘口": 499,
+      "双边盘口时间差超过 2 秒": 20,
+      "GATE 盘口超过 5 秒未更新": 6,
+      "OKX 盘口超过 5 秒未更新": 33,
+      "below": 63,
+      "watching": 22,
+      "7 天 K 线覆盖不足：104 / 168 小时": 2,
+      "BINANCE 盘口超过 5 秒未更新": 5,
+      "GATE 尚未收到盘口": 149,
+      "正在加载最近 7 天 K 线": 74
+    },
+    "venues": {
+      "GATE": {
+        "rows": 576,
+        "stale": 330
+      },
+      "BINANCE": {
+        "rows": 570,
+        "stale": 282
+      },
+      "OKX": {
+        "rows": 558,
+        "stale": 276
+      },
+      "HYPERLIQUID": {
+        "rows": 536,
+        "stale": 536
+      }
+    },
+    "examples": {
+      "HYPERLIQUID 尚未收到盘口": [
+        [
+          "GATE_FUTURE_AAOI_USDT",
+          "HYPERLIQUID_FUTURE_AAOI_USDC"
+        ],
+        [
+          "BINANCE_FUTURE_AAOI_USDT",
+          "HYPERLIQUID_FUTURE_AAOI_USDC"
+        ]
+      ],
+      "双边盘口时间差超过 2 秒": [
+        [
+          "BINANCE_FUTURE_AAOI_USDT",
+          "OKX_FUTURE_AAOI_USDT"
+        ],
+        [
+          "OKX_FUTURE_AAOI_USDT",
+          "BINANCE_FUTURE_AAOI_USDT"
+        ]
+      ],
+      "GATE 盘口超过 5 秒未更新": [
+        [
+          "GATE_FUTURE_AAPL_USDT",
+          "BINANCE_FUTURE_AAPL_USDT"
+        ],
+        [
+          "GATE_FUTURE_AAPL_USDT",
+          "OKX_FUTURE_AAPL_USDT"
+        ]
+      ],
+      "OKX 盘口超过 5 秒未更新": [
+        [
+          "BINANCE_FUTURE_AAPL_USDT",
+          "OKX_FUTURE_AAPL_USDT"
+        ],
+        [
+          "OKX_FUTURE_AAPL_USDT",
+          "GATE_FUTURE_AAPL_USDT"
+        ]
+      ],
+      "BINANCE 盘口超过 5 秒未更新": [
+        [
+          "BINANCE_FUTURE_BABA_USDT",
+          "GATE_FUTURE_BABA_USDT"
+        ],
+        [
+          "BINANCE_FUTURE_BABA_USDT",
+          "HYPERLIQUID_FUTURE_BABA_USDC"
+        ]
+      ],
+      "GATE 尚未收到盘口": [
+        [
+          "GATE_FUTURE_GOOGL_USDT",
+          "BINANCE_FUTURE_GOOGL_USDT"
+        ],
+        [
+          "GATE_FUTURE_GOOGL_USDT",
+          "OKX_FUTURE_GOOGL_USDT"
+        ]
+      ]
+    }
+  },
+  {
+    "at": "2026-09-20T15:15:45.010Z",
+    "requestMs": 31,
+    "snapshotAt": "2026-09-20T15:15:44.693Z",
+    "coverage": {
+      "assets": 106,
+      "symbols": 396,
+      "validSymbols": 274,
+      "connections": 6,
+      "error": null
+    },
+    "rows": 1120,
+    "causes": {
+      "双边盘口时间差超过 2 秒": 36,
+      "HYPERLIQUID 尚未收到盘口": 509,
+      "历史 K 线获取失败，正在重试": 262,
+      "GATE 盘口超过 5 秒未更新": 6,
+      "OKX 盘口超过 5 秒未更新": 32,
+      "below": 75,
+      "watching": 21,
+      "7 天 K 线覆盖不足：104 / 168 小时": 2,
+      "目标金额深度不足，仅价差信号达标时计时": 22,
+      "BINANCE 盘口超过 5 秒未更新": 3,
+      "GATE 尚未收到盘口": 98,
+      "正在加载最近 7 天 K 线": 54
+    },
+    "venues": {
+      "GATE": {
+        "rows": 576,
+        "stale": 304
+      },
+      "BINANCE": {
+        "rows": 570,
+        "stale": 262
+      },
+      "OKX": {
+        "rows": 558,
+        "stale": 266
+      },
+      "HYPERLIQUID": {
+        "rows": 536,
+        "stale": 536
+      }
+    },
+    "examples": {
+      "双边盘口时间差超过 2 秒": [
+        [
+          "GATE_FUTURE_AAOI_USDT",
+          "BINANCE_FUTURE_AAOI_USDT"
+        ],
+        [
+          "GATE_FUTURE_AAOI_USDT",
+          "OKX_FUTURE_AAOI_USDT"
+        ]
+      ],
+      "HYPERLIQUID 尚未收到盘口": [
+        [
+          "GATE_FUTURE_AAOI_USDT",
+          "HYPERLIQUID_FUTURE_AAOI_USDC"
+        ],
+        [
+          "BINANCE_FUTURE_AAOI_USDT",
+          "HYPERLIQUID_FUTURE_AAOI_USDC"
+        ]
+      ],
+      "GATE 盘口超过 5 秒未更新": [
+        [
+          "GATE_FUTURE_AAPL_USDT",
+          "BINANCE_FUTURE_AAPL_USDT"
+        ],
+        [
+          "GATE_FUTURE_AAPL_USDT",
+          "OKX_FUTURE_AAPL_USDT"
+        ]
+      ],
+      "OKX 盘口超过 5 秒未更新": [
+        [
+          "BINANCE_FUTURE_AAPL_USDT",
+          "OKX_FUTURE_AAPL_USDT"
+        ],
+        [
+          "OKX_FUTURE_AAPL_USDT",
+          "GATE_FUTURE_AAPL_USDT"
+        ]
+      ],
+      "BINANCE 盘口超过 5 秒未更新": [
+        [
+          "BINANCE_FUTURE_BABA_USDT",
+          "GATE_FUTURE_BABA_USDT"
+        ],
+        [
+          "BINANCE_FUTURE_BABA_USDT",
+          "HYPERLIQUID_FUTURE_BABA_USDC"
+        ]
+      ],
+      "GATE 尚未收到盘口": [
+        [
+          "GATE_FUTURE_GOOGL_USDT",
+          "BINANCE_FUTURE_GOOGL_USDT"
+        ],
+        [
+          "GATE_FUTURE_GOOGL_USDT",
+          "OKX_FUTURE_GOOGL_USDT"
+        ]
+      ]
+    }
+  },
+  {
+    "at": "2026-09-20T15:15:47.561Z",
+    "requestMs": 49,
+    "snapshotAt": "2026-09-20T15:15:46.695Z",
+    "coverage": {
+      "assets": 106,
+      "symbols": 396,
+      "validSymbols": 285,
+      "connections": 6,
+      "error": null
+    },
+    "rows": 1120,
+    "causes": {
+      "历史 K 线获取失败，正在重试": 284,
+      "目标金额深度不足，仅价差信号达标时计时": 26,
+      "HYPERLIQUID 尚未收到盘口": 517,
+      "OKX 盘口超过 5 秒未更新": 34,
+      "below": 81,
+      "watching": 27,
+      "7 天 K 线覆盖不足：104 / 168 小时": 2,
+      "GATE 盘口超过 5 秒未更新": 6,
+      "BINANCE 盘口超过 5 秒未更新": 7,
+      "双边盘口时间差超过 2 秒": 34,
+      "GATE 尚未收到盘口": 62,
+      "正在加载最近 7 天 K 线": 40
+    },
+    "venues": {
+      "GATE": {
+        "rows": 576,
+        "stale": 276
+      },
+      "BINANCE": {
+        "rows": 570,
+        "stale": 254
+      },
+      "OKX": {
+        "rows": 558,
+        "stale": 254
+      },
+      "HYPERLIQUID": {
+        "rows": 536,
+        "stale": 536
+      }
+    },
+    "examples": {
+      "HYPERLIQUID 尚未收到盘口": [
+        [
+          "GATE_FUTURE_AAOI_USDT",
+          "HYPERLIQUID_FUTURE_AAOI_USDC"
+        ],
+        [
+          "BINANCE_FUTURE_AAOI_USDT",
+          "HYPERLIQUID_FUTURE_AAOI_USDC"
+        ]
+      ],
+      "OKX 盘口超过 5 秒未更新": [
+        [
+          "GATE_FUTURE_AAPL_USDT",
+          "OKX_FUTURE_AAPL_USDT"
+        ],
+        [
+          "BINANCE_FUTURE_AAPL_USDT",
+          "OKX_FUTURE_AAPL_USDT"
+        ]
+      ],
+      "GATE 盘口超过 5 秒未更新": [
+        [
+          "GATE_FUTURE_AVGO_USDT",
+          "BINANCE_FUTURE_AVGO_USDT"
+        ],
+        [
+          "GATE_FUTURE_AVGO_USDT",
+          "OKX_FUTURE_AVGO_USDT"
+        ]
+      ],
+      "BINANCE 盘口超过 5 秒未更新": [
+        [
+          "BINANCE_FUTURE_BABA_USDT",
+          "GATE_FUTURE_BABA_USDT"
+        ],
+        [
+          "BINANCE_FUTURE_BABA_USDT",
+          "HYPERLIQUID_FUTURE_BABA_USDC"
+        ]
+      ],
+      "双边盘口时间差超过 2 秒": [
+        [
+          "GATE_FUTURE_COIN_USDT",
+          "OKX_FUTURE_COIN_USDT"
+        ],
+        [
+          "BINANCE_FUTURE_COIN_USDT",
+          "OKX_FUTURE_COIN_USDT"
+        ]
+      ],
+      "GATE 尚未收到盘口": [
+        [
+          "GATE_FUTURE_TRX_USDT",
+          "BINANCE_FUTURE_TRX_USDT"
+        ],
+        [
+          "GATE_FUTURE_TRX_USDT",
+          "OKX_FUTURE_TRX_USDT"
+        ]
+      ]
+    }
+  },
+  {
+    "at": "2026-09-20T15:15:50.103Z",
+    "requestMs": 41,
+    "snapshotAt": "2026-09-20T15:15:49.698Z",
+    "coverage": {
+      "assets": 106,
+      "symbols": 396,
+      "validSymbols": 291,
+      "connections": 6,
+      "error": null
+    },
+    "rows": 1120,
+    "causes": {
+      "历史 K 线获取失败，正在重试": 324,
+      "目标金额深度不足，仅价差信号达标时计时": 26,
+      "HYPERLIQUID 尚未收到盘口": 524,
+      "双边盘口时间差超过 2 秒": 34,
+      "OKX 盘口超过 5 秒未更新": 30,
+      "below": 102,
+      "watching": 34,
+      "7 天 K 线覆盖不足：104 / 168 小时": 2,
+      "GATE 盘口超过 5 秒未更新": 7,
+      "BINANCE 盘口超过 5 秒未更新": 22,
+      "GATE 尚未收到盘口": 5,
+      "正在加载最近 7 天 K 线": 10
+    },
+    "venues": {
+      "GATE": {
+        "rows": 576,
+        "stale": 240
+      },
+      "BINANCE": {
+        "rows": 570,
+        "stale": 240
+      },
+      "OKX": {
+        "rows": 558,
+        "stale": 228
+      },
+      "HYPERLIQUID": {
+        "rows": 536,
+        "stale": 536
+      }
+    },
+    "examples": {
+      "HYPERLIQUID 尚未收到盘口": [
+        [
+          "GATE_FUTURE_AAOI_USDT",
+          "HYPERLIQUID_FUTURE_AAOI_USDC"
+        ],
+        [
+          "BINANCE_FUTURE_AAOI_USDT",
+          "HYPERLIQUID_FUTURE_AAOI_USDC"
+        ]
+      ],
+      "双边盘口时间差超过 2 秒": [
+        [
+          "GATE_FUTURE_AAPL_USDT",
+          "BINANCE_FUTURE_AAPL_USDT"
+        ],
+        [
+          "BINANCE_FUTURE_AAPL_USDT",
+          "GATE_FUTURE_AAPL_USDT"
+        ]
+      ],
+      "OKX 盘口超过 5 秒未更新": [
+        [
+          "GATE_FUTURE_AAPL_USDT",
+          "OKX_FUTURE_AAPL_USDT"
+        ],
+        [
+          "BINANCE_FUTURE_AAPL_USDT",
+          "OKX_FUTURE_AAPL_USDT"
+        ]
+      ],
+      "GATE 盘口超过 5 秒未更新": [
+        [
+          "GATE_FUTURE_AVGO_USDT",
+          "BINANCE_FUTURE_AVGO_USDT"
+        ],
+        [
+          "GATE_FUTURE_AVGO_USDT",
+          "OKX_FUTURE_AVGO_USDT"
+        ]
+      ],
+      "BINANCE 盘口超过 5 秒未更新": [
+        [
+          "GATE_FUTURE_BABA_USDT",
+          "BINANCE_FUTURE_BABA_USDT"
+        ],
+        [
+          "BINANCE_FUTURE_BABA_USDT",
+          "GATE_FUTURE_BABA_USDT"
+        ]
+      ],
+      "GATE 尚未收到盘口": [
+        [
+          "GATE_FUTURE_XPL_USDT",
+          "BINANCE_FUTURE_XPL_USDT"
+        ],
+        [
+          "GATE_FUTURE_XPL_USDT",
+          "OKX_FUTURE_XPL_USDT"
+        ]
+      ]
+    }
+  },
+  {
+    "at": "2026-09-20T15:15:52.652Z",
+    "requestMs": 48,
+    "snapshotAt": "2026-09-20T15:15:51.704Z",
+    "coverage": {
+      "assets": 106,
+      "symbols": 396,
+      "validSymbols": 295,
+      "connections": 6,
+      "error": null
+    },
+    "rows": 1120,
+    "causes": {
+      "历史 K 线获取失败，正在重试": 342,
+      "目标金额深度不足，仅价差信号达标时计时": 30,
+      "HYPERLIQUID 尚未收到盘口": 527,
+      "OKX 盘口超过 5 秒未更新": 30,
+      "below": 102,
+      "watching": 30,
+      "7 天 K 线覆盖不足：104 / 168 小时": 2,
+      "GATE 盘口超过 5 秒未更新": 8,
+      "双边盘口时间差超过 2 秒": 36,
+      "BINANCE 盘口超过 5 秒未更新": 13
+    },
+    "venues": {
+      "GATE": {
+        "rows": 576,
+        "stale": 226
+      },
+      "BINANCE": {
+        "rows": 570,
+        "stale": 228
+      },
+      "OKX": {
+        "rows": 558,
+        "stale": 238
+      },
+      "HYPERLIQUID": {
+        "rows": 536,
+        "stale": 536
+      }
+    },
+    "examples": {
+      "HYPERLIQUID 尚未收到盘口": [
+        [
+          "GATE_FUTURE_AAOI_USDT",
+          "HYPERLIQUID_FUTURE_AAOI_USDC"
+        ],
+        [
+          "BINANCE_FUTURE_AAOI_USDT",
+          "HYPERLIQUID_FUTURE_AAOI_USDC"
+        ]
+      ],
+      "OKX 盘口超过 5 秒未更新": [
+        [
+          "GATE_FUTURE_AAPL_USDT",
+          "OKX_FUTURE_AAPL_USDT"
+        ],
+        [
+          "BINANCE_FUTURE_AAPL_USDT",
+          "OKX_FUTURE_AAPL_USDT"
+        ]
+      ],
+      "GATE 盘口超过 5 秒未更新": [
+        [
+          "GATE_FUTURE_AVGO_USDT",
+          "BINANCE_FUTURE_AVGO_USDT"
+        ],
+        [
+          "GATE_FUTURE_AVGO_USDT",
+          "OKX_FUTURE_AVGO_USDT"
+        ]
+      ],
+      "双边盘口时间差超过 2 秒": [
+        [
+          "GATE_FUTURE_BABA_USDT",
+          "BINANCE_FUTURE_BABA_USDT"
+        ],
+        [
+          "BINANCE_FUTURE_BABA_USDT",
+          "GATE_FUTURE_BABA_USDT"
+        ]
+      ],
+      "BINANCE 盘口超过 5 秒未更新": [
+        [
+          "GATE_FUTURE_CRWV_USDT",
+          "BINANCE_FUTURE_CRWV_USDT"
+        ],
+        [
+          "BINANCE_FUTURE_CRWV_USDT",
+          "GATE_FUTURE_CRWV_USDT"
+        ]
+      ]
+    }
+  },
+  {
+    "at": "2026-09-20T15:15:55.205Z",
+    "requestMs": 51,
+    "snapshotAt": "2026-09-20T15:15:54.705Z",
+    "coverage": {
+      "assets": 106,
+      "symbols": 396,
+      "validSymbols": 287,
+      "connections": 6,
+      "error": null
+    },
+    "rows": 1120,
+    "causes": {
+      "GATE 盘口超过 5 秒未更新": 40,
+      "历史 K 线获取失败，正在重试": 332,
+      "HYPERLIQUID 尚未收到盘口": 522,
+      "OKX 盘口超过 5 秒未更新": 19,
+      "below": 92,
+      "watching": 36,
+      "7 天 K 线覆盖不足：104 / 168 小时": 2,
+      "双边盘口时间差超过 2 秒": 40,
+      "目标金额深度不足，仅价差信号达标时计时": 28,
+      "BINANCE 盘口超过 5 秒未更新": 9
+    },
+    "venues": {
+      "GATE": {
+        "rows": 576,
+        "stale": 248
+      },
+      "BINANCE": {
+        "rows": 570,
+        "stale": 238
+      },
+      "OKX": {
+        "rows": 558,
+        "stale": 238
+      },
+      "HYPERLIQUID": {
+        "rows": 536,
+        "stale": 536
+      }
+    },
+    "examples": {
+      "GATE 盘口超过 5 秒未更新": [
+        [
+          "GATE_FUTURE_AAOI_USDT",
+          "BINANCE_FUTURE_AAOI_USDT"
+        ],
+        [
+          "GATE_FUTURE_AAOI_USDT",
+          "OKX_FUTURE_AAOI_USDT"
+        ]
+      ],
+      "HYPERLIQUID 尚未收到盘口": [
+        [
+          "BINANCE_FUTURE_AAOI_USDT",
+          "HYPERLIQUID_FUTURE_AAOI_USDC"
+        ],
+        [
+          "OKX_FUTURE_AAOI_USDT",
+          "HYPERLIQUID_FUTURE_AAOI_USDC"
+        ]
+      ],
+      "OKX 盘口超过 5 秒未更新": [
+        [
+          "GATE_FUTURE_AAPL_USDT",
+          "OKX_FUTURE_AAPL_USDT"
+        ],
+        [
+          "BINANCE_FUTURE_AAPL_USDT",
+          "OKX_FUTURE_AAPL_USDT"
+        ]
+      ],
+      "双边盘口时间差超过 2 秒": [
+        [
+          "GATE_FUTURE_AMZN_USDT",
+          "OKX_FUTURE_AMZN_USDT"
+        ],
+        [
+          "BINANCE_FUTURE_AMZN_USDT",
+          "OKX_FUTURE_AMZN_USDT"
+        ]
+      ],
+      "BINANCE 盘口超过 5 秒未更新": [
+        [
+          "BINANCE_FUTURE_CRWV_USDT",
+          "GATE_FUTURE_CRWV_USDT"
+        ],
+        [
+          "BINANCE_FUTURE_CRWV_USDT",
+          "OKX_FUTURE_CRWV_USDT"
+        ]
+      ]
+    }
+  },
+  {
+    "at": "2026-09-20T15:15:57.804Z",
+    "requestMs": 99,
+    "snapshotAt": "2026-09-20T15:15:57.706Z",
+    "coverage": {
+      "assets": 106,
+      "symbols": 396,
+      "validSymbols": 285,
+      "connections": 6,
+      "error": null
+    },
+    "rows": 1120,
+    "causes": {
+      "BINANCE 盘口超过 5 秒未更新": 24,
+      "双边盘口时间差超过 2 秒": 26,
+      "HYPERLIQUID 尚未收到盘口": 517,
+      "OKX 盘口超过 5 秒未更新": 38,
+      "历史 K 线获取失败，正在重试": 330,
+      "below": 96,
+      "目标金额深度不足，仅价差信号达标时计时": 28,
+      "7 天 K 线覆盖不足：104 / 168 小时": 2,
+      "watching": 38,
+      "GATE 盘口超过 5 秒未更新": 21
+    },
+    "venues": {
+      "GATE": {
+        "rows": 576,
+        "stale": 238
+      },
+      "BINANCE": {
+        "rows": 570,
+        "stale": 240
+      },
+      "OKX": {
+        "rows": 558,
+        "stale": 238
+      },
+      "HYPERLIQUID": {
+        "rows": 536,
+        "stale": 536
+      }
+    },
+    "examples": {
+      "BINANCE 盘口超过 5 秒未更新": [
+        [
+          "GATE_FUTURE_AAOI_USDT",
+          "BINANCE_FUTURE_AAOI_USDT"
+        ],
+        [
+          "BINANCE_FUTURE_AAOI_USDT",
+          "GATE_FUTURE_AAOI_USDT"
+        ]
+      ],
+      "双边盘口时间差超过 2 秒": [
+        [
+          "GATE_FUTURE_AAOI_USDT",
+          "OKX_FUTURE_AAOI_USDT"
+        ],
+        [
+          "OKX_FUTURE_AAOI_USDT",
+          "GATE_FUTURE_AAOI_USDT"
+        ]
+      ],
+      "HYPERLIQUID 尚未收到盘口": [
+        [
+          "GATE_FUTURE_AAOI_USDT",
+          "HYPERLIQUID_FUTURE_AAOI_USDC"
+        ],
+        [
+          "OKX_FUTURE_AAOI_USDT",
+          "HYPERLIQUID_FUTURE_AAOI_USDC"
+        ]
+      ],
+      "OKX 盘口超过 5 秒未更新": [
+        [
+          "GATE_FUTURE_AAPL_USDT",
+          "OKX_FUTURE_AAPL_USDT"
+        ],
+        [
+          "BINANCE_FUTURE_AAPL_USDT",
+          "OKX_FUTURE_AAPL_USDT"
+        ]
+      ],
+      "GATE 盘口超过 5 秒未更新": [
+        [
+          "GATE_FUTURE_AMZN_USDT",
+          "BINANCE_FUTURE_AMZN_USDT"
+        ],
+        [
+          "GATE_FUTURE_AMZN_USDT",
+          "OKX_FUTURE_AMZN_USDT"
+        ]
+      ]
+    }
+  },
+  {
+    "at": "2026-09-20T15:16:00.330Z",
+    "requestMs": 26,
+    "snapshotAt": "2026-09-20T15:15:59.705Z",
+    "coverage": {
+      "assets": 106,
+      "symbols": 396,
+      "validSymbols": 297,
+      "connections": 6,
+      "error": null
+    },
+    "rows": 1120,
+    "causes": {
+      "历史 K 线获取失败，正在重试": 366,
+      "目标金额深度不足，仅价差信号达标时计时": 33,
+      "HYPERLIQUID 尚未收到盘口": 528,
+      "OKX 盘口超过 5 秒未更新": 24,
+      "below": 108,
+      "watching": 39,
+      "7 天 K 线覆盖不足：104 / 168 小时": 2,
+      "双边盘口时间差超过 2 秒": 10,
+      "GATE 盘口超过 5 秒未更新": 5,
+      "BINANCE 盘口超过 5 秒未更新": 5
+    },
+    "venues": {
+      "GATE": {
+        "rows": 576,
+        "stale": 198
+      },
+      "BINANCE": {
+        "rows": 570,
+        "stale": 204
+      },
+      "OKX": {
+        "rows": 558,
+        "stale": 206
+      },
+      "HYPERLIQUID": {
+        "rows": 536,
+        "stale": 536
+      }
+    },
+    "examples": {
+      "HYPERLIQUID 尚未收到盘口": [
+        [
+          "GATE_FUTURE_AAOI_USDT",
+          "HYPERLIQUID_FUTURE_AAOI_USDC"
+        ],
+        [
+          "BINANCE_FUTURE_AAOI_USDT",
+          "HYPERLIQUID_FUTURE_AAOI_USDC"
+        ]
+      ],
+      "OKX 盘口超过 5 秒未更新": [
+        [
+          "GATE_FUTURE_AAPL_USDT",
+          "OKX_FUTURE_AAPL_USDT"
+        ],
+        [
+          "BINANCE_FUTURE_AAPL_USDT",
+          "OKX_FUTURE_AAPL_USDT"
+        ]
+      ],
+      "双边盘口时间差超过 2 秒": [
+        [
+          "GATE_FUTURE_AMD_USDT",
+          "OKX_FUTURE_AMD_USDT"
+        ],
+        [
+          "BINANCE_FUTURE_AMD_USDT",
+          "OKX_FUTURE_AMD_USDT"
+        ]
+      ],
+      "GATE 盘口超过 5 秒未更新": [
+        [
+          "GATE_FUTURE_AMZN_USDT",
+          "BINANCE_FUTURE_AMZN_USDT"
+        ],
+        [
+          "GATE_FUTURE_AMZN_USDT",
+          "OKX_FUTURE_AMZN_USDT"
+        ]
+      ],
+      "BINANCE 盘口超过 5 秒未更新": [
+        [
+          "BINANCE_FUTURE_COPPER_USDT",
+          "HYPERLIQUID_FUTURE_COPPER_USDC"
+        ],
+        [
+          "GATE_FUTURE_META_USDT",
+          "BINANCE_FUTURE_META_USDT"
+        ]
+      ]
+    }
+  },
+  {
+    "at": "2026-09-20T15:16:02.954Z",
+    "requestMs": 109,
+    "snapshotAt": "2026-09-20T15:16:02.707Z",
+    "coverage": {
+      "assets": 106,
+      "symbols": 396,
+      "validSymbols": 302,
+      "connections": 6,
+      "error": null
+    },
+    "rows": 1120,
+    "causes": {
+      "历史 K 线获取失败，正在重试": 372,
+      "below": 98,
+      "HYPERLIQUID 尚未收到盘口": 534,
+      "目标金额深度不足，仅价差信号达标时计时": 44,
+      "双边盘口时间差超过 2 秒": 22,
+      "OKX 盘口超过 5 秒未更新": 5,
+      "watching": 42,
+      "7 天 K 线覆盖不足：104 / 168 小时": 2,
+      "BINANCE 盘口超过 5 秒未更新": 1
+    },
+    "venues": {
+      "GATE": {
+        "rows": 576,
+        "stale": 194
+      },
+      "BINANCE": {
+        "rows": 570,
+        "stale": 198
+      },
+      "OKX": {
+        "rows": 558,
+        "stale": 196
+      },
+      "HYPERLIQUID": {
+        "rows": 536,
+        "stale": 536
+      }
+    },
+    "examples": {
+      "HYPERLIQUID 尚未收到盘口": [
+        [
+          "GATE_FUTURE_AAOI_USDT",
+          "HYPERLIQUID_FUTURE_AAOI_USDC"
+        ],
+        [
+          "BINANCE_FUTURE_AAOI_USDT",
+          "HYPERLIQUID_FUTURE_AAOI_USDC"
+        ]
+      ],
+      "双边盘口时间差超过 2 秒": [
+        [
+          "GATE_FUTURE_AAPL_USDT",
+          "BINANCE_FUTURE_AAPL_USDT"
+        ],
+        [
+          "BINANCE_FUTURE_AAPL_USDT",
+          "GATE_FUTURE_AAPL_USDT"
+        ]
+      ],
+      "OKX 盘口超过 5 秒未更新": [
+        [
+          "GATE_FUTURE_AAPL_USDT",
+          "OKX_FUTURE_AAPL_USDT"
+        ],
+        [
+          "BINANCE_FUTURE_AAPL_USDT",
+          "OKX_FUTURE_AAPL_USDT"
+        ]
+      ],
+      "BINANCE 盘口超过 5 秒未更新": [
+        [
+          "BINANCE_FUTURE_COPPER_USDT",
+          "HYPERLIQUID_FUTURE_COPPER_USDC"
+        ]
+      ]
+    }
+  },
+  {
+    "at": "2026-09-20T15:16:05.510Z",
+    "requestMs": 54,
+    "snapshotAt": "2026-09-20T15:16:04.708Z",
+    "coverage": {
+      "assets": 106,
+      "symbols": 396,
+      "validSymbols": 301,
+      "connections": 6,
+      "error": null
+    },
+    "rows": 1120,
+    "causes": {
+      "历史 K 线获取失败，正在重试": 362,
+      "below": 97,
+      "HYPERLIQUID 尚未收到盘口": 534,
+      "目标金额深度不足，仅价差信号达标时计时": 38,
+      "GATE 盘口超过 5 秒未更新": 4,
+      "OKX 盘口超过 5 秒未更新": 4,
+      "watching": 39,
+      "7 天 K 线覆盖不足：104 / 168 小时": 2,
+      "双边盘口时间差超过 2 秒": 40
+    },
+    "venues": {
+      "GATE": {
+        "rows": 576,
+        "stale": 208
+      },
+      "BINANCE": {
+        "rows": 570,
+        "stale": 208
+      },
+      "OKX": {
+        "rows": 558,
+        "stale": 212
+      },
+      "HYPERLIQUID": {
+        "rows": 536,
+        "stale": 536
+      }
+    },
+    "examples": {
+      "HYPERLIQUID 尚未收到盘口": [
+        [
+          "GATE_FUTURE_AAOI_USDT",
+          "HYPERLIQUID_FUTURE_AAOI_USDC"
+        ],
+        [
+          "BINANCE_FUTURE_AAOI_USDT",
+          "HYPERLIQUID_FUTURE_AAOI_USDC"
+        ]
+      ],
+      "GATE 盘口超过 5 秒未更新": [
+        [
+          "GATE_FUTURE_AAPL_USDT",
+          "BINANCE_FUTURE_AAPL_USDT"
+        ],
+        [
+          "GATE_FUTURE_AAPL_USDT",
+          "OKX_FUTURE_AAPL_USDT"
+        ]
+      ],
+      "OKX 盘口超过 5 秒未更新": [
+        [
+          "BINANCE_FUTURE_AAPL_USDT",
+          "OKX_FUTURE_AAPL_USDT"
+        ],
+        [
+          "OKX_FUTURE_AAPL_USDT",
+          "GATE_FUTURE_AAPL_USDT"
+        ]
+      ],
+      "双边盘口时间差超过 2 秒": [
+        [
+          "GATE_FUTURE_AMD_USDT",
+          "OKX_FUTURE_AMD_USDT"
+        ],
+        [
+          "BINANCE_FUTURE_AMD_USDT",
+          "OKX_FUTURE_AMD_USDT"
+        ]
+      ]
+    }
+  },
+  {
+    "at": "2026-09-20T15:16:08.045Z",
+    "requestMs": 35,
+    "snapshotAt": "2026-09-20T15:16:07.710Z",
+    "coverage": {
+      "assets": 106,
+      "symbols": 396,
+      "validSymbols": 295,
+      "connections": 6,
+      "error": null
+    },
+    "rows": 1120,
+    "causes": {
+      "历史 K 线获取失败，正在重试": 348,
+      "below": 105,
+      "HYPERLIQUID 尚未收到盘口": 529,
+      "目标金额深度不足，仅价差信号达标时计时": 31,
+      "GATE 盘口超过 5 秒未更新": 4,
+      "OKX 盘口超过 5 秒未更新": 24,
+      "watching": 38,
+      "7 天 K 线覆盖不足：104 / 168 小时": 2,
+      "双边盘口时间差超过 2 秒": 34,
+      "BINANCE 盘口超过 5 秒未更新": 5
+    },
+    "venues": {
+      "GATE": {
+        "rows": 576,
+        "stale": 212
+      },
+      "BINANCE": {
+        "rows": 570,
+        "stale": 222
+      },
+      "OKX": {
+        "rows": 558,
+        "stale": 222
+      },
+      "HYPERLIQUID": {
+        "rows": 536,
+        "stale": 536
+      }
+    },
+    "examples": {
+      "HYPERLIQUID 尚未收到盘口": [
+        [
+          "GATE_FUTURE_AAOI_USDT",
+          "HYPERLIQUID_FUTURE_AAOI_USDC"
+        ],
+        [
+          "BINANCE_FUTURE_AAOI_USDT",
+          "HYPERLIQUID_FUTURE_AAOI_USDC"
+        ]
+      ],
+      "GATE 盘口超过 5 秒未更新": [
+        [
+          "GATE_FUTURE_AAPL_USDT",
+          "BINANCE_FUTURE_AAPL_USDT"
+        ],
+        [
+          "GATE_FUTURE_AAPL_USDT",
+          "OKX_FUTURE_AAPL_USDT"
+        ]
+      ],
+      "OKX 盘口超过 5 秒未更新": [
+        [
+          "BINANCE_FUTURE_AAPL_USDT",
+          "OKX_FUTURE_AAPL_USDT"
+        ],
+        [
+          "OKX_FUTURE_AAPL_USDT",
+          "GATE_FUTURE_AAPL_USDT"
+        ]
+      ],
+      "双边盘口时间差超过 2 秒": [
+        [
+          "GATE_FUTURE_AVGO_USDT",
+          "OKX_FUTURE_AVGO_USDT"
+        ],
+        [
+          "BINANCE_FUTURE_AVGO_USDT",
+          "OKX_FUTURE_AVGO_USDT"
+        ]
+      ],
+      "BINANCE 盘口超过 5 秒未更新": [
+        [
+          "GATE_FUTURE_MSFT_USDT",
+          "BINANCE_FUTURE_MSFT_USDT"
+        ],
+        [
+          "BINANCE_FUTURE_MSFT_USDT",
+          "GATE_FUTURE_MSFT_USDT"
+        ]
+      ]
+    }
+  },
+  {
+    "at": "2026-09-20T15:16:10.586Z",
+    "requestMs": 41,
+    "snapshotAt": "2026-09-20T15:16:09.712Z",
+    "coverage": {
+      "assets": 106,
+      "symbols": 396,
+      "validSymbols": 293,
+      "connections": 6,
+      "error": null
+    },
+    "rows": 1120,
+    "causes": {
+      "历史 K 线获取失败，正在重试": 342,
+      "below": 100,
+      "HYPERLIQUID 尚未收到盘口": 529,
+      "目标金额深度不足，仅价差信号达标时计时": 26,
+      "OKX 盘口超过 5 秒未更新": 25,
+      "watching": 40,
+      "7 天 K 线覆盖不足：104 / 168 小时": 2,
+      "双边盘口时间差超过 2 秒": 48,
+      "BINANCE 盘口超过 5 秒未更新": 8
+    },
+    "venues": {
+      "GATE": {
+        "rows": 576,
+        "stale": 222
+      },
+      "BINANCE": {
+        "rows": 570,
+        "stale": 228
+      },
+      "OKX": {
+        "rows": 558,
+        "stale": 234
+      },
+      "HYPERLIQUID": {
+        "rows": 536,
+        "stale": 536
+      }
+    },
+    "examples": {
+      "HYPERLIQUID 尚未收到盘口": [
+        [
+          "GATE_FUTURE_AAOI_USDT",
+          "HYPERLIQUID_FUTURE_AAOI_USDC"
+        ],
+        [
+          "BINANCE_FUTURE_AAOI_USDT",
+          "HYPERLIQUID_FUTURE_AAOI_USDC"
+        ]
+      ],
+      "OKX 盘口超过 5 秒未更新": [
+        [
+          "GATE_FUTURE_AAPL_USDT",
+          "OKX_FUTURE_AAPL_USDT"
+        ],
+        [
+          "BINANCE_FUTURE_AAPL_USDT",
+          "OKX_FUTURE_AAPL_USDT"
+        ]
+      ],
+      "双边盘口时间差超过 2 秒": [
+        [
+          "GATE_FUTURE_AMD_USDT",
+          "BINANCE_FUTURE_AMD_USDT"
+        ],
+        [
+          "BINANCE_FUTURE_AMD_USDT",
+          "GATE_FUTURE_AMD_USDT"
+        ]
+      ],
+      "BINANCE 盘口超过 5 秒未更新": [
+        [
+          "GATE_FUTURE_BABA_USDT",
+          "BINANCE_FUTURE_BABA_USDT"
+        ],
+        [
+          "BINANCE_FUTURE_BABA_USDT",
+          "GATE_FUTURE_BABA_USDT"
+        ]
+      ]
+    }
+  }
+]

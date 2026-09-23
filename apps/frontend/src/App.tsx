@@ -30,6 +30,8 @@ import type { FundingMetric, PairedPositionPrefill } from './route-shared.js';
 import brandMark from './assets/brand-mark.svg';
 import borosMark from './assets/boros-mark.svg';
 
+const AssetMonitorView = lazy(() => import('./asset-monitor-route.js').then(module => ({ default: module.AssetMonitorView })));
+const SpreadMonitorView = lazy(() => import('./spread-monitor-route.js').then(module => ({ default: module.SpreadMonitorView })));
 const TradingView = lazy(() => import('./trade-route.js').then((module) => ({ default: module.TradingView })));
 const StrategyView = lazy(() => import('./strategy-route.js').then((module) => ({ default: module.StrategyView })));
 const PremiumStrategyView = lazy(() => import('./strategy-route.js').then((module) => ({ default: module.PremiumStrategyView })));
@@ -42,7 +44,7 @@ const SOURCE_CODE_URL = 'https://github.com/your-quantguy/gate-crossex';
 const LICENSE_URL = `${SOURCE_CODE_URL}/blob/main/LICENSE`;
 const RELEASE_VERSION = `v${import.meta.env.VITE_APP_VERSION}`;
 
-type Workspace = 'Trade' | 'Strategy' | 'Funding Rates' | 'Portfolio' | 'Trading Fees';
+type Workspace = 'Spread Monitor' | 'Trade' | 'Strategy' | 'Funding Rates' | 'Portfolio' | 'Trading Fees';
 type NavigationLabel = Workspace | 'Boros by Pendle';
 type StrategyKind = StrategyRouteKind;
 type FundingHistoryDuration = 1 | 7 | 30;
@@ -52,11 +54,13 @@ const navItems: { label: NavigationLabel; glyph: string }[] = [
   { label: 'Trade', glyph: '⌁' },
   { label: 'Strategy', glyph: '⇄' },
   { label: 'Funding Rates', glyph: '%' },
+  { label: 'Spread Monitor', glyph: '≋' },
   { label: 'Boros by Pendle', glyph: '◐' },
 ];
 
 const strategyPages: Array<{ kind: StrategyKind; glyph: string; label: string; detail: string }> = [
   { kind: 'position', glyph: '◎', label: 'Cross-exchange hedge', detail: 'Execute a fixed two-venue position, then stop' },
+  { kind: 'asset-monitor', glyph: '◈', label: '稳定币与黄金监控', detail: '稳定币相对折价与黄金双腿价差观察' },
   { kind: 'premium', glyph: '≒', label: 'SK hynix premium bot', detail: 'Trade the SK hynix ADR premium vs the Korean listing' },
 ];
 
@@ -808,8 +812,10 @@ function App() {
   );
 
   const content = useMemo(() => {
+    if (workspace === 'Spread Monitor') return <SpreadMonitorView />;
     if (workspace === 'Trade') return <TradingView asset={selectedAsset} catalog={availableCatalog} onSelectAsset={selectAsset} marketSnapshot={marketSnapshot} tradingSnapshot={tradingSnapshot} authenticatedPortfolio={authenticatedPortfolio} balances={balances} fees={fees} orderBook={orderBook} publicTrades={publicTrades} candleSeries={candleSeries} candleBackfilling={candleBackfilling} watchMarket={watchMarket} watchQuotes={watchQuotes} seedCandles={seedCandles} onTradingChanged={refreshTrading} onPositionsRefresh={refreshPositions} onLeverageChanged={refreshLeverageState} tradingMode={tradingMode} onOpenModeDialog={openModeDialog} favorites={favorites} onToggleFavorite={toggleFavorite} confirmOrders={confirmOrders} onSetConfirmOrders={setConfirmOrders} />;
     if (workspace === 'Strategy') {
+      if (strategyKind === 'asset-monitor') return <AssetMonitorView />;
       if (strategyKind === 'premium') return <PremiumStrategyView marketSnapshot={marketSnapshot} catalog={availableCatalog} strategies={strategies} balances={balances} authenticatedPortfolio={authenticatedPortfolio} tradingSnapshot={tradingSnapshot} tradingMode={tradingMode} onOpenModeDialog={openModeDialog} onStrategiesChanged={refreshStrategies} onPositionsRefresh={refreshPositions} onLeverageChanged={refreshLeverageState} watchQuotes={watchQuotes} />;
       if (strategyKind === 'boros') return <BorosStrategyView marketSnapshot={marketSnapshot} catalog={availableCatalog} balances={balances} fees={fees} feesReady={feesReady} strategies={strategies} authenticatedPortfolio={authenticatedPortfolio} tradingSnapshot={tradingSnapshot} tradingMode={tradingMode} onOpenModeDialog={openModeDialog} onStrategiesChanged={refreshStrategies} onPositionsRefresh={refreshPositions} watchQuotes={watchQuotes} />;
       return <StrategyView mode={strategyKind} prefill={positionPrefill} marketSnapshot={marketSnapshot} catalog={availableCatalog} fees={fees} strategies={strategies} balances={balances} authenticatedPortfolio={authenticatedPortfolio} tradingSnapshot={tradingSnapshot} tradingMode={tradingMode} onOpenModeDialog={openModeDialog} onStrategiesChanged={refreshStrategies} onPositionsRefresh={refreshPositions} onLeverageChanged={refreshLeverageState} watchQuotes={watchQuotes} />;
@@ -885,12 +891,14 @@ function App() {
             ? { workspace: 'Trade' }
             : item.label === 'Boros by Pendle'
               ? { workspace: 'Strategy', strategyKind: 'boros' }
+            : item.label === 'Spread Monitor'
+              ? { workspace: 'Spread Monitor' }
             : item.label === 'Funding Rates'
               ? { workspace: 'Funding Rates', asset: null }
               : { workspace: 'Portfolio' });
         }}>{item.label === 'Boros by Pendle'
             ? <span className="nav-boros-mark" aria-hidden="true"><img src={borosMark} alt="" /></span>
-            : <span>{item.glyph}</span>}{t(item.label)}</button>)}
+            : <span>{item.glyph}</span>}{item.label === 'Spread Monitor' ? '价差监控' : t(item.label)}</button>)}
         <div className="nav-strategy nav-more" ref={moreNavRef}>
           <button ref={moreTriggerRef} className={`${workspace === 'Trading Fees' ? 'active' : ''}${moreMenuAt ? ' menu-open' : ''}`}
             aria-label={t('More')} aria-haspopup="menu" aria-expanded={moreMenuAt !== null}

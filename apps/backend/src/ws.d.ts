@@ -1,10 +1,11 @@
 declare module 'ws' {
   export default class WebSocket {
     static readonly OPEN: number;
+    static readonly CLOSED: number;
     readonly OPEN: number;
     readonly readyState: number;
     readonly bufferedAmount: number;
-    constructor(url: string);
+    constructor(url: string, options?: { headers?: Record<string, string>; handshakeTimeout?: number });
     on(event: 'open' | 'close' | 'error' | 'pong', listener: (...args: unknown[]) => void): this;
     on(event: 'message', listener: (data: { toString(): string }) => void): this;
     send(data: string): void;
